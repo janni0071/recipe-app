@@ -1,11 +1,29 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+import Search from '../components/SearchBar.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const allRecipes = await getCollection('recipes');
+const sortedRecipes = allRecipes.sort((a: CollectionEntry<'recipes'>, b: CollectionEntry<'recipes'>) =>
+  b.data.date.getTime() - a.data.date.getTime()
+);
 ---
+<BaseLayout title="All Recipes">
+  <h1 class="text-3xl font-bold mb-6">Our Recipe Collection 🧑‍🍳</h1>
 
-<Layout>
-	<Welcome />
-</Layout>
+  <Search />
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {sortedRecipes.map((recipe: CollectionEntry<'recipes'>) => (
+      <RecipeCard
+        title={recipe.data.title}
+        tags={recipe.data.tags}
+        prepTime={recipe.data.prepTime}
+        cookTime={recipe.data.cookTime}
+        slug={recipe.slug}
+        image={recipe.data.image}
+      />
+    ))}
+  </div>
+</BaseLayout>

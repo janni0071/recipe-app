@@ -1,0 +1,18 @@
+---
+// No frontmatter needed for this component
+---
+
+<div id="search"></div>
+
+<script>
+  import { PagefindUI } from '@pagefind/default-ui';
+  import '@pagefind/default-ui/css/ui.css';
+
+  new PagefindUI({
+    element: '#search',
+    showSubResults: true,
+    translations: {
+      placeholder: 'Search for recipes...',
+    },
+  });
+</script>

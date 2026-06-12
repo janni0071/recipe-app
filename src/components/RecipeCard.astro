@@ -1,0 +1,32 @@
+---
+export interface Props {
+  title: string;
+  tags: string[];
+  prepTime: string;
+  cookTime: string;
+  slug: string;
+  image?: string;
+}
+const { title, tags, prepTime, cookTime, slug, image } = Astro.props;
+---
+<a href={`/recipes/${slug}`} class="block group">
+  <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg">
+    {image && (
+      <div class="h-48 bg-gray-200 overflow-hidden">
+        <img src={image} alt={title} class="w-full h-full object-cover group-hover:scale-105 transition" />
+      </div>
+    )}
+    <div class="p-4">
+      <h3 class="text-xl font-semibold mb-2">{title}</h3>
+      <div class="flex flex-wrap gap-2 mb-3">
+        {tags.map(tag => (
+          <span class="text-xs bg-rose-100 text-rose-700 px-2 py-1 rounded-full">#{tag}</span>
+        ))}
+      </div>
+      <div class="flex justify-between text-sm text-gray-500">
+        <span>⏱️ Prep: {prepTime}</span>
+        <span>🍳 Cook: {cookTime}</span>
+      </div>
+    </div>
+  </div>
+</a>

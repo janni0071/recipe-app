@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import RecipeCard from '../../components/RecipeCard.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths(): Promise<{ params: { tag: string } }[]> {
+  const recipes = await getCollection('recipes');
+  const allTags = new Set<string>();
+  recipes.forEach((recipe: CollectionEntry<'recipes'>) => {
+    recipe.data.tags.forEach((tag: string) => allTags.add(tag));
+  });
+  return Array.from(allTags).map((tag: string) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params as { tag: string };
+
+type Props = {
+  tag: string;
+};
+
+const allRecipes = await getCollection('recipes');
+const filteredRecipes = allRecipes.filter((recipe: CollectionEntry<'recipes'>) =>
+  recipe.data.tags.includes(tag!)
+);
+---
+<BaseLayout title={`Recipes tagged #${tag}`}>
+  <h1 class="text-3xl font-bold mb-2">Recipes tagged <span class="text-rose-600">#{tag}</span></h1>
+  <p class="mb-6 text-gray-600">{filteredRecipes.length} recipe(s)</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {filteredRecipes.map((recipe: CollectionEntry<'recipes'>) => (
+      <RecipeCard
+        title={recipe.data.title}
+        tags={recipe.data.tags}
+        prepTime={recipe.data.prepTime}
+        cookTime={recipe.data.cookTime}
+        slug={recipe.slug}
+        image={recipe.data.image}
+      />
+    ))}
+  </div>
+</BaseLayout>
