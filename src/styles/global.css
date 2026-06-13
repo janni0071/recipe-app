@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
 /* Custom theme using CSS variables (Tailwind v4 supports this) */
 :root {
   --font-sans: "Inter", system-ui, sans-serif;
@@ -36,3 +37,22 @@
 .prose p {
   margin-bottom: 1rem;
 }
+
+.prose {
+  color: #1f2937;
+  max-width: none;
+}
+.dark .prose {
+  color: #e5e7eb;
+}
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #9f1239;
+}
+.dark .prose h2 {
+  color: #fb7185;
+}
+/* Add other dark variants similarly */

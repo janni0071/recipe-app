@@ -4,6 +4,71 @@
 
 <div id="search"></div>
 
+<style is:global>
+  /* Light mode defaults (already from Pagefind UI) */
+
+  /* Dark mode overrides - higher specificity */
+  .dark .pagefind-ui__search-input {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f3f4f6 !important;
+  }
+
+  .dark .pagefind-ui__search-input::placeholder {
+    color: #9ca3af !important;
+  }
+
+  .dark .pagefind-ui__search-clear {
+    color: #9ca3af !important;
+  }
+
+  .dark .pagefind-ui__result {
+    border-bottom-color: #374151 !important;
+  }
+
+  .dark .pagefind-ui__result-title {
+    color: #fbbf24 !important;
+  }
+
+  .dark .pagefind-ui__result-excerpt {
+    color: #d1d5db !important;
+  }
+
+  .dark .pagefind-ui__result-excerpt mark {
+    background-color: #4d3e1f !important;
+    color: #fcd34d !important;
+  }
+
+  .dark .pagefind-ui__result-link {
+    color: #60a5fa !important;
+  }
+
+  .dark .pagefind-ui__result-nested {
+    background-color: #111827 !important;
+    border-left-color: #374151 !important;
+  }
+
+  .dark .pagefind-ui__result-nested .pagefind-ui__result-title {
+    color: #e5e7eb !important;
+  }
+
+  .dark .pagefind-ui__result-nested .pagefind-ui__result-excerpt {
+    color: #9ca3af !important;
+  }
+
+  /* Also style the search input focus ring */
+  .dark .pagefind-ui__search-input:focus {
+    border-color: #f43f5e !important;
+    outline: none;
+  }
+
+  /* Dark mode for the search button (magnifying glass) */
+  .dark .pagefind-ui__search-button {
+    background-color: #374151 !important;
+    color: #9ca3af !important;
+  }
+</style>
+
 <script>
   import { PagefindUI } from '@pagefind/default-ui';
   import '@pagefind/default-ui/css/ui.css';
