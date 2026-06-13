@@ -18,7 +18,10 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
 <BaseLayout title="All Recipes">
   <h1 class="text-3xl font-bold mb-6">Our Recipe Collection 🧑‍🍳</h1>
 
-  <Search />
+  <!-- Add margin-bottom to separate search from recipe grid -->
+  <div class="mb-8">
+    <Search />
+  </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {recipesWithSlug.map((recipe) => (
