@@ -1,13 +1,22 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry, render } from 'astro:content';
 
-export async function getStaticPaths(): Promise<{ params: { slug: string }; props: { recipe: CollectionEntry<'recipes'> } }[]> {
+type StaticPath = {
+  params: { slug: string };
+  props: { recipe: CollectionEntry<'recipes'> };
+};
+
+export async function getStaticPaths(): Promise<StaticPath[]> {
   const recipes = await getCollection('recipes');
-  return recipes.map((recipe: CollectionEntry<'recipes'>) => ({
-    params: { slug: recipe.slug },
-    props: { recipe },
-  }));
+  return recipes.map((recipe: CollectionEntry<'recipes'>) => {
+    // Remove .md extension from the id to get the clean slug
+    const slug = recipe.id.replace(/\.md$/, '');
+    return {
+      params: { slug },
+      props: { recipe },
+    };
+  });
 }
 
 type Props = {
@@ -15,7 +24,7 @@ type Props = {
 };
 
 const { recipe } = Astro.props as Props;
-const { Content } = await recipe.render();
+const { Content } = await render(recipe);
 ---
 <BaseLayout title={recipe.data.title}>
   <article class="max-w-3xl mx-auto">

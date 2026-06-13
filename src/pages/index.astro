@@ -8,6 +8,12 @@ const allRecipes = await getCollection('recipes');
 const sortedRecipes = allRecipes.sort((a: CollectionEntry<'recipes'>, b: CollectionEntry<'recipes'>) =>
   b.data.date.getTime() - a.data.date.getTime()
 );
+
+// Prepare recipes with slugs pre-computed
+const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) => ({
+  ...recipe,
+  slug: recipe.id.replace(/\.md$/, '')
+}));
 ---
 <BaseLayout title="All Recipes">
   <h1 class="text-3xl font-bold mb-6">Our Recipe Collection 🧑‍🍳</h1>
@@ -15,7 +21,7 @@ const sortedRecipes = allRecipes.sort((a: CollectionEntry<'recipes'>, b: Collect
   <Search />
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {sortedRecipes.map((recipe: CollectionEntry<'recipes'>) => (
+    {recipesWithSlug.map((recipe) => (
       <RecipeCard
         title={recipe.data.title}
         tags={recipe.data.tags}

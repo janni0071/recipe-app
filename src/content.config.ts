@@ -1,7 +1,9 @@
 import { defineCollection, z } from "astro:content";
+import { glob } from "astro/loaders"; // Import the glob loader
 
 const recipesCollection = defineCollection({
-  type: "content",
+  // Remove the `type: 'content'` line from your old file
+  loader: glob({ pattern: "**/*.md", base: "./src/content/recipes" }), // Add the glob loader
   schema: z.object({
     title: z.string(),
     date: z.date(),
