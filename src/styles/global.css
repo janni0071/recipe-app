@@ -1,1 +1,49 @@
 @import "tailwindcss";
+
+/* Custom theme configuration (optional) */
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-200: #fecdd3;
+  --color-rose-300: #fda4af;
+  --color-rose-400: #fb7185;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-rose-700: #be123c;
+  --color-rose-800: #9f1239;
+  --color-rose-900: #881337;
+}
+
+/* Custom prose styles for recipe content */
+@layer components {
+  .prose {
+    color: var(--color-gray-800);
+    max-width: none;
+  }
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-rose-800);
+  }
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .prose ul,
+  .prose ol {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+  .prose li {
+    margin-bottom: 0.25rem;
+  }
+  .prose p {
+    margin-bottom: 1rem;
+  }
+}
