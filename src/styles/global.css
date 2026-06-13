@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Custom theme configuration (optional) */
-@theme {
+/* Custom theme using CSS variables (Tailwind v4 supports this) */
+:root {
   --font-sans: "Inter", system-ui, sans-serif;
   --color-rose-50: #fff1f2;
   --color-rose-100: #ffe4e6;
@@ -15,35 +15,24 @@
   --color-rose-900: #881337;
 }
 
-/* Custom prose styles for recipe content */
-@layer components {
-  .prose {
-    color: var(--color-gray-800);
-    max-width: none;
-  }
-  .prose h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: var(--color-rose-800);
-  }
-  .prose h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-  .prose ul,
-  .prose ol {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-  }
-  .prose li {
-    margin-bottom: 0.25rem;
-  }
-  .prose p {
-    margin-bottom: 1rem;
-  }
+/* Custom prose styles – no @theme needed */
+.prose {
+  color: #1f2937;
+  max-width: none;
+}
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #9f1239;
+}
+.prose ul,
+.prose ol {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+.prose p {
+  margin-bottom: 1rem;
 }
