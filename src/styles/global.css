@@ -2,12 +2,40 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Base body font – clean sans‑serif using system UI stack */
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    "Noto Sans",
+    sans-serif;
+}
+
+/* Recipe content – classic serif for readability, no external requests */
 .prose {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  line-height: 1.65;
   color: #1f2937;
   max-width: none;
 }
 .dark .prose {
   color: #e5e7eb;
+}
+
+/* Headings inside recipe use the sans‑serif for contrast */
+.prose h2,
+.prose h3 {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  letter-spacing: -0.01em;
 }
 
 .prose h2 {
@@ -36,7 +64,7 @@
 }
 
 .prose li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem; /* slightly more space */
 }
 
 .prose li::marker {
@@ -56,7 +84,7 @@
 
 .prose ol li {
   counter-increment: step;
-  background-color: #f3f4f6; /* gray-100 – more noticeable */
+  background-color: #f3f4f6; /* light gray card */
   border-left: 4px solid #9f1239;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   margin-bottom: 0.75rem;
@@ -64,9 +92,8 @@
   position: relative;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-
 .dark .prose ol li {
-  background-color: #374151; /* gray-700 – darker to contrast */
+  background-color: #374151;
   border-left-color: #fb7185;
   box-shadow: none;
 }
@@ -80,23 +107,19 @@
   color: #9f1239;
   font-weight: 600;
 }
-
 .dark .prose ol li::before {
   color: #fb7185;
 }
 
-/* Ensure multi-line text aligns correctly */
+/* Multi‑line text alignment */
 .prose ol li > * {
   margin-top: 0;
   margin-bottom: 0;
 }
-
 .prose ol li p {
   margin-bottom: 0;
   display: inline;
 }
-
-/* Optional: add spacing between multiple paragraphs inside a step */
 .prose ol li p + p {
   margin-top: 0.5rem;
   display: block;
@@ -112,6 +135,15 @@
   border-top-color: #374151;
 }
 
+/* Regular paragraphs */
 .prose p {
   margin-bottom: 1rem;
+}
+
+/* Responsive: slightly smaller on mobile */
+@media (max-width: 640px) {
+  .prose {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
 }
