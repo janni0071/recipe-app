@@ -17,7 +17,6 @@ import '../styles/global.css';
       // Theme handling - runs immediately to prevent flash
       (function() {
         const storageKey = 'theme-preference';
-        // If no stored preference, default to dark
         let theme = localStorage.getItem(storageKey);
         if (theme !== 'light' && theme !== 'dark') {
           theme = 'dark';
@@ -52,27 +51,27 @@ import '../styles/global.css';
       <slot />
     </main>
     <footer class="mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-      © {new Date().getFullYear()} Our Recipe Collection
+        © {new Date().getFullYear()} Our Recipe Collection
     </footer>
     <script is:inline>
-      // Toggle logic (after DOM is ready)
-      document.addEventListener('DOMContentLoaded', () => {
+        // Toggle logic (after DOM is ready)
+        document.addEventListener('DOMContentLoaded', () => {
         const button = document.getElementById('theme-toggle');
         if (button) {
-          const setTheme = (theme) => {
+            const setTheme = (theme) => {
             if (theme === 'dark') {
-              document.documentElement.classList.add('dark');
+                document.documentElement.classList.add('dark');
             } else {
-              document.documentElement.classList.remove('dark');
+                document.documentElement.classList.remove('dark');
             }
             localStorage.setItem('theme-preference', theme);
-          };
-          button.addEventListener('click', () => {
+            };
+            button.addEventListener('click', () => {
             const isDark = document.documentElement.classList.contains('dark');
             setTheme(isDark ? 'light' : 'dark');
-          });
+            });
         }
-      });
+        });
     </script>
-  </body>
+    </body>
 </html>
