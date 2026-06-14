@@ -14,21 +14,23 @@ export async function getStaticPaths(): Promise<{ params: { tag: string } }[]> {
 
 const { tag } = Astro.params as { tag: string };
 
-type Props = {
-  tag: string;
-};
-
 const allRecipes = await getCollection('recipes');
 const filteredRecipes = allRecipes.filter((recipe: CollectionEntry<'recipes'>) =>
   recipe.data.tags.includes(tag!)
 );
+
+// Pre-compute slugs for each filtered recipe
+const recipesWithSlug = filteredRecipes.map((recipe: CollectionEntry<'recipes'>) => ({
+  ...recipe,
+  slug: recipe.id.replace(/\.md$/, '')
+}));
 ---
 <BaseLayout title={`Recipes tagged #${tag}`}>
   <h1 class="text-3xl font-bold mb-2">Recipes tagged <span class="text-rose-600">#{tag}</span></h1>
-  <p class="mb-6 text-gray-600">{filteredRecipes.length} recipe(s)</p>
+  <p class="mb-6 text-gray-600 dark:text-gray-400">{filteredRecipes.length} recipe(s)</p>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {filteredRecipes.map((recipe: CollectionEntry<'recipes'>) => (
+    {recipesWithSlug.map((recipe) => (
       <RecipeCard
         title={recipe.data.title}
         tags={recipe.data.tags}

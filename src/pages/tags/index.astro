@@ -14,11 +14,11 @@ recipes.forEach((recipe: CollectionEntry<'recipes'>) => {
 const sortedTags = Array.from(tagCount.entries()).sort((a: [string, number], b: [string, number]) => b[1] - a[1]);
 ---
 <BaseLayout title="All Tags">
-  <h1 class="text-3xl font-bold mb-6">Browse by Tag</h1>
+  <h1 class="text-3xl font-bold mb-6 dark:text-white">Browse by Tag</h1>
   <div class="flex flex-wrap gap-3">
     {sortedTags.map(([tag, count]: [string, number]) => (
-      <a href={`/tags/${tag}`} class="bg-gray-100 px-4 py-2 rounded-full hover:bg-rose-100 transition">
-        #{tag} <span class="text-sm text-gray-500">({count})</span>
+      <a href={`/tags/${tag}`} class="bg-gray-100 px-4 py-2 rounded-full hover:bg-rose-100 transition dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-rose-900">
+        #{tag} <span class="text-sm text-gray-500 dark:text-gray-400">({count})</span>
       </a>
     ))}
   </div>
