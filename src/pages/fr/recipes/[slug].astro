@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 
 type StaticPath = {
@@ -40,12 +41,23 @@ const localeUrls = {
 ---
 <BaseLayout title={recipe.data.title} localeUrls={localeUrls}>
   <article class="max-w-3xl mx-auto">
-    <img
-      src={recipe.data.image || '/default-recipe.jpg'}
-      alt={recipe.data.title}
-      class="w-full h-64 object-cover rounded-xl mb-6"
-    />
-    <h1 class="text-4xl font-bold mb-4 dark:text-white">{recipe.data.title}</h1>
+    {recipe.data.image ? (
+      <Image
+        src={recipe.data.image}
+        alt={recipe.data.title}
+        width={900}
+        height={400}
+        format="webp"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+        class="w-full h-64 object-cover rounded-xl mb-6"
+        transition:name={`recipe-image-${slug}`}
+      />
+    ) : (
+      <div class="w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
+    )}
+    <h1 class="text-4xl font-bold mb-4 dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
 
     <div class="flex flex-wrap gap-4 text-gray-600 mb-6 pb-4 border-b dark:text-gray-400 dark:border-gray-700">
       <span>🕒 Prep: {recipe.data.prepTime}</span>
@@ -64,7 +76,7 @@ const localeUrls = {
       ))}
     </div>
 
-    <div class="prose prose-rose max-w-none">
+    <div class="prose max-w-none">
       <Content />
     </div>
   </article>

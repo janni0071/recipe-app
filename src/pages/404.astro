@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page Not Found">
+  <div class="flex flex-col items-center justify-center text-center py-24 gap-6">
+    <div class="text-8xl">🍽️</div>
+    <h1 class="text-4xl font-bold dark:text-white">Oops! We haven't cooked this one yet.</h1>
+    <p class="text-lg text-gray-500 dark:text-gray-400 max-w-md">
+      This page doesn't exist — but Jannis & Daisy are probably in the kitchen working on something delicious.
+    </p>
+    <a
+      href="/"
+      class="mt-4 px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl transition"
+    >
+      ← Back to the recipes
+    </a>
+  </div>
+</BaseLayout>

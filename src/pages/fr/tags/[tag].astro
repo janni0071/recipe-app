@@ -29,7 +29,7 @@ const recipesWithSlug = filteredRecipes.map((recipe: CollectionEntry<'recipes'>)
 }));
 ---
 <BaseLayout title={`${t('page.tag.heading')} #${tag}`}>
-  <h1 class="text-3xl font-bold mb-2">{t('page.tag.heading')} <span class="text-rose-600">#{tag}</span></h1>
+  <h1 class="text-3xl font-bold mb-2">{t('page.tag.heading')} <span class="text-pink-600">#{tag}</span></h1>
   <p class="mb-6 text-gray-600 dark:text-gray-400">{filteredRecipes.length} {t('page.tag.count')}</p>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

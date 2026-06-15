@@ -5,7 +5,8 @@ tags: ["pizza", "italian", "long"]
 prepTime: "45 min"
 cookTime: "30-35 min"
 servings: 6
-image: "/images/pizza.jpg"
+author: "Daisy"
+image: "/images/pizza.webp"
 ---
 
 ## Ingredients
