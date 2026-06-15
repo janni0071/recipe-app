@@ -1,0 +1,45 @@
+---
+import type { Locale } from '../utils/i18n';
+import { languages } from '../utils/i18n';
+
+interface Props {
+  currentLocale: Locale;
+  /** Per-locale URL overrides. If omitted, the target URL is derived from the current path. */
+  localeUrls?: Partial<Record<Locale, string>>;
+}
+
+const { currentLocale, localeUrls } = Astro.props;
+const path = Astro.url.pathname;
+
+// Strip current locale prefix to get the canonical (locale-neutral) path
+let canonical = path;
+if (path === '/de' || path === '/de/') canonical = '/';
+else if (path === '/fr' || path === '/fr/') canonical = '/';
+else if (path.startsWith('/de/')) canonical = path.slice(3);
+else if (path.startsWith('/fr/')) canonical = path.slice(3);
+
+function targetUrl(locale: Locale): string {
+  if (localeUrls?.[locale] !== undefined) return localeUrls[locale]!;
+  if (locale === 'en') return canonical;
+  if (canonical === '/') return `/${locale}/`;
+  return `/${locale}${canonical}`;
+}
+---
+<nav aria-label="Language switcher" class="flex items-center gap-1">
+  {Object.values(languages).map(({ code, label }) => (
+    <a
+      href={targetUrl(code)}
+      hreflang={code}
+      aria-label={`Switch to ${label}`}
+      aria-current={currentLocale === code ? 'true' : undefined}
+      class:list={[
+        'px-2 py-1 rounded text-sm font-medium transition',
+        currentLocale === code
+          ? 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-200'
+          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
+      ]}
+    >
+      {code.toUpperCase()}
+    </a>
+  ))}
+</nav>

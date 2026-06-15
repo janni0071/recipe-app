@@ -8,10 +8,11 @@ export interface Props {
   cookTime: string;
   slug: string;
   image?: string;
+  baseRecipePath?: string;
 }
-const { title, tags, prepTime, cookTime, slug, image } = Astro.props;
+const { title, tags, prepTime, cookTime, slug, image, baseRecipePath = '/recipes/' } = Astro.props;
 ---
-<a href={`/recipes/${slug}`} class="block group">
+<a href={`${baseRecipePath}${slug}`} class="block group">
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
     {image && (
       <div class="h-48 bg-gray-200 overflow-hidden dark:bg-gray-700">

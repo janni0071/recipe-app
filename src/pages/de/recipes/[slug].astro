@@ -1,5 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 
 type StaticPath = {
@@ -10,9 +10,9 @@ type StaticPath = {
 export async function getStaticPaths(): Promise<StaticPath[]> {
   const recipes = await getCollection('recipes');
   return recipes
-    .filter((recipe: CollectionEntry<'recipes'>) => !recipe.id.match(/^(de|fr)\//))
+    .filter((recipe: CollectionEntry<'recipes'>) => recipe.id.startsWith('de/'))
     .map((recipe: CollectionEntry<'recipes'>) => {
-      const slug = recipe.id.replace(/\.md$/, '');
+      const slug = recipe.id.replace(/^de\//, '').replace(/\.md$/, '');
       return {
         params: { slug },
         props: { recipe },
@@ -27,14 +27,14 @@ type Props = {
 const { recipe } = Astro.props as Props;
 const { Content } = await render(recipe);
 
-const slug = recipe.id.replace(/\.md$/, '');
+const slug = recipe.id.replace(/^de\//, '').replace(/\.md$/, '');
 const allRecipes = await getCollection('recipes');
 const normalizeId = (id: string) => id.replace(/\.md$/, '');
-const hasDE = allRecipes.some((r) => normalizeId(r.id) === `de/${slug}`);
+const hasEN = allRecipes.some((r) => normalizeId(r.id) === slug);
 const hasFR = allRecipes.some((r) => normalizeId(r.id) === `fr/${slug}`);
 const localeUrls = {
-  en: `/recipes/${slug}`,
-  de: hasDE ? `/de/recipes/${slug}` : '/de/',
+  en: hasEN ? `/recipes/${slug}` : '/',
+  de: `/de/recipes/${slug}`,
   fr: hasFR ? `/fr/recipes/${slug}` : '/fr/',
 };
 ---
@@ -56,7 +56,7 @@ const localeUrls = {
     <div class="flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
-          href={`/tags/${tag}`}
+          href={`/de/tags/${tag}`}
           class="bg-gray-100 px-3 py-1 rounded-full text-sm hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
         >
           #{tag}

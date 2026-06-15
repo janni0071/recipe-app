@@ -9,4 +9,11 @@ export default defineConfig({
     plugins: [tailwindcss(), pagefind()],
   },
   prefetch: true,
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'de', 'fr'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
 });

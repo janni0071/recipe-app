@@ -1,28 +1,26 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import RecipeCard from '../components/RecipeCard.astro';
-import Search from '../components/SearchBar.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import RecipeCard from '../../components/RecipeCard.astro';
+import Search from '../../components/SearchBar.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../utils/i18n';
+import { useTranslations } from '../../utils/i18n';
 
-const t = useTranslations('en');
+const t = useTranslations('fr');
 const allRecipes = await getCollection('recipes');
 const sortedRecipes = allRecipes
-  .filter((r: CollectionEntry<'recipes'>) => !r.id.match(/^(de|fr)\//))
+  .filter((r: CollectionEntry<'recipes'>) => r.id.startsWith('fr/'))
   .sort((a: CollectionEntry<'recipes'>, b: CollectionEntry<'recipes'>) =>
   b.data.date.getTime() - a.data.date.getTime()
 );
 
-// Prepare recipes with slugs pre-computed
 const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) => ({
   ...recipe,
-  slug: recipe.id.replace(/\.md$/, '')
+  slug: recipe.id.replace(/^fr\//, '').replace(/\.md$/, '')
 }));
 ---
 <BaseLayout title={t('page.index.title')}>
   <h1 class="text-3xl font-bold mb-6">{t('page.index.heading')}</h1>
 
-  <!-- Add margin-bottom to separate search from recipe grid -->
   <div class="mb-8">
     <Search placeholder={t('search.placeholder')} />
   </div>
@@ -36,6 +34,7 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
         cookTime={recipe.data.cookTime}
         slug={recipe.slug}
         image={recipe.data.image}
+        baseRecipePath="/fr/recipes/"
       />
     ))}
   </div>

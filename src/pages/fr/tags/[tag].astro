@@ -1,31 +1,31 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import RecipeCard from '../../components/RecipeCard.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import RecipeCard from '../../../components/RecipeCard.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../../utils/i18n';
+import { useTranslations } from '../../../utils/i18n';
 
 export async function getStaticPaths(): Promise<{ params: { tag: string } }[]> {
   const recipes = await getCollection('recipes');
   const allTags = new Set<string>();
   recipes
-    .filter((recipe: CollectionEntry<'recipes'>) => !recipe.id.match(/^(de|fr)\//))
+    .filter((recipe: CollectionEntry<'recipes'>) => recipe.id.startsWith('fr/'))
     .forEach((recipe: CollectionEntry<'recipes'>) => {
       recipe.data.tags.forEach((tag: string) => allTags.add(tag));
     });
   return Array.from(allTags).map((tag: string) => ({ params: { tag } }));
 }
 
-const t = useTranslations('en');
+const t = useTranslations('fr');
 const { tag } = Astro.params as { tag: string };
 
 const allRecipes = await getCollection('recipes');
 const filteredRecipes = allRecipes.filter((recipe: CollectionEntry<'recipes'>) =>
-  !recipe.id.match(/^(de|fr)\//) && recipe.data.tags.includes(tag!)
+  recipe.id.startsWith('fr/') && recipe.data.tags.includes(tag!)
 );
 
 const recipesWithSlug = filteredRecipes.map((recipe: CollectionEntry<'recipes'>) => ({
   ...recipe,
-  slug: recipe.id.replace(/\.md$/, '')
+  slug: recipe.id.replace(/^fr\//, '').replace(/\.md$/, '')
 }));
 ---
 <BaseLayout title={`${t('page.tag.heading')} #${tag}`}>
@@ -41,6 +41,7 @@ const recipesWithSlug = filteredRecipes.map((recipe: CollectionEntry<'recipes'>)
         cookTime={recipe.data.cookTime}
         slug={recipe.slug}
         image={recipe.data.image}
+        baseRecipePath="/fr/recipes/"
       />
     ))}
   </div>
