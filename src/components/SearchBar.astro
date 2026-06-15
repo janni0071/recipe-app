@@ -86,11 +86,21 @@ const { placeholder = 'Search for recipes...' } = Astro.props;
   import { PagefindUI } from '@pagefind/default-ui';
   import '@pagefind/default-ui/css/ui.css';
 
-  new PagefindUI({
-    element: '#search',
-    showSubResults: true,
-    translations: {
-      placeholder: (document.getElementById('search') as HTMLElement)?.dataset.placeholder || 'Search for recipes...',
-    },
-  });
+  function initSearch() {
+    const el = document.getElementById('search') as HTMLElement | null;
+    if (!el) return;
+
+    new PagefindUI({
+      element: '#search',
+      showSubResults: true,
+      translations: {
+        placeholder: el.dataset.placeholder || 'Search for recipes...',
+      },
+    });
+  }
+
+  // Initial load: run immediately (DOM is already available)
+  initSearch();
+  // After each navigation: run right after DOM swap, during the transition animation
+  document.addEventListener('astro:after-swap', initSearch);
 </script>
