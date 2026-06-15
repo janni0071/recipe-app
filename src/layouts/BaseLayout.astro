@@ -2,6 +2,7 @@
 import type { Locale } from '../utils/i18n';
 import { useTranslations, getLocalePath, getTagsPath } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import { ClientRouter } from 'astro:transitions';
 
 export interface Props {
   title: string;
@@ -22,20 +23,15 @@ import '../styles/global.css';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Recipe App</title>
     <meta name="description" content={description || "Our family recipes"} />
+    <ClientRouter />
     <script is:inline>
-      // Theme handling - runs immediately to prevent flash
-      (function() {
-        const storageKey = 'theme-preference';
-        let theme = localStorage.getItem(storageKey);
-        if (theme !== 'light' && theme !== 'dark') {
-          theme = 'dark';
-        }
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      })();
+      // Runs on initial load AND after every ClientRouter page swap
+      function applyTheme() {
+        const theme = localStorage.getItem('theme-preference') ?? 'dark';
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      }
+      applyTheme();
+      document.addEventListener('astro:after-swap', applyTheme);
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
@@ -64,24 +60,19 @@ import '../styles/global.css';
         © {new Date().getFullYear()} {t('footer.copyright')}
     </footer>
     <script is:inline>
-        // Toggle logic (after DOM is ready)
-        document.addEventListener('DOMContentLoaded', () => {
+      function setupThemeToggle() {
         const button = document.getElementById('theme-toggle');
         if (button) {
-            const setTheme = (theme) => {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            localStorage.setItem('theme-preference', theme);
-            };
-            button.addEventListener('click', () => {
+          button.addEventListener('click', () => {
             const isDark = document.documentElement.classList.contains('dark');
-            setTheme(isDark ? 'light' : 'dark');
-            });
+            const next = isDark ? 'light' : 'dark';
+            document.documentElement.classList.toggle('dark', next === 'dark');
+            localStorage.setItem('theme-preference', next);
+          });
         }
-        });
+      }
+      // astro:page-load fires on initial load and after every navigation
+      document.addEventListener('astro:page-load', setupThemeToggle);
     </script>
     </body>
 </html>

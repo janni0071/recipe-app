@@ -28,7 +28,7 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {recipesWithSlug.map((recipe) => (
+    {recipesWithSlug.map((recipe, i) => (
       <RecipeCard
         title={recipe.data.title}
         tags={recipe.data.tags}
@@ -36,6 +36,7 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
         cookTime={recipe.data.cookTime}
         slug={recipe.slug}
         image={recipe.data.image}
+        loading={i === 0 ? 'eager' : 'lazy'}
       />
     ))}
   </div>
