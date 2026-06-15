@@ -1,8 +1,11 @@
 ---
-// No frontmatter needed for this component
+interface Props {
+  placeholder?: string;
+}
+const { placeholder = 'Search for recipes...' } = Astro.props;
 ---
 
-<div id="search"></div>
+<div id="search" data-placeholder={placeholder}></div>
 
 <style is:global>
   /* Light mode defaults (already from Pagefind UI) */
@@ -87,7 +90,7 @@
     element: '#search',
     showSubResults: true,
     translations: {
-      placeholder: 'Search for recipes...',
+      placeholder: (document.getElementById('search') as HTMLElement)?.dataset.placeholder || 'Search for recipes...',
     },
   });
 </script>
