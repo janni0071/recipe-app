@@ -34,6 +34,7 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
         cookTime={recipe.data.cookTime}
         slug={recipe.slug}
         image={recipe.data.image}
+        author={recipe.data.author}
         baseRecipePath="/de/recipes/"
         loading={i === 0 ? 'eager' : 'lazy'}
       />

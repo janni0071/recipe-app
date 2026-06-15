@@ -11,6 +11,7 @@ const recipesCollection = defineCollection({
     cookTime: z.string(),
     servings: z.number(),
     image: z.string().optional(),
+    author: z.string().optional(),
   }),
 });
 

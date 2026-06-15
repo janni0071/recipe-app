@@ -43,10 +43,10 @@ body {
   font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  color: #9f1239;
+  color: #db2777;
 }
 .dark .prose h2 {
-  color: #fb7185;
+  color: #f9a8d4;
 }
 
 .prose h3 {
@@ -68,10 +68,10 @@ body {
 }
 
 .prose li::marker {
-  color: #9f1239;
+  color: #db2777;
 }
 .dark .prose li::marker {
-  color: #fb7185;
+  color: #f9a8d4;
 }
 
 /* Steps (ordered lists) – card-like with proper indentation */
@@ -84,8 +84,8 @@ body {
 
 .prose ol li {
   counter-increment: step;
-  background-color: #f3f4f6; /* light gray card */
-  border-left: 4px solid #9f1239;
+  background-color: #f3f4f6;
+  border-left: 4px solid #db2777;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   margin-bottom: 0.75rem;
   border-radius: 0.5rem;
@@ -94,7 +94,7 @@ body {
 }
 .dark .prose ol li {
   background-color: #374151;
-  border-left-color: #fb7185;
+  border-left-color: #f9a8d4;
   box-shadow: none;
 }
 
@@ -104,11 +104,11 @@ body {
   position: absolute;
   left: 0.75rem;
   top: 0.75rem;
-  color: #9f1239;
+  color: #db2777;
   font-weight: 600;
 }
 .dark .prose ol li::before {
-  color: #fb7185;
+  color: #f9a8d4;
 }
 
 /* Multi‑line text alignment */

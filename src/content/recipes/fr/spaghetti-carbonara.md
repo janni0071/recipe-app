@@ -5,6 +5,7 @@ tags: ["pâtes", "italien", "rapide"]
 prepTime: "10 min"
 cookTime: "15 min"
 servings: 2
+author: "Jannis"
 image: "/images/carbonara.webp"
 ---
 

@@ -5,6 +5,7 @@ tags: ["Kuchen", "backen", "lang"]
 prepTime: "30 min"
 cookTime: "30 min"
 servings: 1
+author: "Jannis"
 image: "/images/maulwurfkuchen.webp"
 ---
 
