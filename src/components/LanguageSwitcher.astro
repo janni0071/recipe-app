@@ -26,20 +26,43 @@ function targetUrl(locale: Locale): string {
 }
 ---
 <nav aria-label="Language switcher" class="flex items-center gap-1">
-  {Object.values(languages).map(({ code, label }) => (
-    <a
-      href={targetUrl(code)}
-      hreflang={code}
-      aria-label={`Switch to ${label}`}
-      aria-current={currentLocale === code ? 'true' : undefined}
-      class:list={[
-        'px-2 py-1 rounded text-sm font-medium transition',
-        currentLocale === code
-          ? 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200'
-          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
-      ]}
+  <div class="hidden sm:flex items-center gap-1">
+    {Object.values(languages).map(({ code, label }) => (
+      <a
+        href={targetUrl(code)}
+        hreflang={code}
+        aria-label={`Switch to ${label}`}
+        aria-current={currentLocale === code ? 'true' : undefined}
+        class:list={[
+          'px-2 py-1 rounded text-sm font-medium transition',
+          currentLocale === code
+            ? 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200'
+            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
+        ]}
+      >
+        {code.toUpperCase()}
+      </a>
+    ))}
+  </div>
+
+  <details class="relative sm:hidden">
+    <summary
+      aria-label="Change language"
+      class="list-none px-2 py-1 rounded text-sm font-medium bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200 cursor-pointer select-none [&::-webkit-details-marker]:hidden"
     >
-      {code.toUpperCase()}
-    </a>
-  ))}
+      {currentLocale.toUpperCase()}
+    </summary>
+    <div class="absolute right-0 z-10 mt-1 flex min-w-[3rem] flex-col overflow-hidden rounded border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
+      {Object.values(languages).filter(({ code }) => code !== currentLocale).map(({ code, label }) => (
+        <a
+          href={targetUrl(code)}
+          hreflang={code}
+          aria-label={`Switch to ${label}`}
+          class="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          {code.toUpperCase()}
+        </a>
+      ))}
+    </div>
+  </details>
 </nav>
