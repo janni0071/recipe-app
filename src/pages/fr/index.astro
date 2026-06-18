@@ -32,6 +32,8 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
         tags={recipe.data.tags}
         prepTime={recipe.data.prepTime}
         cookTime={recipe.data.cookTime}
+        prepLabel={t('page.recipe.prep')}
+        cookLabel={t('page.recipe.cook')}
         slug={recipe.slug}
         image={recipe.data.image}
         author={recipe.data.author}

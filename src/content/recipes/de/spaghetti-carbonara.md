@@ -7,16 +7,24 @@ cookTime: "15 min"
 servings: 2
 author: "Jannis"
 image: "/images/carbonara.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g"
+        name: "Guanciale oder Pancetta"
+      - amount: 2
+        name: "große Eier"
+      - amount: 50
+        unit: "g"
+        name: "Pecorino Romano, fein gerieben"
+      - amount: 50
+        unit: "g"
+        name: "Parmesan, fein gerieben"
+      - amount: 200
+        unit: "g"
+        name: "Spaghetti"
+      - name: "Schwarzer Pfeffer, frisch gemahlen"
 ---
-
-## Zutaten
-
-- 100g Guanciale oder Pancetta
-- 2 große Eier
-- 50g Pecorino Romano, fein gerieben
-- 50g Parmesan, fein gerieben
-- 200g Spaghetti
-- Schwarzer Pfeffer, frisch gemahlen
 
 ## Zubereitung
 

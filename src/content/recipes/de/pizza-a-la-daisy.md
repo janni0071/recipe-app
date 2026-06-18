@@ -7,28 +7,35 @@ cookTime: "30-35 min"
 servings: 6
 author: "Daisy"
 image: "/images/pizza.webp"
+ingredients:
+  - items:
+      - name: "Champignons (de Paris)"
+      - amount: 2
+        amountMax: 3
+        name: "Paprikaschoten"
+      - amount: 2
+        name: "große Zwiebeln"
+      - amount: 2
+        name: "große Tomatenscheiben oder Cherrytomaten"
+      - name: "Parmesan"
+      - name: "Tomatenbasierter Pesto"
+      - name: "Konzentriertes Tomatenmark"
+      - name: "Mürbeteig"
+      - name: "Gewürfelter Schinken oder Chorizo"
+  - heading: "BONUS: Knoblauch-Crème-fraîche-Dip"
+    items:
+      - amount: 500
+        unit: "g"
+        name: "Crème fraîche"
+      - amount: 3
+        name: "zerdrückte Knoblauchzehen"
+      - amount: 1
+        unit: "EL"
+        name: "Olivenöl"
+      - name: "Zitronen-/Limettensaft"
+      - name: "Salz, Pfeffer"
+      - name: "(OPTIONAL) Fein gehackter frischer Koriander"
 ---
-
-## Zutaten
-
-- Champignons (de Paris)
-- 2-3 Paprikaschoten
-- 2 große Zwiebeln
-- 2 große Tomatenscheiben oder Cherrytomaten
-- Parmesan
-- Tomatenbasierter Pesto
-- Konzentriertes Tomatenmark
-- Mürbeteig
-- Gewürfelter Schinken oder Chorizo
-
-### BONUS: Knoblauch-Crème-fraîche-Dip
-
-- 500g Crème fraîche
-- 3 zerdrückte Knoblauchzehen
-- Ein Esslöffel Olivenöl
-- Zitronen-/Limettensaft
-- Salz, Pfeffer
-- (OPTIONAL) Fein gehackter frischer Koriander
 
 ## Schritte
 

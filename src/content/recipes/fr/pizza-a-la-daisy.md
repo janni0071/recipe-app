@@ -7,28 +7,35 @@ cookTime: "30-35 min"
 servings: 6
 author: "Daisy"
 image: "/images/pizza.webp"
+ingredients:
+  - items:
+      - name: "Champignons (de Paris)"
+      - amount: 2
+        amountMax: 3
+        name: "poivrons"
+      - amount: 2
+        name: "gros oignons"
+      - amount: 2
+        name: "grandes tranches de tomate ou tomates cerises"
+      - name: "Parmesan"
+      - name: "Pesto à base de tomates"
+      - name: "Concentré de tomates"
+      - name: "Pâte brisée"
+      - name: "Dés de jambon ou de chorizo"
+  - heading: "BONUS : Dip à la crème fraîche et à l'ail"
+    items:
+      - amount: 500
+        unit: "g de"
+        name: "crème fraîche"
+      - amount: 3
+        name: "gousses d'ail écrasées"
+      - amount: 1
+        unit: "cuillère à soupe d'"
+        name: "huile d'olive"
+      - name: "Jus de citron / citron vert"
+      - name: "Sel, poivre"
+      - name: "(FACULTATIF) Coriandre fraîche finement hachée"
 ---
-
-## Ingrédients
-
-- Champignons (de Paris)
-- 2-3 poivrons
-- 2 gros oignons
-- 2 grandes tranches de tomate ou tomates cerises
-- Parmesan
-- Pesto à base de tomates
-- Concentré de tomates
-- Pâte brisée
-- Dés de jambon ou de chorizo
-
-### BONUS : Dip à la crème fraîche et à l'ail
-
-- 500 g de crème fraîche
-- 3 gousses d'ail écrasées
-- Une cuillère à soupe d'huile d'olive
-- Jus de citron / citron vert
-- Sel, poivre
-- (FACULTATIF) Coriandre fraîche finement hachée
 
 ## Étapes
 

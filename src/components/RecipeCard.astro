@@ -6,13 +6,15 @@ export interface Props {
   tags: string[];
   prepTime: string;
   cookTime: string;
+  prepLabel: string;
+  cookLabel: string;
   slug: string;
   image?: string;
   author?: string;
   baseRecipePath?: string;
   loading?: 'lazy' | 'eager';
 }
-const { title, tags, prepTime, cookTime, slug, image, author, baseRecipePath = '/recipes/', loading = 'lazy' } = Astro.props;
+const { title, tags, prepTime, cookTime, prepLabel, cookLabel, slug, image, author, baseRecipePath = '/recipes/', loading = 'lazy' } = Astro.props;
 ---
 <a href={`${baseRecipePath}${slug}`} class="block group" data-astro-prefetch="viewport">
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
@@ -42,8 +44,8 @@ const { title, tags, prepTime, cookTime, slug, image, author, baseRecipePath = '
       </div>
       <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
         <div class="flex gap-3">
-          <span>⏱️ Prep: {prepTime}</span>
-          <span>🍳 Cook: {cookTime}</span>
+          <span aria-label={`${prepLabel}: ${prepTime}`}>⏱️ {prepTime}</span>
+          <span aria-label={`${cookLabel}: ${cookTime}`}>🍳 {cookTime}</span>
         </div>
         {author && (
           <span class="text-xs bg-pink-50 text-pink-500 border border-pink-200 px-2 py-0.5 rounded-full dark:bg-pink-950 dark:text-pink-300 dark:border-pink-800">

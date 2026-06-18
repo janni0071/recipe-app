@@ -1,0 +1,121 @@
+---
+export interface IngredientItem {
+  amount?: number;
+  amountMax?: number;
+  unit?: string;
+  name: string;
+}
+
+export interface IngredientGroup {
+  heading?: string;
+  items: IngredientItem[];
+}
+
+export interface Props {
+  heading: string;
+  groups: IngredientGroup[];
+  servings: number;
+  servingsLabel: string;
+}
+
+const { heading, groups, servings, servingsLabel } = Astro.props;
+
+function formatAmount(amount?: number, amountMax?: number): string {
+  if (amount == null) return '';
+  return amountMax != null ? `${amount}-${amountMax}` : `${amount}`;
+}
+
+// French units like "g de" or elided "d'" need to hug the ingredient name
+// without — or with exactly one — space; other locales just want one space.
+function unitAndName(unit: string | undefined, name: string): string {
+  if (!unit) return name;
+  return unit.endsWith("'") ? `${unit}${name}` : `${unit} ${name}`;
+}
+---
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h2 class="!mt-0 !mb-0">{heading}</h2>
+  <div
+    id="servings-stepper"
+    class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300"
+    data-base-servings={servings}
+  >
+    <button
+      type="button"
+      id="servings-decrement"
+      aria-label="Decrease servings"
+      class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+    >
+      −
+    </button>
+    <span><span id="servings-value">{servings}</span> {servingsLabel}</span>
+    <button
+      type="button"
+      id="servings-increment"
+      aria-label="Increase servings"
+      class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+    >
+      +
+    </button>
+  </div>
+</div>
+
+{groups.map((group) => (
+  <>
+    {group.heading && <h3>{group.heading}</h3>}
+    <ul>
+      {group.items.map((item) => (
+        <li>
+          {item.amount != null && (
+            <>
+              <span class="ing-amount" data-amount={item.amount} data-amount-max={item.amountMax}>
+                {formatAmount(item.amount, item.amountMax)}
+              </span>{' '}
+            </>
+          )}
+          {unitAndName(item.unit, item.name)}
+        </li>
+      ))}
+    </ul>
+  </>
+))}
+
+<script is:inline>
+  function initServingsStepper() {
+    const stepper = document.getElementById('servings-stepper');
+    if (!stepper) return;
+
+    const baseServings = parseFloat(stepper.dataset.baseServings || '1');
+    const valueEl = document.getElementById('servings-value');
+    const decrementBtn = document.getElementById('servings-decrement');
+    const incrementBtn = document.getElementById('servings-increment');
+    const amountEls = document.querySelectorAll('.ing-amount');
+
+    function scale(n, multiplier) {
+      return Math.round(n * multiplier * 100) / 100;
+    }
+
+    function render(servings) {
+      valueEl.textContent = servings;
+      const multiplier = servings / baseServings;
+      amountEls.forEach((el) => {
+        const amount = parseFloat(el.dataset.amount);
+        const amountMax = el.dataset.amountMax ? parseFloat(el.dataset.amountMax) : null;
+        el.textContent = amountMax != null
+          ? `${scale(amount, multiplier)}-${scale(amountMax, multiplier)}`
+          : `${scale(amount, multiplier)}`;
+      });
+      decrementBtn.disabled = servings <= 1;
+    }
+
+    let servings = baseServings;
+    decrementBtn.addEventListener('click', () => {
+      if (servings > 1) render(--servings);
+    });
+    incrementBtn.addEventListener('click', () => {
+      render(++servings);
+    });
+    render(servings);
+  }
+
+  document.addEventListener('astro:page-load', initServingsStepper);
+</script>

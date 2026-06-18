@@ -1,18 +1,41 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { ui, getLocalePath, type Locale } from '../utils/i18n';
+
+const translations: Record<Locale, { heading: string; message: string; cta: string; href: string }> = {
+  en: { heading: ui.en['404.heading'], message: ui.en['404.message'], cta: ui.en['404.cta'], href: getLocalePath('en') },
+  de: { heading: ui.de['404.heading'], message: ui.de['404.message'], cta: ui.de['404.cta'], href: getLocalePath('de') },
+  fr: { heading: ui.fr['404.heading'], message: ui.fr['404.message'], cta: ui.fr['404.cta'], href: getLocalePath('fr') },
+};
 ---
 <BaseLayout title="Page Not Found">
   <div class="flex flex-col items-center justify-center text-center py-24 gap-6">
     <div class="text-8xl">🍽️</div>
-    <h1 class="text-4xl font-bold dark:text-white">Oops! We haven't cooked this one yet.</h1>
-    <p class="text-lg text-gray-500 dark:text-gray-400 max-w-md">
-      This page doesn't exist — but Jannis & Daisy are probably in the kitchen working on something delicious.
+    <h1 id="error-heading" class="text-4xl font-bold dark:text-white">{translations.en.heading}</h1>
+    <p id="error-message" class="text-lg text-gray-500 dark:text-gray-400 max-w-md">
+      {translations.en.message}
     </p>
     <a
-      href="/"
+      id="error-cta"
+      href={translations.en.href}
       class="mt-4 px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl transition"
     >
-      ← Back to the recipes
+      {translations.en.cta}
     </a>
   </div>
+  <script is:inline define:vars={{ translations }}>
+    // Astro can't know the locale of an arbitrary broken URL at build time
+    // (404.html is served as-is for any unmatched path), so detect it from
+    // the URL the browser actually shows and swap in the right strings.
+    const path = window.location.pathname;
+    const locale = /^\/de(\/|$)/.test(path) ? 'de' : /^\/fr(\/|$)/.test(path) ? 'fr' : 'en';
+    if (locale !== 'en') {
+      const t = translations[locale];
+      document.getElementById('error-heading').textContent = t.heading;
+      document.getElementById('error-message').textContent = t.message;
+      const cta = document.getElementById('error-cta');
+      cta.textContent = t.cta;
+      cta.href = t.href;
+    }
+  </script>
 </BaseLayout>

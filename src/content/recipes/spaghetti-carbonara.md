@@ -7,16 +7,24 @@ cookTime: "15 min"
 servings: 2
 author: "Jannis"
 image: "/images/carbonara.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g"
+        name: "guanciale or pancetta"
+      - amount: 2
+        name: "large eggs"
+      - amount: 50
+        unit: "g"
+        name: "pecorino romano, finely grated"
+      - amount: 50
+        unit: "g"
+        name: "parmesan, finely grated"
+      - amount: 200
+        unit: "g"
+        name: "spaghetti"
+      - name: "Black pepper, freshly cracked"
 ---
-
-## Ingredients
-
-- 100g guanciale or pancetta
-- 2 large eggs
-- 50g pecorino romano, finely grated
-- 50g parmesan, finely grated
-- 200g spaghetti
-- Black pepper, freshly cracked
 
 ## Steps
 

@@ -7,26 +7,41 @@ cookTime: "30 min"
 servings: 1
 author: "Jannis"
 image: "/images/maulwurfkuchen.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g"
+        name: "Fett"
+      - amount: 120
+        unit: "g"
+        name: "Zucker"
+      - amount: 150
+        unit: "g"
+        name: "Mehl"
+      - name: "viel Kakao"
+      - amount: 1
+        unit: "TL"
+        name: "Backpulver"
+      - amount: 2
+        name: "Eier"
+      - amount: 75
+        unit: "ml"
+        name: "Milch"
+  - heading: "Für die Füllung"
+    items:
+      - name: "Erdbeeren"
+      - amount: 250
+        unit: "g"
+        name: "Schokolade"
+      - amount: 600
+        unit: "ml"
+        name: "Sahne"
+      - amount: 3
+        unit: "Pkt"
+        name: "Sahnesteif"
+      - name: "Vanillezucker"
+      - name: "Fett für die Form"
 ---
-
-## Zutaten
-
-- 100g Fett
-- 120g Zucker
-- 150g Mehl
-- *viel* Kakao
-- 1 TL Backpulver
-- 2 Eier
-- 75ml Milch
-
-### Für die Füllung
-
-- Erdbeeren
-- 250g Schokolade
-- 3 Becher Sahne
-- 3 Pkt Sahnesteif
-- Vanillezucker
-- Fett für die Form
 
 ## Zubereitung
 
