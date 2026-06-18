@@ -63,9 +63,9 @@ const localeUrls = {
     <h1 class="text-4xl font-bold mb-4 dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
 
     <div class="flex flex-wrap gap-4 text-gray-600 mb-6 pb-4 border-b dark:text-gray-400 dark:border-gray-700">
-      <span>🕒 Prep: {recipe.data.prepTime}</span>
-      <span>🔥 Cook: {recipe.data.cookTime}</span>
-      <span>🍽️ Serves: {recipe.data.servings}</span>
+      <span>🕒 {t('page.recipe.prep')}: {recipe.data.prepTime}</span>
+      <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
+      <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
     </div>
 
     <div class="flex flex-wrap gap-2 mb-8">
