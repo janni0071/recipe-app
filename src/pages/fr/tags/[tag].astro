@@ -2,7 +2,8 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import RecipeCard from '../../../components/RecipeCard.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../../../utils/i18n';
+import { useTranslations, getTagsPath } from '../../../utils/i18n';
+import { getTagTranslations } from '../../../utils/tags';
 
 export async function getStaticPaths(): Promise<{ params: { tag: string } }[]> {
   const recipes = await getCollection('recipes');
@@ -27,8 +28,15 @@ const recipesWithSlug = filteredRecipes.map((recipe: CollectionEntry<'recipes'>)
   ...recipe,
   slug: recipe.id.replace(/^fr\//, '').replace(/\.md$/, '')
 }));
+
+const tagTranslations = await getTagTranslations();
+const localeUrls = {
+  en: tagTranslations.fr.en[tag] ? `/tags/${tagTranslations.fr.en[tag]}` : getTagsPath('en'),
+  de: tagTranslations.fr.de[tag] ? `/de/tags/${tagTranslations.fr.de[tag]}` : getTagsPath('de'),
+  fr: `/fr/tags/${tag}`,
+};
 ---
-<BaseLayout title={`${t('page.tag.heading')} #${tag}`}>
+<BaseLayout title={`${t('page.tag.heading')} #${tag}`} localeUrls={localeUrls}>
   <h1 class="text-3xl font-bold mb-2">{t('page.tag.heading')} <span class="text-pink-600">#{tag}</span></h1>
   <p class="mb-6 text-gray-600 dark:text-gray-400">{filteredRecipes.length} {t('page.tag.count')}</p>
 
