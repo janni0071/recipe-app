@@ -21,6 +21,8 @@ export const ui = {
     '404.heading': "Oops! We haven't cooked this one yet.",
     '404.message': "This page doesn't exist — but Jannis & Daisy are probably in the kitchen working on something delicious.",
     '404.cta': '← Back to the recipes',
+    'page.recipe.ingredients': 'Ingredients',
+    'page.recipe.servings': 'servings',
   },
   de: {
     'nav.home': 'Startseite',
@@ -36,6 +38,8 @@ export const ui = {
     '404.heading': 'Hoppla! Das haben wir noch nicht gekocht.',
     '404.message': 'Diese Seite gibt es nicht — aber Jannis & Daisy stehen wahrscheinlich gerade in der Küche und kochen etwas Leckeres.',
     '404.cta': '← Zurück zu den Rezepten',
+    'page.recipe.ingredients': 'Zutaten',
+    'page.recipe.servings': 'Portionen',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -51,6 +55,8 @@ export const ui = {
     '404.heading': "Oups ! On n'a pas encore cuisiné ça.",
     '404.message': "Cette page n'existe pas — mais Jannis & Daisy sont sûrement en cuisine en train de préparer quelque chose de délicieux.",
     '404.cta': '← Retour aux recettes',
+    'page.recipe.ingredients': 'Ingrédients',
+    'page.recipe.servings': 'portions',
   },
 } as const;
 

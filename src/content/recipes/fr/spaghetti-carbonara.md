@@ -7,16 +7,24 @@ cookTime: "15 min"
 servings: 2
 author: "Jannis"
 image: "/images/carbonara.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g de"
+        name: "guanciale ou de pancetta"
+      - amount: 2
+        name: "gros œufs"
+      - amount: 50
+        unit: "g de"
+        name: "pecorino romano, finement râpé"
+      - amount: 50
+        unit: "g de"
+        name: "parmesan, finement râpé"
+      - amount: 200
+        unit: "g de"
+        name: "spaghetti"
+      - name: "Poivre noir, fraîchement moulu"
 ---
-
-## Ingrédients
-
-- 100 g de guanciale ou de pancetta
-- 2 gros œufs
-- 50 g de pecorino romano, finement râpé
-- 50 g de parmesan, finement râpé
-- 200 g de spaghetti
-- Poivre noir, fraîchement moulu
 
 ## Étapes
 

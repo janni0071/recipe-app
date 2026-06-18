@@ -7,26 +7,41 @@ cookTime: "30 min"
 servings: 1
 author: "Jannis"
 image: "/images/maulwurfkuchen.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g"
+        name: "fat (e.g., butter or margarine)"
+      - amount: 120
+        unit: "g"
+        name: "sugar"
+      - amount: 150
+        unit: "g"
+        name: "flour"
+      - name: "lots of cocoa powder"
+      - amount: 1
+        unit: "tsp"
+        name: "baking powder"
+      - amount: 2
+        name: "eggs"
+      - amount: 75
+        unit: "ml"
+        name: "milk"
+  - heading: "For the filling"
+    items:
+      - name: "Strawberries"
+      - amount: 250
+        unit: "g"
+        name: "chocolate"
+      - amount: 600
+        unit: "ml"
+        name: "cream"
+      - amount: 3
+        unit: "packets of"
+        name: "whipped cream stabilizer (Sahnesteif)"
+      - name: "Vanilla sugar"
+      - name: "Fat for greasing the pan"
 ---
-
-## Ingredients
-
-- 100g fat (e.g., butter or margarine)
-- 120g sugar
-- 150g flour
-- *lots* of cocoa powder
-- 1 tsp baking powder
-- 2 eggs
-- 75ml milk
-
-### For the filling
-
-- Strawberries
-- 250g chocolate
-- 3 cups of cream (approx. 600ml total)
-- 3 packets of whipped cream stabilizer (Sahnesteif)
-- Vanilla sugar
-- Fat for greasing the pan
 
 ## Instructions
 

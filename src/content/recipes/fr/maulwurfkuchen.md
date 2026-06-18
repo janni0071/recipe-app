@@ -7,26 +7,41 @@ cookTime: "30 min"
 servings: 1
 author: "Jannis"
 image: "/images/maulwurfkuchen.webp"
+ingredients:
+  - items:
+      - amount: 100
+        unit: "g de"
+        name: "matière grasse (beurre ou margarine)"
+      - amount: 120
+        unit: "g de"
+        name: "sucre"
+      - amount: 150
+        unit: "g de"
+        name: "farine"
+      - name: "beaucoup de cacao en poudre"
+      - amount: 1
+        unit: "c. à café de"
+        name: "levure chimique"
+      - amount: 2
+        name: "œufs"
+      - amount: 75
+        unit: "ml de"
+        name: "lait"
+  - heading: "Pour la garniture"
+    items:
+      - name: "Fraises"
+      - amount: 250
+        unit: "g de"
+        name: "chocolat"
+      - amount: 600
+        unit: "ml de"
+        name: "crème liquide entière"
+      - amount: 3
+        unit: "sachets de"
+        name: "fixateur pour chantilly (Sahnesteif)"
+      - name: "Sucre vanillé"
+      - name: "Matière grasse pour le moule"
 ---
-
-## Ingrédients
-
-- 100 g de matière grasse (beurre ou margarine)
-- 120 g de sucre
-- 150 g de farine
-- *beaucoup* de cacao en poudre
-- 1 c. à café de levure chimique
-- 2 œufs
-- 75 ml de lait
-
-### Pour la garniture
-
-- Fraises
-- 250 g de chocolat
-- 3 × 200 ml de crème liquide entière (environ 600 ml)
-- 3 sachets de fixateur pour chantilly (Sahnesteif)
-- Sucre vanillé
-- Matière grasse pour le moule
 
 ## Préparation
 

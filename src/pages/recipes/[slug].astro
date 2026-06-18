@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import IngredientList from '../../components/IngredientList.astro';
 import { Image } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
+import { useTranslations } from '../../utils/i18n';
 
 type StaticPath = {
   params: { slug: string };
@@ -27,6 +29,7 @@ type Props = {
 
 const { recipe } = Astro.props as Props;
 const { Content } = await render(recipe);
+const t = useTranslations('en');
 
 const slug = recipe.id.replace(/\.md$/, '');
 const allRecipes = await getCollection('recipes');
@@ -77,6 +80,12 @@ const localeUrls = {
     </div>
 
     <div class="prose max-w-none">
+      <IngredientList
+        heading={t('page.recipe.ingredients')}
+        groups={recipe.data.ingredients}
+        servings={recipe.data.servings}
+        servingsLabel={t('page.recipe.servings')}
+      />
       <Content />
     </div>
   </article>

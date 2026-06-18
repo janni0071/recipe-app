@@ -7,28 +7,35 @@ cookTime: "30-35 min"
 servings: 6
 author: "Daisy"
 image: "/images/pizza.webp"
+ingredients:
+  - items:
+      - name: "champignons (de Paris)"
+      - amount: 2
+        amountMax: 3
+        name: "bell peppers"
+      - amount: 2
+        name: "large onions"
+      - amount: 2
+        name: "large sliced tomatoes or cherry tomatoes"
+      - name: "parmesan"
+      - name: "tomato based pesto"
+      - name: "concentrated tomato purée"
+      - name: "pâte brisée"
+      - name: "diced ham or chorizo"
+  - heading: "BONUS: Garlic crème fraîche dip"
+    items:
+      - amount: 500
+        unit: "g"
+        name: "crème fraîche"
+      - amount: 3
+        name: "crushed garlic toes"
+      - amount: 1
+        unit: "tbsp"
+        name: "olive oil"
+      - name: "lemon/lime juice"
+      - name: "salt, pepper"
+      - name: "(OPTIONAL) Finely chopped fresh cilantro"
 ---
-
-## Ingredients
-
-- champignons (de Paris)
-- 2-3 bell peppers
-- 2 large onions
-- 2 large sliced tomatoes or cherry tomatoes
-- parmesan
-- tomato based pesto
-- concentrated tomato purée
-- pâte brisée
-- diced ham or chorizo
-
-### BONUS: Garlic crème fraîche dip
-
-- 500g crème fraîche
-- 3 crushed garlic toes
-- a tablespoon of olive oil
-- lemon/lime juice
-- salt, pepper
-- (OPTIONAL) Finely chopped fresh cilantro
 
 ## Steps
 
