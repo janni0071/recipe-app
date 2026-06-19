@@ -29,7 +29,7 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
   />
   <ul
     id="recipe-search-results"
-    class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
+    class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800 sm:hidden"
   ></ul>
 </div>
 
@@ -50,13 +50,28 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
     if (!container || !input || !results || input.dataset.searchBound) return;
     input.dataset.searchBound = 'true';
 
+    // The homepage grid lives outside this component (it's a sibling
+    // rendered by the page), so we just reach for it by id. SearchBar is
+    // only ever used on the 3 homepage variants, which always render this.
+    // `hasQuery` is passed explicitly rather than inferred from matches vs.
+    // all items, since "everything matches" would otherwise look identical
+    // to "no query entered".
+    function filterGrid(hasQuery, matches) {
+      const grid = document.getElementById('recipe-grid');
+      const emptyMessage = document.getElementById('recipe-grid-empty');
+      if (!grid) return;
+
+      const matchedHrefs = new Set(matches.map((item) => item.href));
+      for (const card of grid.children) {
+        const href = card.getAttribute('href');
+        card.classList.toggle('hidden', hasQuery && href != null && !matchedHrefs.has(href));
+      }
+      if (emptyMessage) emptyMessage.classList.toggle('hidden', !hasQuery || matches.length > 0);
+    }
+
     function render(query) {
       const q = query.trim().toLowerCase();
       results.innerHTML = '';
-      if (!q) {
-        results.classList.add('hidden');
-        return;
-      }
 
       let items = [];
       try {
@@ -66,11 +81,19 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       }
       const noResultsLabel = container.dataset.noResultsLabel || '';
 
+      if (!q) {
+        results.classList.add('hidden');
+        filterGrid(false, items); // empty query: show everything
+        return;
+      }
+
       const matches = items.filter(
         (item) =>
           item.title.toLowerCase().includes(q) ||
           item.tags.some((tag) => tag.toLowerCase().includes(q))
       );
+
+      filterGrid(true, matches);
 
       if (matches.length === 0) {
         const li = document.createElement('li');
@@ -97,12 +120,13 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
     });
     input.addEventListener('blur', () => {
       // Delay hiding so a click on a result registers before it disappears.
+      // The grid filter itself is left as-is — clearing it is what resets that.
       setTimeout(() => results.classList.add('hidden'), 150);
     });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         input.value = '';
-        results.classList.add('hidden');
+        render('');
         input.blur();
       }
     });
