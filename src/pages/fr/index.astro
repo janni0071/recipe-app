@@ -17,12 +17,18 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
   ...recipe,
   slug: recipe.id.replace(/^fr\//, '').replace(/\.md$/, '')
 }));
+
+const searchItems = recipesWithSlug.map((recipe) => ({
+  title: recipe.data.title,
+  tags: recipe.data.tags,
+  href: `/fr/recipes/${recipe.slug}`,
+}));
 ---
 <BaseLayout title={t('page.index.title')}>
   <h1 class="text-3xl font-bold mb-6">{t('page.index.heading')}</h1>
 
   <div class="mb-8">
-    <Search placeholder={t('search.placeholder')} />
+    <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={searchItems} />
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
