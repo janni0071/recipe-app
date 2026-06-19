@@ -26,6 +26,7 @@ export const ui = {
     'page.recipe.servings': 'servings',
     'page.recipe.prep': 'Prep',
     'page.recipe.cook': 'Cook/Bake',
+    'page.recipe.similar': 'Similar Recipes',
   },
   de: {
     'nav.home': 'Startseite',
@@ -46,6 +47,7 @@ export const ui = {
     'page.recipe.servings': 'Portionen',
     'page.recipe.prep': 'Vorbereitung',
     'page.recipe.cook': 'Garzeit',
+    'page.recipe.similar': 'Ähnliche Rezepte',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -66,6 +68,7 @@ export const ui = {
     'page.recipe.servings': 'portions',
     'page.recipe.prep': 'Préparation',
     'page.recipe.cook': 'Cuisson',
+    'page.recipe.similar': 'Recettes similaires',
   },
 } as const;
 

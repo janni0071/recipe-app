@@ -1,9 +1,11 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import IngredientList from '../../../components/IngredientList.astro';
+import RecipeCard from '../../../components/RecipeCard.astro';
 import { Image } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
+import { getSimilarRecipes } from '../../../utils/similar';
 
 type StaticPath = {
   params: { slug: string };
@@ -41,6 +43,12 @@ const localeUrls = {
   de: `/de/recipes/${slug}`,
   fr: hasFR ? `/fr/recipes/${slug}` : '/fr/',
 };
+
+const localeRecipes = allRecipes.filter((r) => r.id.startsWith('de/'));
+const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
+  ...r,
+  slug: r.id.replace(/^de\//, '').replace(/\.md$/, ''),
+}));
 ---
 <BaseLayout title={recipe.data.title} localeUrls={localeUrls}>
   <article class="max-w-3xl mx-auto">
@@ -88,5 +96,27 @@ const localeUrls = {
       />
       <Content />
     </div>
+
+    {similarRecipes.length > 0 && (
+      <div class="mt-12 border-t pt-8 dark:border-gray-700">
+        <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {similarRecipes.map((similar) => (
+            <RecipeCard
+              title={similar.data.title}
+              tags={similar.data.tags}
+              prepTime={similar.data.prepTime}
+              cookTime={similar.data.cookTime}
+              prepLabel={t('page.recipe.prep')}
+              cookLabel={t('page.recipe.cook')}
+              slug={similar.slug}
+              image={similar.data.image}
+              baseRecipePath="/de/recipes/"
+              loading="lazy"
+            />
+          ))}
+        </div>
+      </div>
+    )}
   </article>
 </BaseLayout>
