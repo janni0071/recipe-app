@@ -27,6 +27,8 @@ export const ui = {
     'page.recipe.prep': 'Prep',
     'page.recipe.cook': 'Cook/Bake',
     'page.recipe.similar': 'Similar Recipes',
+    'page.recipe.share': 'Share recipe',
+    'page.recipe.linkCopied': 'Link copied!',
   },
   de: {
     'nav.home': 'Startseite',
@@ -48,6 +50,8 @@ export const ui = {
     'page.recipe.prep': 'Vorbereitung',
     'page.recipe.cook': 'Garzeit',
     'page.recipe.similar': 'Ähnliche Rezepte',
+    'page.recipe.share': 'Rezept teilen',
+    'page.recipe.linkCopied': 'Link kopiert!',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -69,6 +73,8 @@ export const ui = {
     'page.recipe.prep': 'Préparation',
     'page.recipe.cook': 'Cuisson',
     'page.recipe.similar': 'Recettes similaires',
+    'page.recipe.share': 'Partager la recette',
+    'page.recipe.linkCopied': 'Lien copié !',
   },
 } as const;
 

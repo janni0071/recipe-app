@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import IngredientList from '../../components/IngredientList.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
+import ShareButton from '../../components/ShareButton.astro';
 import { Image } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 import { useTranslations } from '../../utils/i18n';
@@ -68,7 +69,10 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
     ) : (
       <div class="w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
     )}
-    <h1 class="text-4xl font-bold mb-4 dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <h1 class="text-4xl font-bold dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
+      <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
+    </div>
 
     <div class="flex flex-wrap gap-4 text-gray-600 mb-6 pb-4 border-b dark:text-gray-400 dark:border-gray-700">
       <span>🕒 {t('page.recipe.prep')}: {recipe.data.prepTime}</span>
