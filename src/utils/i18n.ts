@@ -18,6 +18,7 @@ export const ui = {
     'page.tag.count': 'recipe(s)',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Search for recipes...',
+    'search.noResults': 'No matches found',
     '404.heading': "Oops! We haven't cooked this one yet.",
     '404.message': "This page doesn't exist — but Jannis & Daisy are probably in the kitchen working on something delicious.",
     '404.cta': '← Back to the recipes',
@@ -25,6 +26,9 @@ export const ui = {
     'page.recipe.servings': 'servings',
     'page.recipe.prep': 'Prep',
     'page.recipe.cook': 'Cook/Bake',
+    'page.recipe.similar': 'Similar Recipes',
+    'page.recipe.share': 'Share recipe',
+    'page.recipe.linkCopied': 'Link copied!',
   },
   de: {
     'nav.home': 'Startseite',
@@ -37,6 +41,7 @@ export const ui = {
     'page.tag.count': 'Rezept(e)',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Rezepte suchen...',
+    'search.noResults': 'Keine Treffer gefunden',
     '404.heading': 'Hoppla! Das haben wir noch nicht gekocht.',
     '404.message': 'Diese Seite gibt es nicht — aber Jannis & Daisy stehen wahrscheinlich gerade in der Küche und kochen etwas Leckeres.',
     '404.cta': '← Zurück zu den Rezepten',
@@ -44,6 +49,9 @@ export const ui = {
     'page.recipe.servings': 'Portionen',
     'page.recipe.prep': 'Vorbereitung',
     'page.recipe.cook': 'Garzeit',
+    'page.recipe.similar': 'Ähnliche Rezepte',
+    'page.recipe.share': 'Rezept teilen',
+    'page.recipe.linkCopied': 'Link kopiert!',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -56,6 +64,7 @@ export const ui = {
     'page.tag.count': 'recette(s)',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Chercher des recettes...',
+    'search.noResults': 'Aucun résultat trouvé',
     '404.heading': "Oups ! On n'a pas encore cuisiné ça.",
     '404.message': "Cette page n'existe pas — mais Jannis & Daisy sont sûrement en cuisine en train de préparer quelque chose de délicieux.",
     '404.cta': '← Retour aux recettes',
@@ -63,6 +72,9 @@ export const ui = {
     'page.recipe.servings': 'portions',
     'page.recipe.prep': 'Préparation',
     'page.recipe.cook': 'Cuisson',
+    'page.recipe.similar': 'Recettes similaires',
+    'page.recipe.share': 'Partager la recette',
+    'page.recipe.linkCopied': 'Lien copié !',
   },
 } as const;
 

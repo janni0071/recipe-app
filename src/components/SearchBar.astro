@@ -1,106 +1,140 @@
 ---
+export interface SearchItem {
+  title: string;
+  tags: string[];
+  href: string;
+}
+
 interface Props {
   placeholder?: string;
+  noResultsLabel?: string;
+  items: SearchItem[];
 }
-const { placeholder = 'Search for recipes...' } = Astro.props;
+
+const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches found', items } = Astro.props;
 ---
 
-<div id="search" data-placeholder={placeholder}></div>
+<div
+  id="recipe-search"
+  class="relative"
+  data-items={JSON.stringify(items)}
+  data-no-results-label={noResultsLabel}
+>
+  <input
+    type="search"
+    id="recipe-search-input"
+    placeholder={placeholder}
+    autocomplete="off"
+    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+  />
+  <ul
+    id="recipe-search-results"
+    class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800 sm:hidden"
+  ></ul>
+</div>
 
-<style is:global>
-  /* Light mode defaults (already from Pagefind UI) */
+<script is:inline>
+  // Astro's ClientRouter skips re-running an inline script whose text content
+  // already ran earlier this session — and since define:vars bakes literal
+  // data into that text, revisiting the same locale produces byte-identical
+  // script content to its first visit, so it'd get silently skipped and the
+  // search data would go stale. So: no define:vars, no data baked into the
+  // script. The items/labels live as attributes on the container, which is
+  // plain HTML and always gets refreshed by the swap regardless of script
+  // dedup. This script's only job is to (re)bind listeners to whatever the
+  // current DOM looks like, reading data fresh from it each time.
+  function bindSearchInput() {
+    const container = document.getElementById('recipe-search');
+    const input = document.getElementById('recipe-search-input');
+    const results = document.getElementById('recipe-search-results');
+    if (!container || !input || !results || input.dataset.searchBound) return;
+    input.dataset.searchBound = 'true';
 
-  /* Dark mode overrides - higher specificity */
-  .dark .pagefind-ui__search-input {
-    background-color: #1f2937 !important;
-    border-color: #374151 !important;
-    color: #f3f4f6 !important;
-  }
+    // The homepage grid lives outside this component (it's a sibling
+    // rendered by the page), so we just reach for it by id. SearchBar is
+    // only ever used on the 3 homepage variants, which always render this.
+    // `hasQuery` is passed explicitly rather than inferred from matches vs.
+    // all items, since "everything matches" would otherwise look identical
+    // to "no query entered".
+    function filterGrid(hasQuery, matches) {
+      const grid = document.getElementById('recipe-grid');
+      const emptyMessage = document.getElementById('recipe-grid-empty');
+      if (!grid) return;
 
-  .dark .pagefind-ui__search-input::placeholder {
-    color: #9ca3af !important;
-  }
+      const matchedHrefs = new Set(matches.map((item) => item.href));
+      for (const card of grid.children) {
+        const href = card.getAttribute('href');
+        card.classList.toggle('hidden', hasQuery && href != null && !matchedHrefs.has(href));
+      }
+      if (emptyMessage) emptyMessage.classList.toggle('hidden', !hasQuery || matches.length > 0);
+    }
 
-  .dark .pagefind-ui__search-clear {
-    color: #9ca3af !important;
-    background-color: transparent !important;
-  }
+    function render(query) {
+      const q = query.trim().toLowerCase();
+      results.innerHTML = '';
 
-  /* Fix the clear button SVG in dark mode */
-  .dark .pagefind-ui__search-clear svg {
-    stroke: #9ca3af !important;
-  }
+      let items = [];
+      try {
+        items = JSON.parse(container.dataset.items || '[]');
+      } catch {
+        items = [];
+      }
+      const noResultsLabel = container.dataset.noResultsLabel || '';
 
-  .dark .pagefind-ui__search-clear:hover svg {
-    stroke: #f3f4f6 !important;
-  }
+      if (!q) {
+        results.classList.add('hidden');
+        filterGrid(false, items); // empty query: show everything
+        return;
+      }
 
-  .dark .pagefind-ui__result {
-    border-bottom-color: #374151 !important;
-  }
+      const matches = items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(q))
+      );
 
-  .dark .pagefind-ui__result-title {
-    color: #fbbf24 !important;
-  }
+      filterGrid(true, matches);
 
-  .dark .pagefind-ui__result-excerpt {
-    color: #d1d5db !important;
-  }
+      if (matches.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-2 text-sm text-gray-500 dark:text-gray-400';
+        li.textContent = noResultsLabel;
+        results.append(li);
+      } else {
+        for (const item of matches) {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = item.href;
+          a.className = 'block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700';
+          a.textContent = item.title;
+          li.append(a);
+          results.append(li);
+        }
+      }
+      results.classList.remove('hidden');
+    }
 
-  .dark .pagefind-ui__result-excerpt mark {
-    background-color: #4d3e1f !important;
-    color: #fcd34d !important;
-  }
-
-  .dark .pagefind-ui__result-link {
-    color: #60a5fa !important;
-  }
-
-  .dark .pagefind-ui__result-nested {
-    background-color: #111827 !important;
-    border-left-color: #374151 !important;
-  }
-
-  .dark .pagefind-ui__result-nested .pagefind-ui__result-title {
-    color: #e5e7eb !important;
-  }
-
-  .dark .pagefind-ui__result-nested .pagefind-ui__result-excerpt {
-    color: #9ca3af !important;
-  }
-
-  /* Also style the search input focus ring */
-  .dark .pagefind-ui__search-input:focus {
-    border-color: #ec4899 !important;
-    outline: none;
-  }
-
-  /* Dark mode for the search button (magnifying glass) */
-  .dark .pagefind-ui__search-button {
-    background-color: #374151 !important;
-    color: #9ca3af !important;
-  }
-</style>
-
-<script>
-  import { PagefindUI } from '@pagefind/default-ui';
-  import '@pagefind/default-ui/css/ui.css';
-
-  function initSearch() {
-    const el = document.getElementById('search') as HTMLElement | null;
-    if (!el) return;
-
-    new PagefindUI({
-      element: '#search',
-      showSubResults: true,
-      translations: {
-        placeholder: el.dataset.placeholder || 'Search for recipes...',
-      },
+    input.addEventListener('input', (e) => render(e.target.value));
+    input.addEventListener('focus', () => {
+      if (input.value.trim()) render(input.value);
+    });
+    input.addEventListener('blur', () => {
+      // Delay hiding so a click on a result registers before it disappears.
+      // The grid filter itself is left as-is — clearing it is what resets that.
+      setTimeout(() => results.classList.add('hidden'), 150);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        input.value = '';
+        render('');
+        input.blur();
+      }
     });
   }
 
-  // Initial load: run immediately (DOM is already available)
-  initSearch();
-  // After each navigation: run right after DOM swap, during the transition animation
-  document.addEventListener('astro:after-swap', initSearch);
+  bindSearchInput();
+  if (!window.__recipeSearchSwapListenerAdded) {
+    window.__recipeSearchSwapListenerAdded = true;
+    document.addEventListener('astro:after-swap', bindSearchInput);
+  }
 </script>

@@ -15,17 +15,18 @@ const ingredientGroup = z.object({
 
 const recipesCollection = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/recipes" }),
-  schema: z.object({
-    title: z.string(),
-    date: z.date(),
-    tags: z.array(z.string()),
-    prepTime: z.string(),
-    cookTime: z.string(),
-    servings: z.number(),
-    image: z.string().optional(),
-    author: z.string().optional(),
-    ingredients: z.array(ingredientGroup),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      date: z.date(),
+      tags: z.array(z.string()),
+      prepTime: z.string(),
+      cookTime: z.string(),
+      servings: z.number(),
+      image: image().optional(),
+      author: z.string().optional(),
+      ingredients: z.array(ingredientGroup),
+    }),
 });
 
 export const collections = {

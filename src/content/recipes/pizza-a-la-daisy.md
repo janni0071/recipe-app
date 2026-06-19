@@ -6,7 +6,7 @@ prepTime: "45 min"
 cookTime: "30-35 min"
 servings: 6
 author: "Daisy"
-image: "/images/pizza.webp"
+image: "../../assets/recipes/pizza.webp"
 ingredients:
   - items:
       - name: "champignons (de Paris)"
