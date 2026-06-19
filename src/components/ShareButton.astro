@@ -8,28 +8,26 @@ export interface Props {
 const { title, label, copiedLabel } = Astro.props;
 ---
 
-<div class="relative inline-block">
-  <button
-    type="button"
-    id="share-button"
-    aria-label={label}
-    data-title={title}
-    data-copied-label={copiedLabel}
-    class="flex-shrink-0 p-2 rounded-full bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-600 dark:text-pink-300 transition"
-  >
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <circle cx="18" cy="5" r="2.5" stroke-width="2"></circle>
-      <circle cx="6" cy="12" r="2.5" stroke-width="2"></circle>
-      <circle cx="18" cy="19" r="2.5" stroke-width="2"></circle>
-      <line x1="8.2" y1="10.7" x2="15.8" y2="6.3" stroke-width="2" stroke-linecap="round"></line>
-      <line x1="8.2" y1="13.3" x2="15.8" y2="17.7" stroke-width="2" stroke-linecap="round"></line>
-    </svg>
-  </button>
-  <span
-    id="share-feedback"
-    class="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-2 py-1 text-xs opacity-0 transition-opacity duration-200 shadow"
-  ></span>
-</div>
+<button
+  type="button"
+  id="share-button"
+  aria-label={label}
+  data-title={title}
+  data-copied-label={copiedLabel}
+  class="flex-shrink-0 p-2 rounded-full bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-600 dark:text-pink-300 transition"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="18" cy="5" r="2.5" stroke-width="2"></circle>
+    <circle cx="6" cy="12" r="2.5" stroke-width="2"></circle>
+    <circle cx="18" cy="19" r="2.5" stroke-width="2"></circle>
+    <line x1="8.2" y1="10.7" x2="15.8" y2="6.3" stroke-width="2" stroke-linecap="round"></line>
+    <line x1="8.2" y1="13.3" x2="15.8" y2="17.7" stroke-width="2" stroke-linecap="round"></line>
+  </svg>
+</button>
+<span
+  id="share-feedback"
+  class="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-4 py-2 text-sm opacity-0 transition-opacity duration-200 shadow-lg"
+></span>
 
 <script is:inline>
   // No define:vars here on purpose: this script's text is identical on
