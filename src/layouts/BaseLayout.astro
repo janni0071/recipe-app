@@ -115,27 +115,47 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       // the whole session; this script's content never changes between
       // pages, so the ClientRouter will only ever run it once, and that's
       // fine — the observer just needs to (re)scan for fresh cards each nav.
+      //
+      // Cards already on screen at page load skip the dwell delay entirely
+      // and prefetch right away: there's no "user is scrolling past quickly"
+      // risk to guard against for content that was visible before any
+      // scrolling happened. This is what was making the desktop grid (which
+      // shows every card without scrolling) feel slower than mobile to open
+      // a recipe on the first visit. It's bounded by how many cards fit in
+      // one screen, not by the total recipe count, so it stays cheap as the
+      // catalog grows — only cards revealed by scrolling further still wait
+      // out the 300ms dwell.
       function initHeroPreload() {
         if (!window.__heroPreloadObserver) {
           window.__heroPreloadedHrefs = new Set();
           const pendingTimers = new WeakMap();
+          const seenElements = new WeakSet();
+
+          function prefetch(el) {
+            const href = el.dataset.heroSrc;
+            window.__heroPreloadObserver.unobserve(el);
+            if (!href || window.__heroPreloadedHrefs.has(href)) return;
+            window.__heroPreloadedHrefs.add(href);
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.as = 'image';
+            link.href = href;
+            document.head.appendChild(link);
+          }
 
           window.__heroPreloadObserver = new IntersectionObserver((entries) => {
             for (const entry of entries) {
               const el = entry.target;
+              const isFirstReport = !seenElements.has(el);
+              seenElements.add(el);
+
               if (entry.isIntersecting) {
-                const timer = setTimeout(() => {
-                  const href = el.dataset.heroSrc;
-                  window.__heroPreloadObserver.unobserve(el);
-                  if (!href || window.__heroPreloadedHrefs.has(href)) return;
-                  window.__heroPreloadedHrefs.add(href);
-                  const link = document.createElement('link');
-                  link.rel = 'prefetch';
-                  link.as = 'image';
-                  link.href = href;
-                  document.head.appendChild(link);
-                }, 300);
-                pendingTimers.set(el, timer);
+                if (isFirstReport) {
+                  prefetch(el);
+                } else {
+                  const timer = setTimeout(() => prefetch(el), 300);
+                  pendingTimers.set(el, timer);
+                }
               } else {
                 const timer = pendingTimers.get(el);
                 if (timer) clearTimeout(timer);
