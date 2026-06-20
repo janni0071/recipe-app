@@ -1,7 +1,7 @@
 ---
 title: "Mole Cake"
 date: 2025-06-15
-tags: ["cake", "baking", "long"]
+tags: ["cake", "baking", "german", "vegetarian", "dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
 servings: 1
@@ -43,7 +43,7 @@ ingredients:
       - name: "Fat for greasing the pan"
 ---
 
-## Instructions
+## Steps
 
 1. Make a batter from the first seven ingredients.
 2. Grease a 26 cm springform pan and bake the batter at 170°C for 30 minutes.

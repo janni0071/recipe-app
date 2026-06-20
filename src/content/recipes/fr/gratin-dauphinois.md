@@ -1,7 +1,7 @@
 ---
 title: "Gratin Dauphinois"
 date: 2025-06-20
-tags: ["pommes de terre", "français", "long"]
+tags: ["pommes de terre", "français", "végétarien"]
 prepTime: "10 min"
 cookTime: "85 min"
 servings: 6

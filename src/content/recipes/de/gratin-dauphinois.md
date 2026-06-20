@@ -1,7 +1,7 @@
 ---
 title: "Gratin Dauphinois"
 date: 2025-06-20
-tags: ["Kartoffeln", "französisch", "lang"]
+tags: ["Kartoffeln", "französisch", "vegetarisch"]
 prepTime: "10 min"
 cookTime: "85 min"
 servings: 6

@@ -1,7 +1,7 @@
 ---
 title: "Maulwurfkuchen"
 date: 2025-06-15
-tags: ["Kuchen", "backen", "lang"]
+tags: ["Kuchen", "backen", "deutsch", "vegetarisch", "Dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
 servings: 1

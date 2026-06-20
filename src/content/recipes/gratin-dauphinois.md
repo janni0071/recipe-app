@@ -1,7 +1,7 @@
 ---
 title: "Gratin Dauphinois"
 date: 2025-06-20
-tags: ["potatoes", "french", "long"]
+tags: ["potatoes", "french", "vegetarian"]
 prepTime: "10 min"
 cookTime: "85 min"
 servings: 6
@@ -25,7 +25,7 @@ ingredients:
         name: "garlic cloves"
       - name: "Butter"
       - name: "Nutmeg"
-      - name: "Salt & Pepper"
+      - name: "Salt & pepper"
 ---
 
 ## Steps
