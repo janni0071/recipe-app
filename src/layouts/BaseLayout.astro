@@ -262,5 +262,58 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
 
       document.addEventListener('astro:page-load', initFavorites);
     </script>
+    <script is:inline>
+      // RecipeCard renders every tag server-side; if they'd wrap to a second
+      // row, collapse the overflow into a single "+N" pill instead, so
+      // cards in the same grid row stay visually aligned. Re-checks on
+      // resize too, since the same card can wrap differently as the
+      // viewport (and the grid's column count) changes.
+      function collapseTagRows() {
+        document.querySelectorAll('[data-tag-row]').forEach((row) => {
+          const tags = Array.from(row.querySelectorAll('[data-tag]'));
+          const moreBadge = row.querySelector('[data-tag-more]');
+          if (tags.length === 0) return;
+
+          tags.forEach((tag) => tag.classList.remove('hidden'));
+          if (moreBadge) moreBadge.classList.add('hidden');
+
+          const firstRowTop = tags[0].offsetTop;
+          let hiddenCount = 0;
+          for (const tag of tags) {
+            if (tag.offsetTop > firstRowTop) {
+              tag.classList.add('hidden');
+              hiddenCount++;
+            }
+          }
+
+          if (hiddenCount === 0 || !moreBadge) return;
+
+          moreBadge.textContent = `+${hiddenCount}`;
+          moreBadge.classList.remove('hidden');
+
+          // The badge itself takes up row space — if adding it pushed it
+          // onto row 2, hide one more real tag and retry.
+          for (let guard = 0; guard < 10 && moreBadge.offsetTop > firstRowTop; guard++) {
+            const visible = tags.filter((tag) => !tag.classList.contains('hidden'));
+            const last = visible[visible.length - 1];
+            if (!last) break;
+            last.classList.add('hidden');
+            hiddenCount++;
+            moreBadge.textContent = `+${hiddenCount}`;
+          }
+        });
+      }
+
+      document.addEventListener('astro:page-load', collapseTagRows);
+
+      if (!window.__tagRowResizeBound) {
+        window.__tagRowResizeBound = true;
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(collapseTagRows, 150);
+        });
+      }
+    </script>
     </body>
 </html>

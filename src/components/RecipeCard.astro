@@ -56,12 +56,13 @@ const heroImage = image ? await getImage({ src: image, width: 900, height: 400, 
     )}
     <div class="p-4">
       <h3 class="text-xl font-semibold mb-2 dark:text-white" transition:name={`recipe-title-${slug}`}>{title}</h3>
-      <div class="flex flex-wrap gap-2 mb-3">
+      <div class="flex flex-wrap gap-2 mb-3" data-tag-row>
         {tags.map(tag => (
-          <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200">
+          <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200" data-tag>
             #{tag}
           </span>
         ))}
+        <span class="hidden text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200" data-tag-more></span>
       </div>
       <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
         <div class="flex gap-3">
