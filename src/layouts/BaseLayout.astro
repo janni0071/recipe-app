@@ -118,46 +118,22 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       function initHeroPreload() {
         if (!window.__heroPreloadObserver) {
           window.__heroPreloadedHrefs = new Set();
-          window.__speculatedHrefs = new Set();
           const pendingTimers = new WeakMap();
-          const supportsSpeculationRules =
-            'HTMLScriptElement' in window &&
-            typeof HTMLScriptElement.supports === 'function' &&
-            HTMLScriptElement.supports('speculationrules');
 
           window.__heroPreloadObserver = new IntersectionObserver((entries) => {
             for (const entry of entries) {
               const el = entry.target;
               if (entry.isIntersecting) {
                 const timer = setTimeout(() => {
-                  window.__heroPreloadObserver.unobserve(el);
-
                   const href = el.dataset.heroSrc;
-                  if (href && !window.__heroPreloadedHrefs.has(href)) {
-                    window.__heroPreloadedHrefs.add(href);
-                    const link = document.createElement('link');
-                    link.rel = 'prefetch';
-                    link.as = 'image';
-                    link.href = href;
-                    document.head.appendChild(link);
-                  }
-
-                  // Same dwell signal also drives full-page prerendering where
-                  // supported: by the time the user actually taps, the whole
-                  // destination page — hero image included — can already be
-                  // fully rendered in a hidden background tab, not just the
-                  // image bytes sitting in cache. No-op (script type is simply
-                  // ignored) on browsers without the API.
-                  const pageHref = el.getAttribute('href');
-                  if (supportsSpeculationRules && pageHref && !window.__speculatedHrefs.has(pageHref)) {
-                    window.__speculatedHrefs.add(pageHref);
-                    const rules = document.createElement('script');
-                    rules.type = 'speculationrules';
-                    rules.textContent = JSON.stringify({
-                      prerender: [{ source: 'list', urls: [pageHref] }],
-                    });
-                    document.body.appendChild(rules);
-                  }
+                  window.__heroPreloadObserver.unobserve(el);
+                  if (!href || window.__heroPreloadedHrefs.has(href)) return;
+                  window.__heroPreloadedHrefs.add(href);
+                  const link = document.createElement('link');
+                  link.rel = 'prefetch';
+                  link.as = 'image';
+                  link.href = href;
+                  document.head.appendChild(link);
                 }, 300);
                 pendingTimers.set(el, timer);
               } else {
