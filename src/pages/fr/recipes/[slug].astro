@@ -63,7 +63,7 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
         loading="eager"
         fetchpriority="high"
         decoding="async"
-        class="w-full h-64 object-cover rounded-xl mb-6"
+        class="w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
         transition:name={`recipe-image-${slug}`}
       />
     ) : (
