@@ -274,25 +274,31 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           const moreBadge = row.querySelector('[data-tag-more]');
           if (tags.length === 0) return;
 
+          // Reset to the "everything visible" state first — a single write
+          // batch, before any reads happen.
           tags.forEach((tag) => tag.classList.remove('hidden'));
           if (moreBadge) moreBadge.classList.add('hidden');
 
-          const firstRowTop = tags[0].offsetTop;
-          let hiddenCount = 0;
-          for (const tag of tags) {
-            if (tag.offsetTop > firstRowTop) {
-              tag.classList.add('hidden');
-              hiddenCount++;
-            }
-          }
+          // Read every tag's offsetTop up front, in one batch, instead of
+          // interleaving reads with hide-writes in a loop — the latter
+          // forces a fresh synchronous layout recalculation on every
+          // iteration ("layout thrashing"), since each write invalidates
+          // the layout the next read would otherwise reuse.
+          const tops = tags.map((tag) => tag.offsetTop);
+          const firstRowTop = tops[0];
+          const overflowing = tags.filter((_, i) => tops[i] > firstRowTop);
 
-          if (hiddenCount === 0 || !moreBadge) return;
+          if (overflowing.length === 0 || !moreBadge) return;
 
+          overflowing.forEach((tag) => tag.classList.add('hidden'));
+          let hiddenCount = overflowing.length;
           moreBadge.textContent = `+${hiddenCount}`;
           moreBadge.classList.remove('hidden');
 
           // The badge itself takes up row space — if adding it pushed it
-          // onto row 2, hide one more real tag and retry.
+          // onto row 2, hide one more real tag and retry. This part stays
+          // iterative (we only know whether the badge fits once it's
+          // actually shown), but it's capped and rarely runs more than once.
           for (let guard = 0; guard < 10 && moreBadge.offsetTop > firstRowTop; guard++) {
             const visible = tags.filter((tag) => !tag.classList.contains('hidden'));
             const last = visible[visible.length - 1];
