@@ -3,7 +3,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import IngredientList from '../../../components/IngredientList.astro';
 import RecipeCard from '../../../components/RecipeCard.astro';
 import ShareButton from '../../../components/ShareButton.astro';
-import { Image } from 'astro:assets';
+import PrintButton from '../../../components/PrintButton.astro';
+import { Image, getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
 import { getSimilarRecipes } from '../../../utils/similar';
@@ -50,8 +51,13 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
   ...r,
   slug: r.id.replace(/^fr\//, '').replace(/\.md$/, ''),
 }));
+
+const description = `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
+const ogImage = recipe.data.image
+  ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp' })
+  : undefined;
 ---
-<BaseLayout title={recipe.data.title} localeUrls={localeUrls}>
+<BaseLayout title={recipe.data.title} description={description} image={ogImage} localeUrls={localeUrls}>
   <article class="max-w-3xl mx-auto">
     {recipe.data.image ? (
       <Image
@@ -63,15 +69,18 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
         loading="eager"
         fetchpriority="high"
         decoding="async"
-        class="w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
+        class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
         transition:name={`recipe-image-${slug}`}
       />
     ) : (
-      <div class="w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
+      <div class="print:hidden w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
     )}
     <div class="flex items-center justify-between gap-4 mb-4">
       <h1 class="text-4xl font-bold dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
-      <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
+      <div class="print:hidden flex items-center gap-2">
+        <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
+        <PrintButton label={t('page.recipe.print')} />
+      </div>
     </div>
 
     <div class="flex flex-wrap gap-4 text-gray-600 mb-6 pb-4 border-b dark:text-gray-400 dark:border-gray-700">
@@ -80,7 +89,7 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
       <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
     </div>
 
-    <div class="flex flex-wrap gap-2 mb-8">
+    <div class="print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
           href={`/fr/tags/${tag}`}
@@ -102,7 +111,7 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
     </div>
 
     {similarRecipes.length > 0 && (
-      <div class="mt-12 border-t pt-8 dark:border-gray-700">
+      <div class="print:hidden mt-12 border-t pt-8 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {similarRecipes.map((similar) => (

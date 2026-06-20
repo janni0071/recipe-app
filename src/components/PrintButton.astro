@@ -1,0 +1,33 @@
+---
+export interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<button
+  type="button"
+  id="print-button"
+  aria-label={label}
+  class="flex-shrink-0 p-2 rounded-full bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-600 dark:text-pink-300 transition"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path d="M6 9V4h12v5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+    <rect x="6" y="9" width="12" height="7" rx="1" stroke-width="2"></rect>
+    <rect x="9" y="13" width="6" height="6" stroke-width="2"></rect>
+  </svg>
+</button>
+
+<script is:inline>
+  // Generic, identical content on every recipe page — same dedup-safe
+  // astro:page-load pattern as ShareButton/theme-toggle. No per-page data
+  // needed at all here, so there's nothing that can go stale.
+  function bindPrintButton() {
+    const button = document.getElementById('print-button');
+    if (!button) return;
+    button.addEventListener('click', () => window.print());
+  }
+
+  document.addEventListener('astro:page-load', bindPrintButton);
+</script>

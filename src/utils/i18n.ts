@@ -29,6 +29,7 @@ export const ui = {
     'page.recipe.similar': 'Similar Recipes',
     'page.recipe.share': 'Share recipe',
     'page.recipe.linkCopied': 'Link copied!',
+    'page.recipe.print': 'Print recipe',
   },
   de: {
     'nav.home': 'Startseite',
@@ -52,6 +53,7 @@ export const ui = {
     'page.recipe.similar': 'Ähnliche Rezepte',
     'page.recipe.share': 'Rezept teilen',
     'page.recipe.linkCopied': 'Link kopiert!',
+    'page.recipe.print': 'Rezept drucken',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -75,6 +77,7 @@ export const ui = {
     'page.recipe.similar': 'Recettes similaires',
     'page.recipe.share': 'Partager la recette',
     'page.recipe.linkCopied': 'Lien copié !',
+    'page.recipe.print': 'Imprimer la recette',
   },
 } as const;
 

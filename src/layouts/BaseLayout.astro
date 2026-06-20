@@ -7,23 +7,45 @@ import { ClientRouter } from 'astro:transitions';
 export interface Props {
   title: string;
   description?: string;
+  // Accepts both raw ImageMetadata and getImage()'s GetImageResult — callers
+  // should pass an already-optimized variant (e.g. via getImage()), not a
+  // raw content-collection image reference, or og:image ends up pointing at
+  // the full-resolution original instead of a web-sized crop.
+  image?: { src: string };
   localeUrls?: Partial<Record<Locale, string>>;
 }
-const { title, description, localeUrls } = Astro.props;
+const { title, description, image, localeUrls } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
 const tagsPath = getTagsPath(locale);
 import '../styles/global.css';
+
+const pageTitle = `${title} | Recipe Box`;
+const pageDescription = description || 'Our family recipes';
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
 ---
 <!DOCTYPE html>
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | Recipe Box</title>
-    <meta name="description" content={description || "Our family recipes"} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={pageUrl} />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+
+    <meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+
     <ClientRouter />
     <script is:inline>
       function applyTheme(doc) {
@@ -37,7 +59,7 @@ import '../styles/global.css';
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-    <header class="border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <header class="print:hidden border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <nav class="mx-auto max-w-6xl flex justify-between items-center gap-2 flex-wrap">
         <a href={homePath} class="text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
         <div class="flex items-center gap-3 flex-wrap justify-end">
@@ -58,7 +80,7 @@ import '../styles/global.css';
     <main class="mx-auto max-w-6xl p-4">
       <slot />
     </main>
-    <footer class="mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+    <footer class="print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
         © {new Date().getFullYear()} Jannis
         <span class="relative group inline-block cursor-default">
           <span class="text-pink-400 group-hover:text-pink-500 transition">♡</span>
