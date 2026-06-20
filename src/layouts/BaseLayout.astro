@@ -83,5 +83,51 @@ import '../styles/global.css';
       // astro:page-load fires on initial load and after every navigation
       document.addEventListener('astro:page-load', setupThemeToggle);
     </script>
+    <script is:inline>
+      // RecipeCard marks its linked recipe's hero image via data-hero-src.
+      // Once a card has been visible for a moment (matching the 300ms dwell
+      // time Astro's own viewport prefetch strategy uses), fetch that hero
+      // image in the background at low priority, so it's already cached by
+      // the time the user actually clicks through — fixing the "image
+      // briefly disappears" flash on a first visit. One shared observer for
+      // the whole session; this script's content never changes between
+      // pages, so the ClientRouter will only ever run it once, and that's
+      // fine — the observer just needs to (re)scan for fresh cards each nav.
+      function initHeroPreload() {
+        if (!window.__heroPreloadObserver) {
+          window.__heroPreloadedHrefs = new Set();
+          const pendingTimers = new WeakMap();
+
+          window.__heroPreloadObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+              const el = entry.target;
+              if (entry.isIntersecting) {
+                const timer = setTimeout(() => {
+                  const href = el.dataset.heroSrc;
+                  window.__heroPreloadObserver.unobserve(el);
+                  if (!href || window.__heroPreloadedHrefs.has(href)) return;
+                  window.__heroPreloadedHrefs.add(href);
+                  const link = document.createElement('link');
+                  link.rel = 'prefetch';
+                  link.as = 'image';
+                  link.href = href;
+                  document.head.appendChild(link);
+                }, 300);
+                pendingTimers.set(el, timer);
+              } else {
+                const timer = pendingTimers.get(el);
+                if (timer) clearTimeout(timer);
+              }
+            }
+          });
+        }
+
+        document.querySelectorAll('[data-hero-src]').forEach((el) => {
+          window.__heroPreloadObserver.observe(el);
+        });
+      }
+
+      document.addEventListener('astro:page-load', initHeroPreload);
+    </script>
     </body>
 </html>
