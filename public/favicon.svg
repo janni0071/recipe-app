@@ -1,13 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- Plate -->
-  <circle cx="64" cy="72" r="44" fill="#fbcfe8"/>
-  <circle cx="64" cy="72" r="36" fill="#fce7f3"/>
-  <!-- Heart -->
-  <path d="M64 58 C64 58 48 44 38 52 C28 60 36 76 64 90 C92 76 100 60 90 52 C80 44 64 58 64 58Z" fill="#ec4899"/>
-  <style>
-    @media (prefers-color-scheme: dark) {
-      circle:first-child { fill: #9d174d; }
-      circle:nth-child(2) { fill: #be185d; }
-    }
-  </style>
+  <rect width="128" height="128" rx="28" fill="#ec4899"/>
+  <text x="36" y="102" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" fill="#ffffff" text-anchor="middle">J</text>
+  <text x="92" y="102" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700" fill="#ffffff" text-anchor="middle">D</text>
+  <path d="M64 32 C64 32 58.5 27 54 29.5 C49.5 32 51 38.5 64 46 C77 38.5 78.5 32 74 29.5 C69.5 27 64 32 64 32Z" fill="#ffffff"/>
 </svg>
