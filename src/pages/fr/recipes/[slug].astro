@@ -55,7 +55,7 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
 
 const description = `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
 const ogImage = recipe.data.image
-  ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp' })
+  ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp', quality: 75 })
   : undefined;
 ---
 <BaseLayout title={recipe.data.title} description={description} image={ogImage} localeUrls={localeUrls}>
@@ -67,6 +67,7 @@ const ogImage = recipe.data.image
         width={900}
         height={400}
         format="webp"
+        quality={75}
         loading="eager"
         fetchpriority="high"
         decoding="async"

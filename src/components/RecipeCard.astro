@@ -22,7 +22,7 @@ const { title, tags, prepTime, cookTime, prepLabel, cookLabel, favoriteLabel, sl
 // Same width/height/format the recipe detail page renders its hero image
 // at, so this resolves to the exact same optimized file — preloading it
 // here means it's already cached by the time the user clicks through.
-const heroImage = image ? await getImage({ src: image, width: 900, height: 400, format: 'webp' }) : null;
+const heroImage = image ? await getImage({ src: image, width: 900, height: 400, format: 'webp', quality: 75 }) : null;
 ---
 <a
   href={`${baseRecipePath}${slug}`}
@@ -42,6 +42,7 @@ const heroImage = image ? await getImage({ src: image, width: 900, height: 400, 
           width={400}
           height={300}
           format="webp"
+          quality={75}
           loading={loading}
           decoding="async"
           transition:name={`recipe-image-${slug}`}
