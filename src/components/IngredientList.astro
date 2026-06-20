@@ -1,15 +1,6 @@
 ---
-export interface IngredientItem {
-  amount?: number;
-  amountMax?: number;
-  unit?: string;
-  name: string;
-}
-
-export interface IngredientGroup {
-  heading?: string;
-  items: IngredientItem[];
-}
+import { formatAmount, unitAndName, type IngredientGroup } from '../utils/ingredients';
+export type { IngredientItem, IngredientGroup } from '../utils/ingredients';
 
 export interface Props {
   heading: string;
@@ -19,18 +10,6 @@ export interface Props {
 }
 
 const { heading, groups, servings, servingsLabel } = Astro.props;
-
-function formatAmount(amount?: number, amountMax?: number): string {
-  if (amount == null) return '';
-  return amountMax != null ? `${amount}-${amountMax}` : `${amount}`;
-}
-
-// French units like "g de" or elided "d'" need to hug the ingredient name
-// without — or with exactly one — space; other locales just want one space.
-function unitAndName(unit: string | undefined, name: string): string {
-  if (!unit) return name;
-  return unit.endsWith("'") ? `${unit}${name}` : `${unit} ${name}`;
-}
 ---
 <div class="flex flex-wrap items-center justify-between gap-3">
   <h2 class="!mt-0 !mb-0">{heading}</h2>
