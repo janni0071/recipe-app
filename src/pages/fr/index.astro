@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
 import Search from '../../components/SearchBar.astro';
+import FavoritesFilterToggle from '../../components/FavoritesFilterToggle.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../utils/i18n';
 
@@ -27,8 +28,11 @@ const searchItems = recipesWithSlug.map((recipe) => ({
 <BaseLayout title={t('page.index.title')}>
   <h1 class="text-3xl font-bold mb-6">{t('page.index.heading')}</h1>
 
-  <div class="mb-8">
-    <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={searchItems} />
+  <div class="mb-8 flex flex-wrap items-center gap-3">
+    <div class="flex-1 min-w-[12rem]">
+      <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={searchItems} />
+    </div>
+    <FavoritesFilterToggle label={t('page.index.favoritesOnly')} />
   </div>
 
   <div id="recipe-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -40,6 +44,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         cookTime={recipe.data.cookTime}
         prepLabel={t('page.recipe.prep')}
         cookLabel={t('page.recipe.cook')}
+        favoriteLabel={t('page.recipe.favorite')}
         slug={recipe.slug}
         image={recipe.data.image}
         author={recipe.data.author}

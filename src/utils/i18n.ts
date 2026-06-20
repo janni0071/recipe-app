@@ -30,6 +30,8 @@ export const ui = {
     'page.recipe.share': 'Share recipe',
     'page.recipe.linkCopied': 'Link copied!',
     'page.recipe.print': 'Print recipe',
+    'page.recipe.favorite': 'Toggle favorite',
+    'page.index.favoritesOnly': 'Favorites only',
   },
   de: {
     'nav.home': 'Startseite',
@@ -54,6 +56,8 @@ export const ui = {
     'page.recipe.share': 'Rezept teilen',
     'page.recipe.linkCopied': 'Link kopiert!',
     'page.recipe.print': 'Rezept drucken',
+    'page.recipe.favorite': 'Favorit umschalten',
+    'page.index.favoritesOnly': 'Nur Favoriten',
   },
   fr: {
     'nav.home': 'Accueil',
@@ -78,6 +82,8 @@ export const ui = {
     'page.recipe.share': 'Partager la recette',
     'page.recipe.linkCopied': 'Lien copié !',
     'page.recipe.print': 'Imprimer la recette',
+    'page.recipe.favorite': 'Basculer le favori',
+    'page.index.favoritesOnly': 'Favoris uniquement',
   },
 } as const;
 

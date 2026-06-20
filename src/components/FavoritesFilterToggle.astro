@@ -1,0 +1,45 @@
+---
+export interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<button
+  type="button"
+  id="favorites-filter-toggle"
+  data-active="false"
+  aria-pressed="false"
+  class="group flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 data-[active=true]:border-pink-400 data-[active=true]:bg-pink-100 data-[active=true]:text-pink-700 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:data-[active=true]:bg-pink-900 dark:data-[active=true]:text-pink-200"
+>
+  <svg class="w-4 h-4 group-data-[active=true]:hidden" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+    ></path>
+  </svg>
+  <svg class="hidden w-4 h-4 group-data-[active=true]:block" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+    ></path>
+  </svg>
+  {label}
+</button>
+
+<script is:inline>
+  function bindFavoritesFilterToggle() {
+    const button = document.getElementById('favorites-filter-toggle');
+    if (!button || button.dataset.toggleBound) return;
+    button.dataset.toggleBound = 'true';
+
+    button.addEventListener('click', () => {
+      const active = button.dataset.active === 'true';
+      button.dataset.active = String(!active);
+      button.setAttribute('aria-pressed', String(!active));
+      if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindFavoritesFilterToggle);
+</script>

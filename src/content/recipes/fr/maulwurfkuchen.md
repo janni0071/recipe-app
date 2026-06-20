@@ -1,5 +1,5 @@
 ---
-title: "Gâteau Taupe (Maulwurfkuchen)"
+title: "Gâteau Taupe"
 date: 2025-06-15
 tags: ["gâteau", "pâtisserie", "long"]
 prepTime: "30 min"

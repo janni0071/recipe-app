@@ -4,6 +4,7 @@ import IngredientList from '../../../components/IngredientList.astro';
 import RecipeCard from '../../../components/RecipeCard.astro';
 import ShareButton from '../../../components/ShareButton.astro';
 import PrintButton from '../../../components/PrintButton.astro';
+import FavoriteButton from '../../../components/FavoriteButton.astro';
 import { Image, getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
@@ -78,6 +79,7 @@ const ogImage = recipe.data.image
     <div class="flex items-center justify-between gap-4 mb-4">
       <h1 class="text-4xl font-bold dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
       <div class="print:hidden flex items-center gap-2">
+        <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
         <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
         <PrintButton label={t('page.recipe.print')} />
       </div>
@@ -122,6 +124,7 @@ const ogImage = recipe.data.image
               cookTime={similar.data.cookTime}
               prepLabel={t('page.recipe.prep')}
               cookLabel={t('page.recipe.cook')}
+              favoriteLabel={t('page.recipe.favorite')}
               slug={similar.slug}
               image={similar.data.image}
               baseRecipePath="/fr/recipes/"
