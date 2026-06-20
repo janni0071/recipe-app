@@ -50,28 +50,20 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
     if (!container || !input || !results || input.dataset.searchBound) return;
     input.dataset.searchBound = 'true';
 
-    // The homepage grid lives outside this component (it's a sibling
-    // rendered by the page), so we just reach for it by id. SearchBar is
-    // only ever used on the 3 homepage variants, which always render this.
-    // `hasQuery` is passed explicitly rather than inferred from matches vs.
-    // all items, since "everything matches" would otherwise look identical
-    // to "no query entered".
-    function filterGrid(hasQuery, matches) {
-      const grid = document.getElementById('recipe-grid');
-      const emptyMessage = document.getElementById('recipe-grid-empty');
-      if (!grid) return;
-
-      const matchedHrefs = new Set(matches.map((item) => item.href));
-      for (const card of grid.children) {
-        const href = card.getAttribute('href');
-        card.classList.toggle('hidden', hasQuery && href != null && !matchedHrefs.has(href));
-      }
-      if (emptyMessage) emptyMessage.classList.toggle('hidden', !hasQuery || matches.length > 0);
-    }
-
     function render(query) {
       const q = query.trim().toLowerCase();
       results.innerHTML = '';
+
+      // Grid filtering (which also needs to combine with the "favorites
+      // only" toggle) lives in a shared function in BaseLayout — it reads
+      // the input's value straight from the DOM, so just asking it to
+      // recompute is enough; it doesn't need anything passed in.
+      if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+
+      if (!q) {
+        results.classList.add('hidden');
+        return;
+      }
 
       let items = [];
       try {
@@ -81,19 +73,11 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       }
       const noResultsLabel = container.dataset.noResultsLabel || '';
 
-      if (!q) {
-        results.classList.add('hidden');
-        filterGrid(false, items); // empty query: show everything
-        return;
-      }
-
       const matches = items.filter(
         (item) =>
           item.title.toLowerCase().includes(q) ||
           item.tags.some((tag) => tag.toLowerCase().includes(q))
       );
-
-      filterGrid(true, matches);
 
       if (matches.length === 0) {
         const li = document.createElement('li');

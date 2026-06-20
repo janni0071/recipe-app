@@ -1,7 +1,7 @@
 ---
 title: "Pizza 'à la Daisy'"
 date: 2025-05-31
-tags: ["Pizza", "italienisch", "lang"]
+tags: ["Pizza", "italienisch"]
 prepTime: "45 min"
 cookTime: "30-35 min"
 servings: 6
@@ -37,7 +37,7 @@ ingredients:
       - name: "(OPTIONAL) Fein gehackter frischer Koriander"
 ---
 
-## Schritte
+## Zubereitung
 
 1. Die Beläge (Champignons, Paprika, Zwiebeln) in dünne Scheiben schneiden (bei den Champignons nicht zu dünn, sie gehen in der Pfanne etwas ein!).
 2. In einer Pfanne mit heißem Olivenöl die Zwiebeln kurz anbraten, dann die Paprika hinzufügen. Pfannenrühren, bis die Paprika weich und die Zwiebeln karamellisiert sind. Die Mischung salzen und pfeffern.

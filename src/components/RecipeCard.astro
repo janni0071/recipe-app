@@ -1,6 +1,7 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import FavoriteButton from './FavoriteButton.astro';
 
 export interface Props {
   title: string;
@@ -9,18 +10,31 @@ export interface Props {
   cookTime: string;
   prepLabel: string;
   cookLabel: string;
+  favoriteLabel: string;
   slug: string;
   image?: ImageMetadata;
   author?: string;
   baseRecipePath?: string;
   loading?: 'lazy' | 'eager';
 }
-const { title, tags, prepTime, cookTime, prepLabel, cookLabel, slug, image, author, baseRecipePath = '/recipes/', loading = 'lazy' } = Astro.props;
+const { title, tags, prepTime, cookTime, prepLabel, cookLabel, favoriteLabel, slug, image, author, baseRecipePath = '/recipes/', loading = 'lazy' } = Astro.props;
+
+// Same width/height/format the recipe detail page renders its hero image
+// at, so this resolves to the exact same optimized file — preloading it
+// here means it's already cached by the time the user clicks through.
+const heroImage = image ? await getImage({ src: image, width: 900, height: 400, format: 'webp', quality: 75 }) : null;
 ---
-<a href={`${baseRecipePath}${slug}`} class="block group">
+<a
+  href={`${baseRecipePath}${slug}`}
+  class="block group"
+  data-hero-src={heroImage?.src}
+  data-recipe-slug={slug}
+  data-recipe-title={title.toLowerCase()}
+  data-recipe-tags={tags.join(',').toLowerCase()}
+>
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
     {image && (
-      <div class="h-48 bg-gray-200 overflow-hidden dark:bg-gray-700">
+      <div class="relative h-48 bg-gray-200 overflow-hidden dark:bg-gray-700">
         <Image
           src={image}
           alt={title}
@@ -28,20 +42,27 @@ const { title, tags, prepTime, cookTime, prepLabel, cookLabel, slug, image, auth
           width={400}
           height={300}
           format="webp"
+          quality={75}
           loading={loading}
           decoding="async"
           transition:name={`recipe-image-${slug}`}
+        />
+        <FavoriteButton
+          slug={slug}
+          label={favoriteLabel}
+          class="absolute top-2 right-2 bg-white/90 hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900 text-pink-500 backdrop-blur-sm"
         />
       </div>
     )}
     <div class="p-4">
       <h3 class="text-xl font-semibold mb-2 dark:text-white" transition:name={`recipe-title-${slug}`}>{title}</h3>
-      <div class="flex flex-wrap gap-2 mb-3">
+      <div class="flex flex-wrap gap-2 mb-3" data-tag-row>
         {tags.map(tag => (
-          <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200">
+          <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200" data-tag>
             #{tag}
           </span>
         ))}
+        <span class="hidden text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full dark:bg-pink-900 dark:text-pink-200" data-tag-more></span>
       </div>
       <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
         <div class="flex gap-3">

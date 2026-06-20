@@ -7,23 +7,45 @@ import { ClientRouter } from 'astro:transitions';
 export interface Props {
   title: string;
   description?: string;
+  // Accepts both raw ImageMetadata and getImage()'s GetImageResult — callers
+  // should pass an already-optimized variant (e.g. via getImage()), not a
+  // raw content-collection image reference, or og:image ends up pointing at
+  // the full-resolution original instead of a web-sized crop.
+  image?: { src: string };
   localeUrls?: Partial<Record<Locale, string>>;
 }
-const { title, description, localeUrls } = Astro.props;
+const { title, description, image, localeUrls } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
 const tagsPath = getTagsPath(locale);
 import '../styles/global.css';
+
+const pageTitle = `${title} | Recipe Box`;
+const pageDescription = description || 'Our family recipes';
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
 ---
 <!DOCTYPE html>
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | Recipe Box</title>
-    <meta name="description" content={description || "Our family recipes"} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={pageUrl} />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+
+    <meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+
     <ClientRouter />
     <script is:inline>
       function applyTheme(doc) {
@@ -37,7 +59,7 @@ import '../styles/global.css';
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-    <header class="border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <header class="print:hidden border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <nav class="mx-auto max-w-6xl flex justify-between items-center gap-2 flex-wrap">
         <a href={homePath} class="text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
         <div class="flex items-center gap-3 flex-wrap justify-end">
@@ -58,7 +80,7 @@ import '../styles/global.css';
     <main class="mx-auto max-w-6xl p-4">
       <slot />
     </main>
-    <footer class="mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+    <footer class="print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
         © {new Date().getFullYear()} Jannis
         <span class="relative group inline-block cursor-default">
           <span class="text-pink-400 group-hover:text-pink-500 transition">♡</span>
@@ -82,6 +104,222 @@ import '../styles/global.css';
       }
       // astro:page-load fires on initial load and after every navigation
       document.addEventListener('astro:page-load', setupThemeToggle);
+    </script>
+    <script is:inline>
+      // RecipeCard marks its linked recipe's hero image via data-hero-src.
+      // Once a card has been visible for a moment (matching the 300ms dwell
+      // time Astro's own viewport prefetch strategy uses), fetch that hero
+      // image in the background at low priority, so it's already cached by
+      // the time the user actually clicks through — fixing the "image
+      // briefly disappears" flash on a first visit. One shared observer for
+      // the whole session; this script's content never changes between
+      // pages, so the ClientRouter will only ever run it once, and that's
+      // fine — the observer just needs to (re)scan for fresh cards each nav.
+      //
+      // Cards already on screen at page load skip the dwell delay entirely
+      // and prefetch right away: there's no "user is scrolling past quickly"
+      // risk to guard against for content that was visible before any
+      // scrolling happened. This is what was making the desktop grid (which
+      // shows every card without scrolling) feel slower than mobile to open
+      // a recipe on the first visit. It's bounded by how many cards fit in
+      // one screen, not by the total recipe count, so it stays cheap as the
+      // catalog grows — only cards revealed by scrolling further still wait
+      // out the 300ms dwell.
+      function initHeroPreload() {
+        if (!window.__heroPreloadObserver) {
+          window.__heroPreloadedHrefs = new Set();
+          const pendingTimers = new WeakMap();
+          const seenElements = new WeakSet();
+
+          function prefetch(el) {
+            const href = el.dataset.heroSrc;
+            window.__heroPreloadObserver.unobserve(el);
+            if (!href || window.__heroPreloadedHrefs.has(href)) return;
+            window.__heroPreloadedHrefs.add(href);
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.as = 'image';
+            link.href = href;
+            document.head.appendChild(link);
+          }
+
+          window.__heroPreloadObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+              const el = entry.target;
+              const isFirstReport = !seenElements.has(el);
+              seenElements.add(el);
+
+              if (entry.isIntersecting) {
+                if (isFirstReport) {
+                  prefetch(el);
+                } else {
+                  const timer = setTimeout(() => prefetch(el), 300);
+                  pendingTimers.set(el, timer);
+                }
+              } else {
+                const timer = pendingTimers.get(el);
+                if (timer) clearTimeout(timer);
+              }
+            }
+          });
+        }
+
+        document.querySelectorAll('[data-hero-src]').forEach((el) => {
+          window.__heroPreloadObserver.observe(el);
+        });
+      }
+
+      document.addEventListener('astro:page-load', initHeroPreload);
+    </script>
+    <script is:inline>
+      // Favorites live in localStorage, keyed by the recipe's locale-agnostic
+      // slug — favoriting a recipe in one language keeps it favorited after
+      // switching languages, since it's the same recipe either way.
+      function getFavoriteSlugs() {
+        try {
+          return new Set(JSON.parse(localStorage.getItem('favorite-recipes') || '[]'));
+        } catch {
+          return new Set();
+        }
+      }
+
+      function setFavoriteSlugs(slugs) {
+        localStorage.setItem('favorite-recipes', JSON.stringify([...slugs]));
+      }
+
+      function syncFavoriteButtons() {
+        const favorites = getFavoriteSlugs();
+        document.querySelectorAll('[data-favorite-slug]').forEach((button) => {
+          const active = favorites.has(button.dataset.favoriteSlug);
+          button.dataset.favorited = String(active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+      }
+
+      // Single shared filter, callable from both the search box and the
+      // "favorites only" toggle, so the two compose with simple AND logic
+      // instead of each independently fighting over the same hidden class.
+      // Reads everything fresh from the live DOM/localStorage on every call
+      // rather than being passed state, so either caller can trigger a
+      // recompute without needing to know about the other's internals.
+      window.applyRecipeGridFilters = function () {
+        const grid = document.getElementById('recipe-grid');
+        if (!grid) return;
+
+        const searchInput = document.getElementById('recipe-search-input');
+        const query = (searchInput?.value || '').trim().toLowerCase();
+        const favoritesToggle = document.getElementById('favorites-filter-toggle');
+        const favoritesOnly = favoritesToggle?.dataset.active === 'true';
+        const favorites = getFavoriteSlugs();
+
+        let visibleCount = 0;
+        for (const card of grid.children) {
+          const title = (card.dataset.recipeTitle || '').toLowerCase();
+          const tags = (card.dataset.recipeTags || '').split(',');
+          const slug = card.dataset.recipeSlug;
+          const matchesQuery = !query || title.includes(query) || tags.some((tag) => tag.includes(query));
+          const matchesFavorites = !favoritesOnly || (!!slug && favorites.has(slug));
+          const visible = matchesQuery && matchesFavorites;
+          card.classList.toggle('hidden', !visible);
+          if (visible) visibleCount++;
+        }
+
+        const emptyMessage = document.getElementById('recipe-grid-empty');
+        const filtering = query !== '' || favoritesOnly;
+        if (emptyMessage) emptyMessage.classList.toggle('hidden', !filtering || visibleCount > 0);
+      };
+
+      function initFavorites() {
+        if (!window.__favoritesClickBound) {
+          window.__favoritesClickBound = true;
+          // Astro's <ClientRouter/> registers its own click listener in
+          // <head> (bubble phase) that calls navigate() directly as soon as
+          // it sees an unprevented click on an anchor — it runs, and starts
+          // navigating, before a later bubble-phase listener like this one
+          // would even get a turn. Using the capture phase here makes this
+          // listener run first regardless of registration order, so
+          // stopPropagation() actually has a chance to take effect.
+          document.addEventListener(
+            'click',
+            (e) => {
+              const button = e.target.closest('[data-favorite-slug]');
+              if (!button) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const slug = button.dataset.favoriteSlug;
+              const favorites = getFavoriteSlugs();
+              if (favorites.has(slug)) favorites.delete(slug);
+              else favorites.add(slug);
+              setFavoriteSlugs(favorites);
+              syncFavoriteButtons();
+              window.applyRecipeGridFilters();
+            },
+            true
+          );
+        }
+        syncFavoriteButtons();
+      }
+
+      document.addEventListener('astro:page-load', initFavorites);
+    </script>
+    <script is:inline>
+      // RecipeCard renders every tag server-side; if they'd wrap to a second
+      // row, collapse the overflow into a single "+N" pill instead, so
+      // cards in the same grid row stay visually aligned. Re-checks on
+      // resize too, since the same card can wrap differently as the
+      // viewport (and the grid's column count) changes.
+      function collapseTagRows() {
+        document.querySelectorAll('[data-tag-row]').forEach((row) => {
+          const tags = Array.from(row.querySelectorAll('[data-tag]'));
+          const moreBadge = row.querySelector('[data-tag-more]');
+          if (tags.length === 0) return;
+
+          // Reset to the "everything visible" state first — a single write
+          // batch, before any reads happen.
+          tags.forEach((tag) => tag.classList.remove('hidden'));
+          if (moreBadge) moreBadge.classList.add('hidden');
+
+          // Read every tag's offsetTop up front, in one batch, instead of
+          // interleaving reads with hide-writes in a loop — the latter
+          // forces a fresh synchronous layout recalculation on every
+          // iteration ("layout thrashing"), since each write invalidates
+          // the layout the next read would otherwise reuse.
+          const tops = tags.map((tag) => tag.offsetTop);
+          const firstRowTop = tops[0];
+          const overflowing = tags.filter((_, i) => tops[i] > firstRowTop);
+
+          if (overflowing.length === 0 || !moreBadge) return;
+
+          overflowing.forEach((tag) => tag.classList.add('hidden'));
+          let hiddenCount = overflowing.length;
+          moreBadge.textContent = `+${hiddenCount}`;
+          moreBadge.classList.remove('hidden');
+
+          // The badge itself takes up row space — if adding it pushed it
+          // onto row 2, hide one more real tag and retry. This part stays
+          // iterative (we only know whether the badge fits once it's
+          // actually shown), but it's capped and rarely runs more than once.
+          for (let guard = 0; guard < 10 && moreBadge.offsetTop > firstRowTop; guard++) {
+            const visible = tags.filter((tag) => !tag.classList.contains('hidden'));
+            const last = visible[visible.length - 1];
+            if (!last) break;
+            last.classList.add('hidden');
+            hiddenCount++;
+            moreBadge.textContent = `+${hiddenCount}`;
+          }
+        });
+      }
+
+      document.addEventListener('astro:page-load', collapseTagRows);
+
+      if (!window.__tagRowResizeBound) {
+        window.__tagRowResizeBound = true;
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(collapseTagRows, 150);
+        });
+      }
     </script>
     </body>
 </html>

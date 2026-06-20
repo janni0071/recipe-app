@@ -1,7 +1,7 @@
 ---
-title: "Gâteau Taupe (Maulwurfkuchen)"
+title: "Gâteau Taupe"
 date: 2025-06-15
-tags: ["gâteau", "pâtisserie", "long"]
+tags: ["gâteau", "pâtisserie", "allemand", "végétarien", "dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
 servings: 1
@@ -43,7 +43,7 @@ ingredients:
       - name: "Matière grasse pour le moule"
 ---
 
-## Préparation
+## Étapes
 
 1. Préparer une pâte battue avec les sept premiers ingrédients.
 2. Beurrer un moule à charnière (26 cm) et cuire la pâte 30 min à 170°C.

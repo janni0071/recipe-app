@@ -1,7 +1,7 @@
 ---
 title: "Pizza 'à la Daisy'"
 date: 2025-05-31
-tags: ["pizza", "italien", "long"]
+tags: ["pizza", "italien"]
 prepTime: "45 min"
 cookTime: "30-35 min"
 servings: 6

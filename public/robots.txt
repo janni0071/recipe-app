@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://recipes.jxd.one/sitemap-index.xml
