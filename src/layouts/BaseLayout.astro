@@ -212,19 +212,30 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       function initFavorites() {
         if (!window.__favoritesClickBound) {
           window.__favoritesClickBound = true;
-          document.addEventListener('click', (e) => {
-            const button = e.target.closest('[data-favorite-slug]');
-            if (!button) return;
-            e.preventDefault();
-            e.stopPropagation();
-            const slug = button.dataset.favoriteSlug;
-            const favorites = getFavoriteSlugs();
-            if (favorites.has(slug)) favorites.delete(slug);
-            else favorites.add(slug);
-            setFavoriteSlugs(favorites);
-            syncFavoriteButtons();
-            window.applyRecipeGridFilters();
-          });
+          // Astro's <ClientRouter/> registers its own click listener in
+          // <head> (bubble phase) that calls navigate() directly as soon as
+          // it sees an unprevented click on an anchor — it runs, and starts
+          // navigating, before a later bubble-phase listener like this one
+          // would even get a turn. Using the capture phase here makes this
+          // listener run first regardless of registration order, so
+          // stopPropagation() actually has a chance to take effect.
+          document.addEventListener(
+            'click',
+            (e) => {
+              const button = e.target.closest('[data-favorite-slug]');
+              if (!button) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const slug = button.dataset.favoriteSlug;
+              const favorites = getFavoriteSlugs();
+              if (favorites.has(slug)) favorites.delete(slug);
+              else favorites.add(slug);
+              setFavoriteSlugs(favorites);
+              syncFavoriteButtons();
+              window.applyRecipeGridFilters();
+            },
+            true
+          );
         }
         syncFavoriteButtons();
       }
