@@ -90,13 +90,14 @@ const jsonLd = buildRecipeJsonLd({
         decoding="async"
         class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
         transition:name={`recipe-image-${slug}`}
+        transition:persist
       />
     ) : (
       <div class="print:hidden w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
     )}
     <div class="flex items-center justify-between gap-4 mb-4">
-      <h1 class="text-4xl font-bold dark:text-white" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
-      <div class="print:hidden flex items-center gap-2">
+      <h1 class="text-4xl font-bold dark:text-white min-w-0 flex-1 break-words" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
+      <div class="print:hidden flex items-center gap-2 flex-shrink-0">
         <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
         <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
         <PrintButton label={t('page.recipe.print')} />

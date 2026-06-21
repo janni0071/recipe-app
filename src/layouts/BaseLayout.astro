@@ -136,11 +136,12 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             window.__heroPreloadObserver.unobserve(el);
             if (!href || window.__heroPreloadedHrefs.has(href)) return;
             window.__heroPreloadedHrefs.add(href);
-            const link = document.createElement('link');
-            link.rel = 'prefetch';
-            link.as = 'image';
-            link.href = href;
-            document.head.appendChild(link);
+            // A real fetch() warms the HTTP cache directly, instead of just
+            // hinting — browsers are free to deprioritize or skip a <link
+            // rel=prefetch> outright (e.g. to save data/battery on mobile),
+            // which was letting the hero image sometimes still be uncached
+            // by the time the recipe was actually opened.
+            fetch(href, { priority: 'low' }).catch(() => {});
           }
 
           window.__heroPreloadObserver = new IntersectionObserver((entries) => {
