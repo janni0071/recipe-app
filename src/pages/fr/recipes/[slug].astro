@@ -90,6 +90,7 @@ const jsonLd = buildRecipeJsonLd({
         decoding="async"
         class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
         transition:name={`recipe-image-${slug}`}
+        transition:persist
       />
     ) : (
       <div class="print:hidden w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />

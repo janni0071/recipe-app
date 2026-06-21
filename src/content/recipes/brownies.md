@@ -1,7 +1,7 @@
 ---
 title: "Brownies"
 date: 2025-06-20
-tags: ["simple", "baking", "dessert"]
+tags: ["simple", "baking", "vegetarian", "dessert"]
 prepTime: "10 min"
 cookTime: "30 min"
 servings: 4
