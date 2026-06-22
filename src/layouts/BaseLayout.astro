@@ -64,7 +64,8 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         <a href={homePath} class="text-xl sm:text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
         <div class="flex items-center gap-3 flex-wrap justify-end">
           <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
-          <a href={tagsPath} class="hover:underline">{t('nav.tags')}</a>
+          <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
+          <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
           <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
           <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
             <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
