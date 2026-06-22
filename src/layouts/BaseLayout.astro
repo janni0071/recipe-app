@@ -61,7 +61,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
     <header class="print:hidden border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <nav class="mx-auto max-w-6xl flex justify-between items-center gap-2 flex-wrap">
-        <a href={homePath} class="text-xl sm:text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
+        <a href={homePath} class="text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
         <div class="flex items-center gap-3 flex-wrap justify-end">
           <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
           <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
