@@ -1,5 +1,5 @@
 ---
-title: "Leek, mushroom and ham quiche"
+title: "Leek, Mushroom and Ham Quiche"
 date: 2025-06-20
 tags: ["simple", "french"]
 prepTime: "10 min"
