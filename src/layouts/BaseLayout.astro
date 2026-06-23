@@ -80,9 +80,14 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
     <header class="print:hidden border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div class="mx-auto max-w-6xl">
-        <nav class="flex justify-between items-center gap-2 flex-wrap">
-          <a href={homePath} class="text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
-          <div class="flex items-center gap-3 flex-wrap justify-end">
+        <nav class="flex flex-wrap items-center gap-3">
+          <a href={homePath} class="order-1 shrink-0 text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
+          {showHeaderSearch && (
+            <div class="order-3 w-full sm:order-2 sm:w-auto sm:flex-1 sm:max-w-xs">
+              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
+            </div>
+          )}
+          <div class="order-2 ml-auto flex items-center gap-3 flex-wrap justify-end sm:order-3">
             <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
             <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
             <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
@@ -97,11 +102,6 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             </button>
           </div>
         </nav>
-        {showHeaderSearch && (
-          <div class="mt-3 sm:max-w-sm">
-            <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
-          </div>
-        )}
       </div>
     </header>
     <main class="mx-auto max-w-6xl p-4">
