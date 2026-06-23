@@ -4,9 +4,10 @@ import RecipeCard from '../components/RecipeCard.astro';
 import Search from '../components/SearchBar.astro';
 import FavoritesFilterToggle from '../components/FavoritesFilterToggle.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../utils/i18n';
+import { useTranslations, getIndexHeadingParts } from '../utils/i18n';
 
 const t = useTranslations('en');
+const heading = getIndexHeadingParts('en');
 const allRecipes = await getCollection('recipes');
 const sortedRecipes = allRecipes
   .filter((r: CollectionEntry<'recipes'>) => !r.id.match(/^(de|fr)\//))
@@ -27,7 +28,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
 }));
 ---
 <BaseLayout title={t('page.index.title')}>
-  <h1 class="text-3xl font-bold mb-6">{t('page.index.heading')}</h1>
+  <h1 class="text-3xl font-bold mb-6">{heading.before}<span class="text-pink-500 dark:text-pink-400">{heading.names}</span>{heading.after}</h1>
 
   <!-- Add margin-bottom to separate search from recipe grid -->
   <div class="mb-8 flex flex-wrap items-center gap-3">
