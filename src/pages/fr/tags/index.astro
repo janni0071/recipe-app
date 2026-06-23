@@ -19,11 +19,13 @@ const sortedTags = Array.from(tagCount.entries()).sort((a: [string, number], b: 
 ---
 <BaseLayout title={t('page.tags.title')}>
   <h1 class="text-3xl font-bold mb-6 dark:text-white">{t('page.tags.heading')}</h1>
-  <div class="flex flex-wrap gap-3">
-    {sortedTags.map(([tag, count]: [string, number]) => (
-      <a href={`/fr/tags/${tag}`} class="bg-gray-100 px-4 py-2 rounded-full hover:bg-pink-100 transition dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-pink-900">
-        #{tag} <span class="text-sm text-gray-500 dark:text-gray-400">({count})</span>
-      </a>
-    ))}
+  <div class="bg-white rounded-xl shadow-md p-6 dark:bg-gray-800 dark:shadow-gray-900">
+    <div class="flex flex-wrap gap-3">
+      {sortedTags.map(([tag, count]: [string, number]) => (
+        <a href={`/fr/tags/${tag}`} class="bg-gray-100 px-4 py-2 rounded-full hover:bg-pink-100 transition dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-pink-900">
+          #{tag} <span class="text-sm text-gray-500 dark:text-gray-400">({count})</span>
+        </a>
+      ))}
+    </div>
   </div>
 </BaseLayout>

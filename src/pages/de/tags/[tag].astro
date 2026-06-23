@@ -37,6 +37,7 @@ const localeUrls = {
 };
 ---
 <BaseLayout title={`${t('page.tag.heading')} #${tag}`} localeUrls={localeUrls}>
+  <a href={getTagsPath('de')} class="inline-block mb-4 text-sm text-gray-600 hover:text-pink-600 hover:underline dark:text-gray-400 dark:hover:text-pink-400">{t('page.tag.allTags')}</a>
   <h1 class="text-3xl font-bold mb-2">{t('page.tag.heading')} <span class="text-pink-600">#{tag}</span></h1>
   <p class="mb-6 text-gray-600 dark:text-gray-400">{filteredRecipes.length} {t('page.tag.count')}</p>
 

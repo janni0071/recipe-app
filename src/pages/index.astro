@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import RecipeCard from '../components/RecipeCard.astro';
-import Search from '../components/SearchBar.astro';
 import FavoritesFilterToggle from '../components/FavoritesFilterToggle.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations, getIndexHeadingParts } from '../utils/i18n';
@@ -20,21 +19,11 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
   ...recipe,
   slug: recipe.id.replace(/\.md$/, '')
 }));
-
-const searchItems = recipesWithSlug.map((recipe) => ({
-  title: recipe.data.title,
-  tags: recipe.data.tags,
-  href: `/recipes/${recipe.slug}`,
-}));
 ---
 <BaseLayout title={t('page.index.title')}>
   <h1 class="text-3xl font-bold mb-6">{heading.before}<span class="text-pink-500 dark:text-pink-400">{heading.names}</span>{heading.after}</h1>
 
-  <!-- Add margin-bottom to separate search from recipe grid -->
-  <div class="mb-8 flex flex-wrap items-center gap-3">
-    <div class="flex-1 min-w-[12rem]">
-      <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={searchItems} />
-    </div>
+  <div class="mb-8 flex justify-end">
     <FavoritesFilterToggle label={t('page.index.favoritesOnly')} />
   </div>
 
