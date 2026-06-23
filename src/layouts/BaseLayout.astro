@@ -2,7 +2,9 @@
 import type { Locale } from '../utils/i18n';
 import { useTranslations, getLocalePath, getTagsPath } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import Search from '../components/SearchBar.astro';
 import { ClientRouter } from 'astro:transitions';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
 export interface Props {
   title: string;
@@ -13,13 +15,30 @@ export interface Props {
   // the full-resolution original instead of a web-sized crop.
   image?: { src: string };
   localeUrls?: Partial<Record<Locale, string>>;
+  // The homepage has its own search next to the favorites toggle, so the
+  // header's copy would be redundant there — only grid-less pages need it.
+  showHeaderSearch?: boolean;
 }
-const { title, description, image, localeUrls } = Astro.props;
+const { title, description, image, localeUrls, showHeaderSearch = true } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
 const tagsPath = getTagsPath(locale);
 import '../styles/global.css';
+
+// Lets the search box in the header find recipes from any page (not just
+// the homepage), scoped to the current locale the same way each index page
+// scopes its own grid.
+const allRecipes = showHeaderSearch ? await getCollection('recipes') : [];
+const localeRecipes = allRecipes.filter((r: CollectionEntry<'recipes'>) =>
+  locale === 'en' ? !r.id.match(/^(de|fr)\//) : r.id.startsWith(`${locale}/`)
+);
+const recipesBasePath = locale === 'en' ? '/recipes/' : `/${locale}/recipes/`;
+const headerSearchItems = localeRecipes.map((r: CollectionEntry<'recipes'>) => ({
+  title: r.data.title,
+  tags: r.data.tags,
+  href: `${recipesBasePath}${(locale === 'en' ? r.id : r.id.slice(locale.length + 1)).replace(/\.md$/, '')}`,
+}));
 
 const pageTitle = `${title} | Recipe Box`;
 const pageDescription = description || 'Our family recipes';
@@ -59,35 +78,47 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-    <header class="print:hidden border-b bg-white p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
-      <nav class="mx-auto max-w-6xl flex justify-between items-center gap-2 flex-wrap">
-        <a href={homePath} class="text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
-        <div class="flex items-center gap-3 flex-wrap justify-end">
-          <a href={homePath} class="hover:underline">{t('nav.home')}</a>
-          <a href={tagsPath} class="hover:underline">{t('nav.tags')}</a>
-          <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
-          <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-            <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            <svg id="theme-toggle-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-            </svg>
-          </button>
-        </div>
-      </nav>
+    <header class="print:hidden border-b bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <div class="mx-auto max-w-6xl p-4">
+        <nav class="flex flex-wrap items-center gap-3">
+          <a href={homePath} class="order-1 shrink-0 text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
+          {showHeaderSearch && (
+            <div class="order-3 w-full sm:order-2 sm:w-80 sm:mx-auto">
+              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
+            </div>
+          )}
+          <div class={`order-2 ml-auto flex items-center gap-3 flex-wrap justify-end sm:order-3 ${showHeaderSearch ? 'sm:ml-0' : ''}`}>
+            <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
+            <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
+            <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
+            <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
+            <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+              <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <svg id="theme-toggle-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </div>
     </header>
     <main class="mx-auto max-w-6xl p-4">
       <slot />
     </main>
     <footer class="print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
         © {new Date().getFullYear()} Jannis
-        <span class="relative group inline-block cursor-default">
-          <span class="text-pink-400 group-hover:text-pink-500 transition">♡</span>
-          <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow">
+        <button
+          type="button"
+          aria-label="Made with love"
+          class="group relative inline-block cursor-pointer appearance-none border-0 bg-transparent p-0 align-baseline rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
+        >
+          <span class="text-pink-400 transition group-hover:text-pink-500 group-focus:text-pink-500">♡</span>
+          <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 shadow">
             Made with love 🍳
           </span>
-        </span>
+        </button>
         Daisy
     </footer>
     <script is:inline>

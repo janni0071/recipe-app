@@ -25,11 +25,11 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
     id="recipe-search-input"
     placeholder={placeholder}
     autocomplete="off"
-    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+    class="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 sm:h-11"
   />
   <ul
     id="recipe-search-results"
-    class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800 sm:hidden"
+    class="absolute z-20 mt-2 hidden max-h-80 w-full divide-y divide-gray-100 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800"
   ></ul>
 </div>
 
@@ -53,6 +53,15 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
     function render(query) {
       const q = query.trim().toLowerCase();
       results.innerHTML = '';
+
+      // Pages with a recipe grid (the homepage) filter it in place as you
+      // type, so the dropdown only earns its keep below the sm breakpoint
+      // there, where the grid needs scrolling to see what matched. Pages
+      // without a grid (recipe/tag pages) have nothing else to show results,
+      // so the dropdown should stay available at every width. Checked here
+      // rather than once at bind time, since this script sits in the header
+      // and runs before the rest of the page (e.g. #recipe-grid) is parsed.
+      results.classList.toggle('sm:hidden', !!document.getElementById('recipe-grid'));
 
       // Grid filtering (which also needs to combine with the "favorites
       // only" toggle) lives in a shared function in BaseLayout — it reads
@@ -81,7 +90,7 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
 
       if (matches.length === 0) {
         const li = document.createElement('li');
-        li.className = 'px-4 py-2 text-sm text-gray-500 dark:text-gray-400';
+        li.className = 'px-4 py-3 text-base text-gray-500 dark:text-gray-400';
         li.textContent = noResultsLabel;
         results.append(li);
       } else {
@@ -89,7 +98,8 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
           const li = document.createElement('li');
           const a = document.createElement('a');
           a.href = item.href;
-          a.className = 'block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700';
+          a.className =
+            'block truncate px-4 py-3 text-base text-gray-900 hover:bg-pink-50 active:bg-pink-100 dark:text-gray-100 dark:hover:bg-gray-700 dark:active:bg-gray-600';
           a.textContent = item.title;
           li.append(a);
           results.append(li);

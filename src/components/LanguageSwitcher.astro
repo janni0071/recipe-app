@@ -48,17 +48,20 @@ function targetUrl(locale: Locale): string {
   <details class="relative sm:hidden">
     <summary
       aria-label="Change language"
-      class="list-none px-2 py-1 rounded text-sm font-medium bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200 cursor-pointer select-none [&::-webkit-details-marker]:hidden"
+      class="list-none flex items-center gap-1.5 px-3 py-2 rounded-lg text-base font-medium bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200 cursor-pointer select-none [&::-webkit-details-marker]:hidden"
     >
       {currentLocale.toUpperCase()}
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
     </summary>
-    <div class="absolute right-0 z-10 mt-1 flex min-w-[3rem] flex-col overflow-hidden rounded border bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
+    <div class="absolute right-0 z-10 mt-2 flex min-w-[6rem] flex-col gap-1 overflow-hidden rounded-xl border bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       {Object.values(languages).filter(({ code }) => code !== currentLocale).map(({ code, label }) => (
         <a
           href={targetUrl(code)}
           hreflang={code}
           aria-label={`Switch to ${label}`}
-          class="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="rounded-lg px-4 py-2.5 text-base font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           {code.toUpperCase()}
         </a>

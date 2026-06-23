@@ -18,23 +18,29 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
     class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300"
     data-base-servings={servings}
   >
-    <button
-      type="button"
-      id="servings-decrement"
-      aria-label="Decrease servings"
-      class="print:hidden w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
-    >
-      −
-    </button>
-    <span><span id="servings-value">{servings}</span> {servingsLabel}</span>
-    <button
-      type="button"
-      id="servings-increment"
-      aria-label="Increase servings"
-      class="print:hidden w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
-    >
-      +
-    </button>
+    <span class="print:hidden capitalize">{servingsLabel}</span>
+    <div class="print:hidden flex items-center rounded-full bg-gray-100 dark:bg-gray-700">
+      <button
+        type="button"
+        id="servings-decrement"
+        aria-label="Decrease servings"
+        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+      >
+        −
+      </button>
+      <span class="servings-value min-w-[2rem] text-center text-base font-semibold text-gray-900 dark:text-gray-100">{servings}</span>
+      <button
+        type="button"
+        id="servings-increment"
+        aria-label="Increase servings"
+        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition"
+      >
+        +
+      </button>
+    </div>
+    <span class="hidden print:inline capitalize">
+      <span class="servings-value">{servings}</span> {servingsLabel}
+    </span>
   </div>
 </div>
 
@@ -64,7 +70,7 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
     if (!stepper) return;
 
     const baseServings = parseFloat(stepper.dataset.baseServings || '1');
-    const valueEl = document.getElementById('servings-value');
+    const valueEls = stepper.querySelectorAll('.servings-value');
     const decrementBtn = document.getElementById('servings-decrement');
     const incrementBtn = document.getElementById('servings-increment');
     const amountEls = document.querySelectorAll('.ing-amount');
@@ -74,7 +80,7 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
     }
 
     function render(servings) {
-      valueEl.textContent = servings;
+      valueEls.forEach((el) => { el.textContent = servings; });
       const multiplier = servings / baseServings;
       amountEls.forEach((el) => {
         const amount = parseFloat(el.dataset.amount);

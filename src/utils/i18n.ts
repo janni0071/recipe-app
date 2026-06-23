@@ -11,11 +11,13 @@ export const ui = {
     'nav.home': 'Home',
     'nav.tags': 'Tags',
     'page.index.title': 'All Recipes',
-    'page.index.heading': "Jannis & Daisy's Recipes 🧑‍🍳",
+    'page.index.heading': '{names} Recipes',
+    'page.index.headingNames': "Jannis & Daisy's",
     'page.tags.title': 'All Tags',
     'page.tags.heading': 'Browse by Tag',
     'page.tag.heading': 'Recipes tagged',
     'page.tag.count': 'recipe(s)',
+    'page.tag.allTags': '← All tags',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Search for recipes...',
     'search.noResults': 'No matches found',
@@ -37,11 +39,13 @@ export const ui = {
     'nav.home': 'Startseite',
     'nav.tags': 'Tags',
     'page.index.title': 'Alle Rezepte',
-    'page.index.heading': "Jannis & Daisys Rezepte 🧑‍🍳",
+    'page.index.heading': '{names} Rezepte',
+    'page.index.headingNames': 'Jannis & Daisys',
     'page.tags.title': 'Alle Tags',
     'page.tags.heading': 'Nach Tag durchsuchen',
     'page.tag.heading': 'Rezepte mit Tag',
     'page.tag.count': 'Rezept(e)',
+    'page.tag.allTags': '← Alle Tags',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Rezepte suchen...',
     'search.noResults': 'Keine Treffer gefunden',
@@ -63,11 +67,13 @@ export const ui = {
     'nav.home': 'Accueil',
     'nav.tags': 'Tags',
     'page.index.title': 'Toutes les Recettes',
-    'page.index.heading': "Les Recettes de Jannis & Daisy 🧑‍🍳",
+    'page.index.heading': 'Les Recettes de {names}',
+    'page.index.headingNames': 'Jannis & Daisy',
     'page.tags.title': 'Tous les Tags',
     'page.tags.heading': 'Parcourir par tag',
     'page.tag.heading': 'Recettes avec le tag',
     'page.tag.count': 'recette(s)',
+    'page.tag.allTags': '← Tous les tags',
     'footer.copyright': 'Jannis ♡ Daisy',
     'search.placeholder': 'Chercher des recettes...',
     'search.noResults': 'Aucun résultat trouvé',
@@ -93,6 +99,13 @@ export function useTranslations(locale: Locale) {
   return function t(key: UIKey): string {
     return ui[locale][key] ?? ui.en[key];
   };
+}
+
+/** Splits the homepage heading template around the {names} placeholder so it can be styled separately. */
+export function getIndexHeadingParts(locale: Locale): { before: string; names: string; after: string } {
+  const t = useTranslations(locale);
+  const [before, after] = t('page.index.heading').split('{names}');
+  return { before, names: t('page.index.headingNames'), after };
 }
 
 /** Returns the root path for a given locale. */
