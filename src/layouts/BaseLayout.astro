@@ -15,8 +15,11 @@ export interface Props {
   // the full-resolution original instead of a web-sized crop.
   image?: { src: string };
   localeUrls?: Partial<Record<Locale, string>>;
+  // The homepage has its own search next to the favorites toggle, so the
+  // header's copy would be redundant there — only grid-less pages need it.
+  showHeaderSearch?: boolean;
 }
-const { title, description, image, localeUrls } = Astro.props;
+const { title, description, image, localeUrls, showHeaderSearch = true } = Astro.props;
 const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
@@ -26,7 +29,7 @@ import '../styles/global.css';
 // Lets the search box in the header find recipes from any page (not just
 // the homepage), scoped to the current locale the same way each index page
 // scopes its own grid.
-const allRecipes = await getCollection('recipes');
+const allRecipes = showHeaderSearch ? await getCollection('recipes') : [];
 const localeRecipes = allRecipes.filter((r: CollectionEntry<'recipes'>) =>
   locale === 'en' ? !r.id.match(/^(de|fr)\//) : r.id.startsWith(`${locale}/`)
 );
@@ -94,9 +97,11 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             </button>
           </div>
         </nav>
-        <div class="mt-3 sm:max-w-sm">
-          <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
-        </div>
+        {showHeaderSearch && (
+          <div class="mt-3 sm:max-w-sm">
+            <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
+          </div>
+        )}
       </div>
     </header>
     <main class="mx-auto max-w-6xl p-4">
