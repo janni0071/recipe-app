@@ -1,0 +1,132 @@
+---
+export interface Props {
+  label: string;
+  exitLabel: string;
+}
+
+const { label, exitLabel } = Astro.props;
+---
+
+<button
+  type="button"
+  id="cooking-mode-button"
+  data-active="false"
+  data-label={label}
+  data-exit-label={exitLabel}
+  aria-label={label}
+  aria-pressed="false"
+  class="group flex-shrink-0 p-3 rounded-full bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-600 dark:text-pink-300 transition"
+>
+  <svg class="w-5 h-5 group-data-[active=true]:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path d="M4 9V5a1 1 0 011-1h4M20 9V5a1 1 0 00-1-1h-4M4 15v4a1 1 0 001 1h4m11-5v4a1 1 0 01-1 1h-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <svg class="hidden w-5 h-5 group-data-[active=true]:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path d="M9 4v4a1 1 0 01-1 1H4M20 9h-4a1 1 0 01-1-1V4M4 15h4a1 1 0 011 1v4M15 20v-4a1 1 0 011-1h4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+</button>
+
+<script is:inline>
+  // Generic, identical content on every recipe page — same dedup-safe
+  // astro:page-load pattern as ShareButton/PrintButton. Labels live in data
+  // attributes read fresh at toggle time, so nothing here goes stale.
+  function bindCookingModeButton() {
+    const button = document.getElementById('cooking-mode-button');
+    if (!button) return;
+
+    function setActive(active) {
+      button.dataset.active = String(active);
+      button.setAttribute('aria-pressed', String(active));
+      button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
+      document.documentElement.classList.toggle('cooking-mode', active);
+    }
+
+    async function releaseWakeLock() {
+      if (window.__cookingModeWakeLock) {
+        try {
+          await window.__cookingModeWakeLock.release();
+        } catch {
+          // Already released — nothing to recover from.
+        }
+        window.__cookingModeWakeLock = null;
+      }
+    }
+
+    async function requestWakeLock() {
+      // Unsupported in some browsers (e.g. older iOS Safari) — cooking mode
+      // still works, the screen just won't be kept on there.
+      if (!('wakeLock' in navigator)) return;
+      try {
+        window.__cookingModeWakeLock = await navigator.wakeLock.request('screen');
+      } catch {
+        // Denied (e.g. low battery saver) — nothing further to do.
+      }
+    }
+
+    async function enterCookingMode() {
+      setActive(true);
+      requestWakeLock();
+      // iOS Safari has no Fullscreen API for arbitrary elements, so this is
+      // a progressive enhancement on top of the CSS-driven immersive layout
+      // that setActive() above already switched on for every browser.
+      if (document.documentElement.requestFullscreen) {
+        try {
+          await document.documentElement.requestFullscreen();
+        } catch {
+          // Denied/unsupported — the CSS layout and wake lock still apply.
+        }
+      }
+    }
+
+    async function exitCookingMode() {
+      setActive(false);
+      releaseWakeLock();
+      if (document.fullscreenElement) {
+        try {
+          await document.exitFullscreen();
+        } catch {
+          // Nothing left to recover from.
+        }
+      }
+    }
+
+    if (!window.__cookingModeBound) {
+      window.__cookingModeBound = true;
+
+      // Syncs state when the user backs out via Escape or a back-gesture
+      // instead of clicking our own button.
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && document.documentElement.classList.contains('cooking-mode')) {
+          setActive(false);
+          releaseWakeLock();
+        }
+      });
+
+      // The Wake Lock is auto-released by the browser whenever the page
+      // loses visibility (tab switch, screen lock) — reacquire it once
+      // we're back, but only if cooking mode is still meant to be on.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && document.documentElement.classList.contains('cooking-mode')) {
+          requestWakeLock();
+        }
+      });
+
+      // Leaving the recipe page entirely (SPA navigation) shouldn't carry
+      // cooking mode into whatever page comes next.
+      document.addEventListener('astro:before-swap', () => {
+        if (document.documentElement.classList.contains('cooking-mode')) {
+          exitCookingMode();
+        }
+      });
+    }
+
+    button.addEventListener('click', () => {
+      if (button.dataset.active === 'true') {
+        exitCookingMode();
+      } else {
+        enterCookingMode();
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindCookingModeButton);
+</script>

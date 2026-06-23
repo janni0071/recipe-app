@@ -33,6 +33,8 @@ export const ui = {
     'page.recipe.linkCopied': 'Link copied!',
     'page.recipe.print': 'Print recipe',
     'page.recipe.favorite': 'Toggle favorite',
+    'page.recipe.cookingMode': 'Cooking mode',
+    'page.recipe.exitCookingMode': 'Exit cooking mode',
     'page.index.favoritesOnly': 'Favorites only',
   },
   de: {
@@ -61,6 +63,8 @@ export const ui = {
     'page.recipe.linkCopied': 'Link kopiert!',
     'page.recipe.print': 'Rezept drucken',
     'page.recipe.favorite': 'Favorit umschalten',
+    'page.recipe.cookingMode': 'Kochmodus',
+    'page.recipe.exitCookingMode': 'Kochmodus beenden',
     'page.index.favoritesOnly': 'Nur Favoriten',
   },
   fr: {
@@ -89,6 +93,8 @@ export const ui = {
     'page.recipe.linkCopied': 'Lien copié !',
     'page.recipe.print': 'Imprimer la recette',
     'page.recipe.favorite': 'Basculer le favori',
+    'page.recipe.cookingMode': 'Mode cuisine',
+    'page.recipe.exitCookingMode': 'Quitter le mode cuisine',
     'page.index.favoritesOnly': 'Favoris uniquement',
   },
 } as const;

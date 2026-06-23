@@ -147,3 +147,10 @@ body {
     line-height: 1.55;
   }
 }
+
+/* Cooking mode: hides surrounding chrome so the recipe fills the screen
+   even on browsers (e.g. iOS Safari) that don't support the Fullscreen
+   API for arbitrary elements — see CookingModeButton.astro. */
+.cooking-mode [data-cooking-mode-hide] {
+  display: none !important;
+}

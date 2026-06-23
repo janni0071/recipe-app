@@ -5,6 +5,7 @@ import RecipeCard from '../../components/RecipeCard.astro';
 import ShareButton from '../../components/ShareButton.astro';
 import PrintButton from '../../components/PrintButton.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
+import CookingModeButton from '../../components/CookingModeButton.astro';
 import { Image, getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry, render } from 'astro:content';
 import { useTranslations } from '../../utils/i18n';
@@ -104,13 +105,16 @@ const jsonLd = buildRecipeJsonLd({
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
       </div>
       <div class="print:hidden flex items-center gap-2">
-        <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
-        <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
-        <PrintButton label={t('page.recipe.print')} />
+        <span data-cooking-mode-hide class="flex items-center gap-2">
+          <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
+          <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
+          <PrintButton label={t('page.recipe.print')} />
+        </span>
+        <CookingModeButton label={t('page.recipe.cookingMode')} exitLabel={t('page.recipe.exitCookingMode')} />
       </div>
     </div>
 
-    <div class="print:hidden flex flex-wrap gap-2 mb-8">
+    <div data-cooking-mode-hide class="print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
           href={`/tags/${tag}`}
@@ -132,7 +136,7 @@ const jsonLd = buildRecipeJsonLd({
     </div>
 
     {similarRecipes.length > 0 && (
-      <div class="print:hidden mt-12 border-t pt-8 dark:border-gray-700">
+      <div data-cooking-mode-hide class="print:hidden mt-12 border-t pt-8 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {similarRecipes.map((similar) => (
