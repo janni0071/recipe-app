@@ -67,7 +67,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
           <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
           <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
-          <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+          <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
             <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
             </svg>
@@ -83,12 +83,16 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     </main>
     <footer class="print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
         © {new Date().getFullYear()} Jannis
-        <span class="relative group inline-block cursor-default">
-          <span class="text-pink-400 group-hover:text-pink-500 transition">♡</span>
-          <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow">
+        <button
+          type="button"
+          aria-label="Made with love"
+          class="group relative inline-block cursor-pointer appearance-none border-0 bg-transparent p-0 align-baseline rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
+        >
+          <span class="text-pink-400 transition group-hover:text-pink-500 group-focus:text-pink-500">♡</span>
+          <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200 shadow">
             Made with love 🍳
           </span>
-        </span>
+        </button>
         Daisy
     </footer>
     <script is:inline>
