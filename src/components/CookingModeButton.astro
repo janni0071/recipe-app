@@ -36,66 +36,76 @@ const { label, exitLabel } = Astro.props;
   // Generic, identical content on every recipe page — same dedup-safe
   // astro:page-load pattern as ShareButton/PrintButton. Labels live in data
   // attributes read fresh at toggle time, so nothing here goes stale.
+  //
+  // setActive/enterCookingMode/exitCookingMode live at module scope (rather
+  // than closing over a single page-load's button) because the
+  // fullscreenchange/astro:before-swap listeners below are only ever bound
+  // once (window.__cookingModeBound guards against piling up a listener per
+  // navigation). If they closed over one navigation's button, every later
+  // navigation's exit-via-back-gesture would update a detached button
+  // instead of whatever button is actually live on screen.
+  function setActive(active) {
+    const button = document.getElementById('cooking-mode-button');
+    if (!button) return;
+    button.dataset.active = String(active);
+    button.setAttribute('aria-pressed', String(active));
+    button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
+    document.documentElement.classList.toggle('cooking-mode', active);
+    document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
+  }
+
+  async function releaseWakeLock() {
+    if (window.__cookingModeWakeLock) {
+      try {
+        await window.__cookingModeWakeLock.release();
+      } catch {
+        // Already released — nothing to recover from.
+      }
+      window.__cookingModeWakeLock = null;
+    }
+  }
+
+  async function requestWakeLock() {
+    // Unsupported in some browsers (e.g. older iOS Safari) — cooking mode
+    // still works, the screen just won't be kept on there.
+    if (!('wakeLock' in navigator)) return;
+    try {
+      window.__cookingModeWakeLock = await navigator.wakeLock.request('screen');
+    } catch {
+      // Denied (e.g. low battery saver) — nothing further to do.
+    }
+  }
+
+  async function enterCookingMode() {
+    setActive(true);
+    requestWakeLock();
+    // iOS Safari has no Fullscreen API for arbitrary elements, so this is
+    // a progressive enhancement on top of the CSS-driven immersive layout
+    // that setActive() above already switched on for every browser.
+    if (document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch {
+        // Denied/unsupported — the CSS layout and wake lock still apply.
+      }
+    }
+  }
+
+  async function exitCookingMode() {
+    setActive(false);
+    releaseWakeLock();
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        // Nothing left to recover from.
+      }
+    }
+  }
+
   function bindCookingModeButton() {
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
-
-    function setActive(active) {
-      button.dataset.active = String(active);
-      button.setAttribute('aria-pressed', String(active));
-      button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
-      document.documentElement.classList.toggle('cooking-mode', active);
-      document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
-    }
-
-    async function releaseWakeLock() {
-      if (window.__cookingModeWakeLock) {
-        try {
-          await window.__cookingModeWakeLock.release();
-        } catch {
-          // Already released — nothing to recover from.
-        }
-        window.__cookingModeWakeLock = null;
-      }
-    }
-
-    async function requestWakeLock() {
-      // Unsupported in some browsers (e.g. older iOS Safari) — cooking mode
-      // still works, the screen just won't be kept on there.
-      if (!('wakeLock' in navigator)) return;
-      try {
-        window.__cookingModeWakeLock = await navigator.wakeLock.request('screen');
-      } catch {
-        // Denied (e.g. low battery saver) — nothing further to do.
-      }
-    }
-
-    async function enterCookingMode() {
-      setActive(true);
-      requestWakeLock();
-      // iOS Safari has no Fullscreen API for arbitrary elements, so this is
-      // a progressive enhancement on top of the CSS-driven immersive layout
-      // that setActive() above already switched on for every browser.
-      if (document.documentElement.requestFullscreen) {
-        try {
-          await document.documentElement.requestFullscreen();
-        } catch {
-          // Denied/unsupported — the CSS layout and wake lock still apply.
-        }
-      }
-    }
-
-    async function exitCookingMode() {
-      setActive(false);
-      releaseWakeLock();
-      if (document.fullscreenElement) {
-        try {
-          await document.exitFullscreen();
-        } catch {
-          // Nothing left to recover from.
-        }
-      }
-    }
 
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
