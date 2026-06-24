@@ -10,6 +10,7 @@ export const ui = {
   en: {
     'nav.home': 'Home',
     'nav.tags': 'Tags',
+    'nav.shoppingList': 'Shopping list',
     'page.index.title': 'All Recipes',
     'page.index.heading': '{names} Recipes',
     'page.index.headingNames': "Jannis & Daisy's",
@@ -43,10 +44,18 @@ export const ui = {
     'page.recipe.startTimer': 'Start timer',
     'page.recipe.cancelTimer': 'Cancel timer',
     'page.recipe.timerDone': "Time's up!",
+    'page.recipe.shoppingList': 'Add to shopping list',
+    'page.shoppingList.title': 'Shopping List',
+    'page.shoppingList.heading': 'Shopping List',
+    'page.shoppingList.empty': 'Your shopping list is empty. Add recipes from their pages to get started.',
+    'page.shoppingList.yourRecipes': 'Recipes in your list',
+    'page.shoppingList.combined': 'Combined shopping list',
+    'page.shoppingList.remove': 'Remove',
   },
   de: {
     'nav.home': 'Startseite',
     'nav.tags': 'Tags',
+    'nav.shoppingList': 'Einkaufsliste',
     'page.index.title': 'Alle Rezepte',
     'page.index.heading': '{names} Rezepte',
     'page.index.headingNames': 'Jannis & Daisys',
@@ -80,10 +89,18 @@ export const ui = {
     'page.recipe.startTimer': 'Timer starten',
     'page.recipe.cancelTimer': 'Timer abbrechen',
     'page.recipe.timerDone': 'Zeit ist abgelaufen!',
+    'page.recipe.shoppingList': 'Zur Einkaufsliste hinzufügen',
+    'page.shoppingList.title': 'Einkaufsliste',
+    'page.shoppingList.heading': 'Einkaufsliste',
+    'page.shoppingList.empty': 'Deine Einkaufsliste ist leer. Füge Rezepte über ihre Seite hinzu, um zu starten.',
+    'page.shoppingList.yourRecipes': 'Rezepte in deiner Liste',
+    'page.shoppingList.combined': 'Kombinierte Einkaufsliste',
+    'page.shoppingList.remove': 'Entfernen',
   },
   fr: {
     'nav.home': 'Accueil',
     'nav.tags': 'Tags',
+    'nav.shoppingList': 'Liste de courses',
     'page.index.title': 'Toutes les Recettes',
     'page.index.heading': 'Les Recettes de {names}',
     'page.index.headingNames': 'Jannis & Daisy',
@@ -117,6 +134,13 @@ export const ui = {
     'page.recipe.startTimer': 'Démarrer le minuteur',
     'page.recipe.cancelTimer': 'Annuler le minuteur',
     'page.recipe.timerDone': "Le temps est écoulé !",
+    'page.recipe.shoppingList': 'Ajouter à la liste de courses',
+    'page.shoppingList.title': 'Liste de courses',
+    'page.shoppingList.heading': 'Liste de courses',
+    'page.shoppingList.empty': 'Votre liste de courses est vide. Ajoutez des recettes depuis leur page pour commencer.',
+    'page.shoppingList.yourRecipes': 'Recettes dans votre liste',
+    'page.shoppingList.combined': 'Liste de courses combinée',
+    'page.shoppingList.remove': 'Retirer',
   },
 } as const;
 
@@ -143,4 +167,9 @@ export function getLocalePath(locale: Locale): string {
 /** Returns the tags index path for a given locale. */
 export function getTagsPath(locale: Locale): string {
   return locale === 'en' ? '/tags' : `/${locale}/tags`;
+}
+
+/** Returns the shopping list path for a given locale. */
+export function getShoppingListPath(locale: Locale): string {
+  return locale === 'en' ? '/shopping-list' : `/${locale}/shopping-list`;
 }

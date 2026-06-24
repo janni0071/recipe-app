@@ -6,6 +6,7 @@ import RecipeCard from '../../../components/RecipeCard.astro';
 import ShareButton from '../../../components/ShareButton.astro';
 import PrintButton from '../../../components/PrintButton.astro';
 import FavoriteButton from '../../../components/FavoriteButton.astro';
+import ShoppingListButton from '../../../components/ShoppingListButton.astro';
 import CookingModeButton from '../../../components/CookingModeButton.astro';
 import { Image, getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry } from 'astro:content';
@@ -107,6 +108,7 @@ const jsonLd = buildRecipeJsonLd({
       <div class="print:hidden flex flex-wrap items-center gap-2 w-full sm:w-auto">
         <span class="cooking-mode:hidden flex items-center gap-2">
           <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
+          <ShoppingListButton slug={slug} label={t('page.recipe.shoppingList')} />
           <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
           <PrintButton label={t('page.recipe.print')} />
         </span>

@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../utils/i18n';
-import { useTranslations, getLocalePath, getTagsPath } from '../utils/i18n';
+import { useTranslations, getLocalePath, getTagsPath, getShoppingListPath } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import Search from '../components/SearchBar.astro';
 import { ClientRouter } from 'astro:transitions';
@@ -24,6 +24,7 @@ const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
 const tagsPath = getTagsPath(locale);
+const shoppingListPath = getShoppingListPath(locale);
 import '../styles/global.css';
 
 // Lets the search box in the header find recipes from any page (not just
@@ -81,7 +82,12 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     <header class="cooking-mode:hidden print:hidden border-b bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div class="mx-auto max-w-6xl p-4">
         <nav class="flex flex-wrap items-center gap-3">
-          <a href={homePath} class="order-1 shrink-0 text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
+          <a href={homePath} aria-label={t('nav.home')} class="order-1 shrink-0 inline-flex items-center gap-2 text-2xl font-bold text-pink-500 dark:text-pink-400">
+            <svg class="h-9" width="60" viewBox="-5 0 162 98" aria-hidden="true">
+              <text x="0" y="78" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="84" font-weight="800" letter-spacing="-3"><tspan class="fill-gray-900 dark:fill-white">J</tspan><tspan fill="#ec4899">X</tspan><tspan class="fill-gray-900 dark:fill-white">D</tspan></text>
+            </svg>
+            <span class="hidden sm:inline">Recipe Box</span>
+          </a>
           {showHeaderSearch && (
             <div class="order-3 w-full sm:order-2 sm:w-80 sm:mx-auto">
               <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
@@ -90,7 +96,20 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           <div class={`order-2 ml-auto flex items-center gap-3 flex-wrap justify-end sm:order-3 ${showHeaderSearch ? 'sm:ml-0' : ''}`}>
             <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
             <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
-            <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
+            <a href={tagsPath} aria-label={t('nav.tags')} class="sm:hidden p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="-0.41 -0.42 24 24">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7" y2="7"></line>
+              </svg>
+            </a>
+            <a href={shoppingListPath} class="hidden sm:inline hover:underline">{t('nav.shoppingList')}</a>
+            <a href={shoppingListPath} aria-label={t('nav.shoppingList')} class="sm:hidden p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <circle cx="9" cy="21" r="1.5"></circle>
+                <circle cx="20" cy="21" r="1.5"></circle>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+            </a>
             <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
             <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
               <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,6 +312,68 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       }
 
       document.addEventListener('astro:page-load', initFavorites);
+    </script>
+    <script is:inline>
+      // Shopping list entries live in localStorage too, keyed by the same
+      // locale-agnostic slug as favorites, but carrying a servings count
+      // alongside it — captured from the recipe page's own servings stepper
+      // at the moment the recipe is added, so a dish added at 2x servings
+      // stays scaled that way on the shopping list page.
+      function getShoppingList() {
+        try {
+          return JSON.parse(localStorage.getItem('shopping-list') || '[]');
+        } catch {
+          return [];
+        }
+      }
+
+      function setShoppingList(list) {
+        localStorage.setItem('shopping-list', JSON.stringify(list));
+      }
+
+      function syncShoppingListButtons() {
+        const list = getShoppingList();
+        const slugs = new Set(list.map((entry) => entry.slug));
+        document.querySelectorAll('[data-shopping-slug]').forEach((button) => {
+          const active = slugs.has(button.dataset.shoppingSlug);
+          button.dataset.inList = String(active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+      }
+
+      function initShoppingListButtons() {
+        if (!window.__shoppingListClickBound) {
+          window.__shoppingListClickBound = true;
+          // Capture phase for the same reason as the favorites handler above:
+          // it has to run before the ClientRouter's own bubble-phase click
+          // listener kicks off navigation.
+          document.addEventListener(
+            'click',
+            (e) => {
+              const button = e.target.closest('[data-shopping-slug]');
+              if (!button) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const slug = button.dataset.shoppingSlug;
+              const list = getShoppingList();
+              const index = list.findIndex((entry) => entry.slug === slug);
+              if (index >= 0) {
+                list.splice(index, 1);
+              } else {
+                const servingsEl = document.querySelector('.servings-value');
+                const servings = servingsEl ? parseFloat(servingsEl.textContent) : 1;
+                list.push({ slug, servings: Number.isFinite(servings) ? servings : 1 });
+              }
+              setShoppingList(list);
+              syncShoppingListButtons();
+            },
+            true
+          );
+        }
+        syncShoppingListButtons();
+      }
+
+      document.addEventListener('astro:page-load', initShoppingListButtons);
     </script>
     <script is:inline>
       // RecipeCard renders every tag server-side; if they'd wrap to a second
