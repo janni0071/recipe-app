@@ -104,7 +104,7 @@ const jsonLd = buildRecipeJsonLd({
         <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
       </div>
-      <div class="print:hidden flex items-center gap-2">
+      <div class="print:hidden flex flex-wrap items-center gap-2">
         <span class="cooking-mode:hidden flex items-center gap-2">
           <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
           <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
