@@ -1,12 +1,14 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import IngredientList from '../../../components/IngredientList.astro';
+import StepList from '../../../components/StepList.astro';
 import RecipeCard from '../../../components/RecipeCard.astro';
 import ShareButton from '../../../components/ShareButton.astro';
 import PrintButton from '../../../components/PrintButton.astro';
 import FavoriteButton from '../../../components/FavoriteButton.astro';
+import CookingModeButton from '../../../components/CookingModeButton.astro';
 import { Image, getImage } from 'astro:assets';
-import { getCollection, type CollectionEntry, render } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
 import { getSimilarRecipes } from '../../../utils/similar';
 import { buildRecipeJsonLd } from '../../../utils/recipeSchema';
@@ -34,7 +36,6 @@ type Props = {
 };
 
 const { recipe } = Astro.props as Props;
-const { Content } = await render(recipe);
 const t = useTranslations('de');
 
 const slug = recipe.id.replace(/^de\//, '').replace(/\.md$/, '');
@@ -69,7 +70,7 @@ const jsonLd = buildRecipeJsonLd({
   cookTime: recipe.data.cookTime,
   servings: recipe.data.servings,
   ingredientGroups: recipe.data.ingredients,
-  stepsMarkdownBody: recipe.body ?? '',
+  steps: recipe.data.steps,
   pageUrl: new URL(Astro.url.pathname, Astro.site).toString(),
   locale: 'de',
 });
@@ -98,19 +99,22 @@ const jsonLd = buildRecipeJsonLd({
     <h1 class="text-4xl font-bold dark:text-white break-words mb-4" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b dark:border-gray-700">
-      <div class="flex flex-wrap gap-4 text-gray-600 dark:text-gray-400">
+      <div class="flex flex-1 min-w-0 flex-wrap gap-4 text-gray-600 dark:text-gray-400">
         <span>🕒 {t('page.recipe.prep')}: {recipe.data.prepTime}</span>
         <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
       </div>
-      <div class="print:hidden flex items-center gap-2">
-        <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
-        <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
-        <PrintButton label={t('page.recipe.print')} />
+      <div class="print:hidden flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <span class="cooking-mode:hidden flex items-center gap-2">
+          <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
+          <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
+          <PrintButton label={t('page.recipe.print')} />
+        </span>
+        <CookingModeButton label={t('page.recipe.cookingMode')} exitLabel={t('page.recipe.exitCookingMode')} />
       </div>
     </div>
 
-    <div class="print:hidden flex flex-wrap gap-2 mb-8">
+    <div class="cooking-mode:hidden print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
           href={`/de/tags/${tag}`}
@@ -128,11 +132,20 @@ const jsonLd = buildRecipeJsonLd({
         servings={recipe.data.servings}
         servingsLabel={t('page.recipe.servings')}
       />
-      <Content />
+      <StepList
+        heading={t('page.recipe.steps')}
+        steps={recipe.data.steps}
+        prevLabel={t('page.recipe.prevStep')}
+        nextLabel={t('page.recipe.nextStep')}
+        progressTemplate={t('page.recipe.stepProgress')}
+        startTimerLabel={t('page.recipe.startTimer')}
+        cancelTimerLabel={t('page.recipe.cancelTimer')}
+        timerDoneLabel={t('page.recipe.timerDone')}
+      />
     </div>
 
     {similarRecipes.length > 0 && (
-      <div class="print:hidden mt-12 border-t pt-8 dark:border-gray-700">
+      <div class="cooking-mode:hidden print:hidden mt-12 border-t pt-8 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {similarRecipes.map((similar) => (

@@ -32,11 +32,12 @@ ingredients:
         unit: "g de"
         name: "feta"
       - name: "Sel & poivre"
+steps:
+  - text: "**Une astuce importante avant de commencer :** il est impératif de suivre les instructions indiquées sur le paquet de couscous. Selon la marque, les proportions de couscous et d'eau peuvent varier. Utilisez toujours les proportions indiquées sur le paquet, même si la recette indique autre chose."
+  - text: "Verser de l'eau salée bouillante sur le couscous dans un bol et laisser gonfler à couvert pendant 10 min."
+    timerSeconds: 600
+  - text: "Couper les oignons en deux puis en lanières. Couper l'ail en fines tranches. Couper les tomates en deux. Faire chauffer l'huile dans une poêle. Faire revenir les oignons et l'ail à feu moyen jusqu'à ce qu'ils soient translucides. Incorporer le concentré de tomates et faire revenir brièvement. Ajouter les tomates, saler, poivrer et laisser mijoter à feu moyen pendant 5 min."
+    timerSeconds: 300
+  - text: "Émietter la feta. Égrener le couscous à la fourchette. Dresser avec le mélange de tomates et parsemer de feta. Arroser d'1 cuillère à soupe d'huile et poivrer selon votre goût."
 ---
 
-## Étapes
-
-1. **Une astuce importante avant de commencer :** il est impératif de suivre les instructions indiquées sur le paquet de couscous. Selon la marque, les proportions de couscous et d'eau peuvent varier. Utilisez toujours les proportions indiquées sur le paquet, même si la recette indique autre chose.
-2. Verser de l'eau salée bouillante sur le couscous dans un bol et laisser gonfler à couvert pendant 10 min.
-3. Couper les oignons en deux puis en lanières. Couper l'ail en fines tranches. Couper les tomates en deux. Faire chauffer l'huile dans une poêle. Faire revenir les oignons et l'ail à feu moyen jusqu'à ce qu'ils soient translucides. Incorporer le concentré de tomates et faire revenir brièvement. Ajouter les tomates, saler, poivrer et laisser mijoter à feu moyen pendant 5 min.
-4. Émietter la feta. Égrener le couscous à la fourchette. Dresser avec le mélange de tomates et parsemer de feta. Arroser d'1 cuillère à soupe d'huile et poivrer selon votre goût.

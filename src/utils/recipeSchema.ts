@@ -1,27 +1,7 @@
 import type { IngredientGroup } from './ingredients';
 import { formatIngredientText } from './ingredients';
-
-/**
- * Extracts step text from a recipe's raw markdown body. Ingredients live in
- * frontmatter now, so the body is just a heading followed by a numbered
- * list — any non-numbered, non-heading line is treated as a continuation of
- * the previous step, since some recipes hard-wrap a single step across
- * multiple lines.
- */
-export function parseStepsFromMarkdown(body: string): string[] {
-  const steps: string[] = [];
-  for (const rawLine of body.split('\n')) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    const match = line.match(/^\d+\.\s+(.*)/);
-    if (match) {
-      steps.push(match[1]);
-    } else if (!line.startsWith('#') && steps.length > 0) {
-      steps[steps.length - 1] += ` ${line}`;
-    }
-  }
-  return steps;
-}
+import type { Step } from './steps';
+import { stepPlainText } from './steps';
 
 /**
  * Converts "45 min" / "30-35 min" style strings into ISO 8601 durations
@@ -54,7 +34,7 @@ export interface RecipeJsonLdInput {
   cookTime: string;
   servings: number;
   ingredientGroups: IngredientGroup[];
-  stepsMarkdownBody: string;
+  steps: Step[];
   pageUrl: string;
   locale: string;
 }
@@ -62,7 +42,6 @@ export interface RecipeJsonLdInput {
 export function buildRecipeJsonLd(input: RecipeJsonLdInput): Record<string, unknown> {
   const prepIso = parseDurationToISO8601(input.prepTime);
   const cookIso = parseDurationToISO8601(input.cookTime);
-  const steps = parseStepsFromMarkdown(input.stepsMarkdownBody);
 
   return {
     '@context': 'https://schema.org/',
@@ -77,7 +56,11 @@ export function buildRecipeJsonLd(input: RecipeJsonLdInput): Record<string, unkn
     ...(sumDurations(prepIso, cookIso) && { totalTime: sumDurations(prepIso, cookIso) }),
     recipeYield: String(input.servings),
     recipeIngredient: input.ingredientGroups.flatMap((group) => group.items.map(formatIngredientText)),
-    recipeInstructions: steps.map((text) => ({ '@type': 'HowToStep', text })),
+    recipeInstructions: input.steps.map((step) => ({
+      '@type': 'HowToStep',
+      text: stepPlainText(step.text),
+      ...(step.timerSeconds && { timeRequired: `PT${step.timerSeconds}S` }),
+    })),
     url: input.pageUrl,
     inLanguage: input.locale,
   };

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant cooking-mode (&:where(.cooking-mode, .cooking-mode *));
 
 /* Base body font – clean sans‑serif using system UI stack */
 body {
@@ -146,4 +147,17 @@ body {
     font-size: 1rem;
     line-height: 1.55;
   }
+}
+
+/* Cooking mode: the step list's own nav already shows "Step X of N", so the
+   ::before counter would be redundant — and since one-step-at-a-time hides
+   every other <li>, counter-increment wouldn't run on those anyway. Dropping
+   the counter sidesteps that rather than working around it. */
+.cooking-mode .prose ol li::before {
+  display: none;
+}
+.cooking-mode .prose ol li {
+  padding-left: 1.25rem;
+  font-size: 1.2em;
+  line-height: 1.6;
 }

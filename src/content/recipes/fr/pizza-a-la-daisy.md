@@ -35,13 +35,13 @@ ingredients:
       - name: "Jus de citron / citron vert"
       - name: "Sel, poivre"
       - name: "(FACULTATIF) Coriandre fraîche finement hachée"
+steps:
+  - text: "Couper les garnitures (champignons, poivrons, oignons) en fines tranches (pas trop fines pour les champignons, ils réduisent à la poêle !)."
+  - text: "Dans une poêle avec de l'huile d'olive chaude, faire revenir légèrement les oignons, puis ajouter les poivrons. Faire sauter jusqu'à ce que les poivrons soient tendres et que les oignons commencent à caraméliser. Saler et poivrer le mélange."
+  - text: "Répéter la même opération avec les champignons dans la même poêle lavée. Ils ne prennent que quelques minutes et nécessitent de remuer souvent ! Ne pas les laisser trop réduire ! Ajouter à nouveau un tout petit peu de sel et de poivre."
+  - text: "Préchauffer le four à 180-200°C. Pendant qu'il chauffe, étaler la pâte sur la plaque de cuisson et y étaler généreusement le pesto. Ajouter ensuite le concentré de tomates et l'étaler / mélanger avec le pesto déjà sur la pâte."
+  - text: "Vous pouvez maintenant ajouter les garnitures ! Commencer par les tranches de tomates / tomates cerises, puis les oignons et poivrons, les champignons, et enfin les dés de jambon/chorizo."
+  - text: "Râper du parmesan sur toute la pizza et cuire au four pendant environ 30-35 minutes."
+    timerSeconds: 2100
 ---
 
-## Étapes
-
-1. Couper les garnitures (champignons, poivrons, oignons) en fines tranches (pas trop fines pour les champignons, ils réduisent à la poêle !).
-2. Dans une poêle avec de l'huile d'olive chaude, faire revenir légèrement les oignons, puis ajouter les poivrons. Faire sauter jusqu'à ce que les poivrons soient tendres et que les oignons commencent à caraméliser. Saler et poivrer le mélange.
-3. Répéter la même opération avec les champignons dans la même poêle lavée. Ils ne prennent que quelques minutes et nécessitent de remuer souvent ! Ne pas les laisser trop réduire ! Ajouter à nouveau un tout petit peu de sel et de poivre.
-4. Préchauffer le four à 180-200°C. Pendant qu'il chauffe, étaler la pâte sur la plaque de cuisson et y étaler généreusement le pesto. Ajouter ensuite le concentré de tomates et l'étaler / mélanger avec le pesto déjà sur la pâte.
-5. Vous pouvez maintenant ajouter les garnitures ! Commencer par les tranches de tomates / tomates cerises, puis les oignons et poivrons, les champignons, et enfin les dés de jambon/chorizo.
-6. Râper du parmesan sur toute la pizza et cuire au four pendant environ 30-35 minutes.

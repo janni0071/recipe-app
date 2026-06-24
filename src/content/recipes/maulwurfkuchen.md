@@ -41,15 +41,16 @@ ingredients:
         name: "whipped cream stabilizer (Sahnesteif)"
       - name: "Vanilla sugar"
       - name: "Fat for greasing the pan"
+steps:
+  - text: "Make a batter from the first seven ingredients."
+  - text: "Grease a 26 cm springform pan and bake the batter at 170°C for 30 minutes."
+    timerSeconds: 1800
+  - text: "Place the cooled cake base on a cake plate. Using a tablespoon, hollow it out about 0.5 cm deep, leaving a 2 cm border."
+  - text: "Coarsely crumble the removed cake crumbs into a bowl."
+  - text: "Halve the strawberries and place them cut-side down onto the hollowed base."
+  - text: "Whip the cream with the cream stabilizer until stiff, then fold in the chocolate flakes (grated chocolate)."
+  - text: "Spread the cream mixture onto the base in a dome shape up to the edge, then sprinkle with the cake crumbs."
+  - text: "Refrigerate the cake for about 2 hours."
+    timerSeconds: 7200
 ---
 
-## Steps
-
-1. Make a batter from the first seven ingredients.
-2. Grease a 26 cm springform pan and bake the batter at 170°C for 30 minutes.
-3. Place the cooled cake base on a cake plate. Using a tablespoon, hollow it out about 0.5 cm deep, leaving a 2 cm border.
-4. Coarsely crumble the removed cake crumbs into a bowl.
-5. Halve the strawberries and place them cut-side down onto the hollowed base.
-6. Whip the cream with the cream stabilizer until stiff, then fold in the chocolate flakes (grated chocolate).
-7. Spread the cream mixture onto the base in a dome shape up to the edge, then sprinkle with the cake crumbs.
-8. Refrigerate the cake for about 2 hours.

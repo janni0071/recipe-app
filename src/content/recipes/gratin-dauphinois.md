@@ -26,14 +26,15 @@ ingredients:
       - name: "Butter"
       - name: "Nutmeg"
       - name: "Salt & pepper"
+steps:
+  - text: "Peel potatoes and cut in fine round slices."
+  - text: "Chop the garlic really finely."
+  - text: "Bring the milk, garlic, nutmeg, salt, pepper (not too little) and both creams to a slight boil in a pot."
+  - text: "Add potatoes into the pot and let them cook for 10-15 mins (check firmness to decide if they need more)."
+    timerSeconds: 900
+  - text: "Preheat your oven to 180°C and spread butter around a gratin dish."
+  - text: "Place the potatoes in the dish first and cover them with the mix (add more nutmeg or pepper if needed)."
+  - text: "Cook in the oven for 1 hour."
+    timerSeconds: 3600
 ---
 
-## Steps
-
-1. Peel potatoes and cut in fine round slices.
-2. Chop the garlic really finely.
-3. Bring the milk, garlic, nutmeg, salt, pepper (not too little) and both creams to a slight boil in a pot.
-4. Add potatoes into the pot and let them cook for 10-15 mins (check firmness to decide if they need more).
-5. Preheat your oven to 180°C and spread butter around a gratin dish.
-6. Place the potatoes in the dish first and cover them with the mix (add more nutmeg or pepper if needed).
-7. Cook in the oven for 1 hour.

@@ -35,21 +35,13 @@ ingredients:
       - name: "lemon/lime juice"
       - name: "salt, pepper"
       - name: "(OPTIONAL) Finely chopped fresh cilantro"
+steps:
+  - text: "Chop the toppings (champignons, peppers, onions) in thin slices (not too thin for the champignons, they reduce in the pan!)"
+  - text: "With hot olive oil in a pan, start frying the onions a little bit, then add the peppers. Stir fry until the peppers are tender and the onions are starting to get caramelized. Salt and pepper the mix."
+  - text: "Then, repeat the same process by stir frying the champignons in the same washed pan. They only take a few minutes and require a lot of stiring! Don't let them reduce too much! You can add a tiny bit of salt and pepper again."
+  - text: "Pre-heat your oven at 180-200°C. While it heats, lay the dough flat onto the baking plaque and start to spread a generous amount of pesto on it. Then add the concentrated tomato purée and spread/mix with the pesto already on the dough."
+  - text: "You can now add the toppings! Start with the sliced tomatoes/cherry tomatoes, then the onions and peppers, the champignons, and finally, the ham/chorizo bits."
+  - text: "Grate some parmesan all over the pizza and bake in the oven for approx 30-35 min."
+    timerSeconds: 2100
 ---
 
-## Steps
-
-1. Chop the toppings (champignons, peppers, onions) in thin slices (not too thin for the
-champignons, they reduce in the pan!)
-2. With hot olive oil in a pan, start frying the onions a little bit, then add the peppers. Stir fry
-until the peppers are tender and the onions are starting to get caramelized. Salt and
-pepper the mix.
-3. Then, repeat the same process by stir frying the champignons in the same washed pan.
-They only take a few minutes and require a lot of stiring! Don't let them reduce too much!
-You can add a tiny bit of salt and pepper again.
-4. Pre-heat your oven at 180-200°C. While it heats, lay the dough flat onto the baking
-plaque and start to spread a generous amount of pesto on it. Then add the concentrated
-tomato purée and spread/mix with the pesto already on the dough.
-5. You can now add the toppings! Start with the sliced tomatoes/cherry tomatoes, then the
-onions and peppers, the champignons, and finally, the ham/chorizo bits.
-6. Grate some parmesan all over the pizza and bake in the oven for approx 30-35 min.

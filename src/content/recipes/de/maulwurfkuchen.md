@@ -41,15 +41,16 @@ ingredients:
         name: "Sahnesteif"
       - name: "Vanillezucker"
       - name: "Fett für die Form"
+steps:
+  - text: "Aus den ersten sieben Zutaten einen Rührteig herstellen."
+  - text: "Eine Springform (26 cm) einfetten und den Rührteig darin 30 min bei 170°C backen."
+    timerSeconds: 1800
+  - text: "Den erkalteten Boden auf eine Tortenplatte legen und mit einem Esslöffel 1/2 cm tief aushöhlen, dabei einen Rand von 2 cm stehen lassen."
+  - text: "Die Krümel in einer Schüssel grob zerkleinern."
+  - text: "Die Erdbeeren halbieren und mit der flachen Seite auf den ausgehöhlten Boden legen."
+  - text: "Die Sahne mit Sahnesteif steif schlagen und die Schokoflocken unterheben."
+  - text: "Die Sahnecreme kuppelartig bis an den Rand auf den Boden streichen und mit den Gebäckkrümeln bestreuen."
+  - text: "Den Kuchen ca. 2 Stunden in den Kühlschrank stellen."
+    timerSeconds: 7200
 ---
 
-## Zubereitung
-
-1. Aus den ersten sieben Zutaten einen Rührteig herstellen.
-2. Eine Springform (26 cm) einfetten und den Rührteig darin 30 min bei 170°C backen.
-3. Den erkalteten Boden auf eine Tortenplatte legen und mit einem Esslöffel 1/2 cm tief aushöhlen, dabei einen Rand von 2 cm stehen lassen.
-4. Die Krümel in einer Schüssel grob zerkleinern.
-5. Die Erdbeeren halbieren und mit der flachen Seite auf den ausgehöhlten Boden legen.
-6. Die Sahne mit Sahnesteif steif schlagen und die Schokoflocken unterheben.
-7. Die Sahnecreme kuppelartig bis an den Rand auf den Boden streichen und mit den Gebäckkrümeln bestreuen.
-8. Den Kuchen ca. 2 Stunden in den Kühlschrank stellen.

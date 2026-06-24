@@ -26,14 +26,15 @@ ingredients:
       - name: "Butter"
       - name: "Muskatnuss"
       - name: "Salz & Pfeffer"
+steps:
+  - text: "Kartoffeln schälen und in feine runde Scheiben schneiden."
+  - text: "Den Knoblauch sehr fein hacken."
+  - text: "Die Milch, den Knoblauch, die Muskatnuss, Salz, Pfeffer (nicht zu wenig) und beide Sahnesorten in einem Topf leicht zum Kochen bringen."
+  - text: "Die Kartoffeln in den Topf geben und 10–15 Minuten kochen lassen (die Festigkeit prüfen, um zu entscheiden, ob sie länger brauchen)."
+    timerSeconds: 900
+  - text: "Den Ofen auf 180 °C vorheizen und eine Auflaufform mit Butter ausstreichen."
+  - text: "Zuerst die Kartoffeln in die Form geben und mit der Flüssigkeit bedecken (bei Bedarf mehr Muskatnuss oder Pfeffer hinzufügen)."
+  - text: "1 Stunde im Ofen backen."
+    timerSeconds: 3600
 ---
 
-## Zubereitung
-
-1. Kartoffeln schälen und in feine runde Scheiben schneiden.
-2. Den Knoblauch sehr fein hacken.
-3. Die Milch, den Knoblauch, die Muskatnuss, Salz, Pfeffer (nicht zu wenig) und beide Sahnesorten in einem Topf leicht zum Kochen bringen.
-4. Die Kartoffeln in den Topf geben und 10–15 Minuten kochen lassen (die Festigkeit prüfen, um zu entscheiden, ob sie länger brauchen).
-5. Den Ofen auf 180 °C vorheizen und eine Auflaufform mit Butter ausstreichen.
-6. Zuerst die Kartoffeln in die Form geben und mit der Flüssigkeit bedecken (bei Bedarf mehr Muskatnuss oder Pfeffer hinzufügen).
-7. 1 Stunde im Ofen backen.
