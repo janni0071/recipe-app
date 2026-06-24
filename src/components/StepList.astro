@@ -89,6 +89,14 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
         .replace('{total}', String(items.length));
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === items.length - 1;
+
+      // Steps vary in length, so without this the next step can start below
+      // the fold (or its timer button can) depending on how far the previous
+      // step had scrolled the page — re-anchoring on the heading/nav row
+      // keeps every step's start, and the controls to move on, in view.
+      if (cookingModeActive) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     prevBtn.addEventListener('click', () => {
