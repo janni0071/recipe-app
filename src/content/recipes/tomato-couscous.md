@@ -32,11 +32,12 @@ ingredients:
         unit: "g"
         name: "feta cheese"
       - name: "Salt & pepper"
+steps:
+  - text: "**An important tip beforehand:** Be sure to follow the instructions on the couscous package. Depending on the brand, the ratio of couscous to water can vary. Always use the ratio stated on the package, even if this recipe says otherwise."
+  - text: "Pour boiling salted water over the couscous in a bowl and let it swell, covered, for 10 min."
+    timerSeconds: 600
+  - text: "Halve the onions and cut into strips. Cut the garlic into fine slices. Halve the tomatoes. Heat the oil in a pan. Sauté the onions and garlic in it over medium heat until translucent. Stir in the tomato paste and sauté briefly. Add the tomatoes, season with salt and pepper, and braise over medium heat for 5 min."
+    timerSeconds: 300
+  - text: "Crumble the feta. Fluff the couscous with a fork. Serve topped with the tomato mixture and sprinkled with feta. Drizzle with 1 tbsp of oil and add pepper to taste, if desired."
 ---
 
-## Steps
-
-1. **An important tip beforehand:** Be sure to follow the instructions on the couscous package. Depending on the brand, the ratio of couscous to water can vary. Always use the ratio stated on the package, even if this recipe says otherwise.
-2. Pour boiling salted water over the couscous in a bowl and let it swell, covered, for 10 min.
-3. Halve the onions and cut into strips. Cut the garlic into fine slices. Halve the tomatoes. Heat the oil in a pan. Sauté the onions and garlic in it over medium heat until translucent. Stir in the tomato paste and sauté briefly. Add the tomatoes, season with salt and pepper, and braise over medium heat for 5 min.
-4. Crumble the feta. Fluff the couscous with a fork. Serve topped with the tomato mixture and sprinkled with feta. Drizzle with 1 tbsp of oil and add pepper to taste, if desired.

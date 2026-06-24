@@ -1,0 +1,186 @@
+---
+import { renderStepHtml, formatTimerDuration, type Step } from '../utils/steps';
+
+export interface Props {
+  heading: string;
+  steps: Step[];
+  prevLabel: string;
+  nextLabel: string;
+  progressTemplate: string;
+  startTimerLabel: string;
+  cancelTimerLabel: string;
+  timerDoneLabel: string;
+}
+
+const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel, cancelTimerLabel, timerDoneLabel } =
+  Astro.props;
+---
+<div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="!mt-0 !mb-0">{heading}</h2>
+    <div class="hidden cooking-mode:flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-300">
+      <button
+        type="button"
+        id="step-prev"
+        aria-label={prevLabel}
+        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+      >
+        ‹
+      </button>
+      <span id="step-progress"></span>
+      <button
+        type="button"
+        id="step-next"
+        aria-label={nextLabel}
+        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+      >
+        ›
+      </button>
+    </div>
+  </div>
+  <ol>
+    {steps.map((step) => (
+      <li>
+        <span set:html={renderStepHtml(step.text)} />
+        {step.timerSeconds != null && (
+          <div class="hidden cooking-mode:block mt-2">
+            <button
+              type="button"
+              data-timer-button
+              data-timer-seconds={step.timerSeconds}
+              data-start-label={`${startTimerLabel} (${formatTimerDuration(step.timerSeconds)})`}
+              data-cancel-label={cancelTimerLabel}
+              data-done-label={timerDoneLabel}
+              class="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-sm font-medium text-pink-700 hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-200 dark:hover:bg-pink-800 transition"
+            >
+              ⏱ {formatTimerDuration(step.timerSeconds)}
+            </button>
+          </div>
+        )}
+      </li>
+    ))}
+  </ol>
+</div>
+
+<script is:inline>
+  // Astro's ClientRouter dedups byte-identical inline script content across
+  // navigations, so per-navigation state (current step) lives in local
+  // closures re-created by astro:page-load, not in long-lived globals.
+  function initStepList() {
+    const container = document.getElementById('step-list');
+    if (!container) return;
+
+    const list = container.querySelector('ol');
+    const items = Array.from(list.children);
+    const prevBtn = document.getElementById('step-prev');
+    const nextBtn = document.getElementById('step-next');
+    const progressEl = document.getElementById('step-progress');
+    const progressTemplate = container.dataset.progressTemplate || '';
+
+    let current = 0;
+    let cookingModeActive = document.documentElement.classList.contains('cooking-mode');
+
+    function render() {
+      items.forEach((li, i) => {
+        li.classList.toggle('hidden', cookingModeActive && i !== current);
+      });
+      progressEl.textContent = progressTemplate
+        .replace('{current}', String(current + 1))
+        .replace('{total}', String(items.length));
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === items.length - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (current > 0) {
+        current--;
+        render();
+      }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (current < items.length - 1) {
+        current++;
+        render();
+      }
+    });
+
+    document.addEventListener('cookingmodechange', (e) => {
+      cookingModeActive = e.detail.active;
+      if (cookingModeActive) current = 0;
+      render();
+    });
+
+    render();
+  }
+
+  document.addEventListener('astro:page-load', initStepList);
+</script>
+
+<script is:inline>
+  // Timer buttons are re-rendered on every navigation, so binding lives once
+  // on document via delegation rather than per-button — same pattern as the
+  // favorites click handler in BaseLayout.
+  function formatRemaining(ms) {
+    const totalSeconds = Math.max(0, Math.round(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  function cancelTimer(button) {
+    clearInterval(Number(button.dataset.timerInterval));
+    delete button.dataset.timerEndsAt;
+    delete button.dataset.timerInterval;
+    button.textContent = `⏱ ${button.dataset.startLabel.replace(/^.*\(|\)$/g, '')}`;
+  }
+
+  function startTimer(button) {
+    const seconds = parseInt(button.dataset.timerSeconds, 10);
+    const endsAt = Date.now() + seconds * 1000;
+    button.dataset.timerEndsAt = String(endsAt);
+
+    // Recomputed from the absolute end time on every tick instead of just
+    // decrementing, so background-tab throttling can't make the countdown
+    // drift from wall-clock time.
+    function tick() {
+      const remaining = endsAt - Date.now();
+      if (remaining <= 0) {
+        clearInterval(intervalId);
+        delete button.dataset.timerEndsAt;
+        delete button.dataset.timerInterval;
+        button.textContent = button.dataset.doneLabel;
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        return;
+      }
+      button.textContent = formatRemaining(remaining);
+    }
+
+    const intervalId = setInterval(tick, 1000);
+    button.dataset.timerInterval = String(intervalId);
+    tick();
+  }
+
+  function initStepTimers() {
+    if (window.__stepTimersBound) return;
+    window.__stepTimersBound = true;
+
+    document.addEventListener('click', (e) => {
+      const button = e.target.closest('[data-timer-button]');
+      if (!button) return;
+      if (button.dataset.timerEndsAt) {
+        cancelTimer(button);
+      } else {
+        startTimer(button);
+      }
+    });
+
+    // Leaving cooking mode hides every timer button, so a still-running
+    // countdown would have no UI left to show or cancel it from.
+    document.addEventListener('cookingmodechange', (e) => {
+      if (e.detail.active) return;
+      document.querySelectorAll('[data-timer-button][data-timer-ends-at]').forEach(cancelTimer);
+    });
+  }
+
+  initStepTimers();
+</script>

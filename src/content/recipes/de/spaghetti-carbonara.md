@@ -24,14 +24,13 @@ ingredients:
         unit: "g"
         name: "Spaghetti"
       - name: "Schwarzer Pfeffer, frisch gemahlen"
+steps:
+  - text: "Einen großen Topf mit Salzwasser zum Kochen bringen."
+  - text: "Den Guanciale in kleine Würfel schneiden und in einer Pfanne knusprig braten."
+  - text: "In einer Schüssel die Eier, beide Käsesorten und reichlich schwarzen Pfeffer verquirlen."
+  - text: "Die Spaghetti nach Packungsanweisung kochen."
+  - text: "Die Nudeln abgießen, dabei eine Tasse Nudelwasser aufbewahren."
+  - text: "Vom Herd nehmen, die Nudeln schnell mit dem Guanciale, dann mit der Eimischung vermengen (bei Bedarf etwas Nudelwasser hinzufügen, um eine cremige Soße zu erhalten)."
+  - text: "Sofort mit zusätzlichem Käse und Pfeffer servieren."
 ---
 
-## Zubereitung
-
-1. Einen großen Topf mit Salzwasser zum Kochen bringen.
-2. Den Guanciale in kleine Würfel schneiden und in einer Pfanne knusprig braten.
-3. In einer Schüssel die Eier, beide Käsesorten und reichlich schwarzen Pfeffer verquirlen.
-4. Die Spaghetti nach Packungsanweisung kochen.
-5. Die Nudeln abgießen, dabei eine Tasse Nudelwasser aufbewahren.
-6. Vom Herd nehmen, die Nudeln schnell mit dem Guanciale, dann mit der Eimischung vermengen (bei Bedarf etwas Nudelwasser hinzufügen, um eine cremige Soße zu erhalten).
-7. Sofort mit zusätzlichem Käse und Pfeffer servieren.

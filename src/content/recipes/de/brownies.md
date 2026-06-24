@@ -27,11 +27,11 @@ ingredients:
         name: "Eier"
       - amount: 1
         name: "Prise Salz"
+steps:
+  - text: "Die Butter und die Schokolade in Stücke schneiden und bei schwacher Hitze zusammen schmelzen."
+  - text: "Gleichzeitig die Eier mit dem Zucker verquirlen."
+  - text: "Das Mehl und den Vanillezucker hinzufügen, dann die Schokoladen-Butter-Mischung einrühren. Gut vermischen! (Nach Belieben Nüsse hinzufügen, gehackt oder gemahlen, für mehr Knusprigkeit oder Geschmack! etwa 100g~)"
+  - text: "Die Mischung in eine Brownie-Form füllen und 30 Minuten bei 180°C backen. Die Brownies sofort nach dem Backen aus dem Ofen nehmen. Vor dem Verzehr abkühlen lassen!"
+    timerSeconds: 1800
 ---
 
-## Zubereitung
-
-1. Die Butter und die Schokolade in Stücke schneiden und bei schwacher Hitze zusammen schmelzen.
-2. Gleichzeitig die Eier mit dem Zucker verquirlen.
-3. Das Mehl und den Vanillezucker hinzufügen, dann die Schokoladen-Butter-Mischung einrühren. Gut vermischen! (Nach Belieben Nüsse hinzufügen, gehackt oder gemahlen, für mehr Knusprigkeit oder Geschmack! etwa 100g~)
-4. Die Mischung in eine Brownie-Form füllen und 30 Minuten bei 180°C backen. Die Brownies sofort nach dem Backen aus dem Ofen nehmen. Vor dem Verzehr abkühlen lassen!

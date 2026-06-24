@@ -78,7 +78,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     </script>
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-    <header data-cooking-mode-hide class="print:hidden border-b bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <header class="cooking-mode:hidden print:hidden border-b bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div class="mx-auto max-w-6xl p-4">
         <nav class="flex flex-wrap items-center gap-3">
           <a href={homePath} class="order-1 shrink-0 text-2xl font-bold text-pink-500 dark:text-pink-400">🍽️ Recipe Box</a>
@@ -107,7 +107,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     <main class="mx-auto max-w-6xl p-4">
       <slot />
     </main>
-    <footer data-cooking-mode-hide class="print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
+    <footer class="cooking-mode:hidden print:hidden mt-12 border-t py-6 text-center text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
         © {new Date().getFullYear()} Jannis
         <button
           type="button"

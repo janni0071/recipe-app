@@ -27,11 +27,11 @@ ingredients:
         name: "œufs"
       - amount: 1
         name: "pincée de sel"
+steps:
+  - text: "Couper le beurre et le chocolat en morceaux et les faire fondre ensemble à feu doux."
+  - text: "Pendant ce temps, fouetter les œufs avec le sucre."
+  - text: "Ajouter la farine, le sucre vanillé, puis le mélange beurre-chocolat. Bien mélanger ! (Ajoutez des noix selon vos envies, concassées ou moulues, pour plus de croquant ou de saveur ! environ 100g~)"
+  - text: "Verser le mélange dans votre plat à brownies préféré et cuire 30 min à 180°C. Sortir immédiatement le brownie du four une fois cuit. Laisser refroidir avant de déguster !"
+    timerSeconds: 1800
 ---
 
-## Étapes
-
-1. Couper le beurre et le chocolat en morceaux et les faire fondre ensemble à feu doux.
-2. Pendant ce temps, fouetter les œufs avec le sucre.
-3. Ajouter la farine, le sucre vanillé, puis le mélange beurre-chocolat. Bien mélanger ! (Ajoutez des noix selon vos envies, concassées ou moulues, pour plus de croquant ou de saveur ! environ 100g~)
-4. Verser le mélange dans votre plat à brownies préféré et cuire 30 min à 180°C. Sortir immédiatement le brownie du four une fois cuit. Laisser refroidir avant de déguster !

@@ -38,6 +38,7 @@ const { label, exitLabel } = Astro.props;
       button.setAttribute('aria-pressed', String(active));
       button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
       document.documentElement.classList.toggle('cooking-mode', active);
+      document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
     }
 
     async function releaseWakeLock() {

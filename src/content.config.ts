@@ -13,6 +13,11 @@ const ingredientGroup = z.object({
   items: z.array(ingredientItem),
 });
 
+const step = z.object({
+  text: z.string(),
+  timerSeconds: z.number().optional(),
+});
+
 const recipesCollection = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/recipes" }),
   schema: ({ image }) =>
@@ -26,6 +31,7 @@ const recipesCollection = defineCollection({
       image: image().optional(),
       author: z.string().optional(),
       ingredients: z.array(ingredientGroup),
+      steps: z.array(step),
     }),
 });
 

@@ -24,14 +24,13 @@ ingredients:
         unit: "g"
         name: "spaghetti"
       - name: "Black pepper, freshly cracked"
+steps:
+  - text: "Bring a large pot of salted water to a boil."
+  - text: "Cut the guanciale into small cubes and fry in a pan until crispy."
+  - text: "In a bowl, whisk eggs, both cheeses, and a generous amount of black pepper."
+  - text: "Cook spaghetti according to package instructions."
+  - text: "Drain pasta, reserving a cup of pasta water."
+  - text: "Off the heat, quickly toss pasta with guanciale, then with the egg mixture (add pasta water if needed to create a creamy sauce)."
+  - text: "Serve immediately with extra cheese and pepper."
 ---
 
-## Steps
-
-1. Bring a large pot of salted water to a boil.
-2. Cut the guanciale into small cubes and fry in a pan until crispy.
-3. In a bowl, whisk eggs, both cheeses, and a generous amount of black pepper.
-4. Cook spaghetti according to package instructions.
-5. Drain pasta, reserving a cup of pasta water.
-6. Off the heat, quickly toss pasta with guanciale, then with the egg mixture (add pasta water if needed to create a creamy sauce).
-7. Serve immediately with extra cheese and pepper.

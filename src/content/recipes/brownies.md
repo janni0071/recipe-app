@@ -27,11 +27,11 @@ ingredients:
         name: "eggs"
       - amount: 1
         name: "pinch of salt"
+steps:
+  - text: "Cut the butter and chocolate into bits and melt them together on low heat."
+  - text: "At the same time, whisk the eggs with the sugar."
+  - text: "Add the flour, the vanilla sugar, then add the chocolate-butter mix. Mix them well! (Add any nuts you like, crushed or grounded, for crunchiness or extra flavour! about 100g~)"
+  - text: "Pour the mix into your favourite brownie dish and bake for 30min at 180°C. Immediately get the brownie out of the oven when it is done. leave to cool before eating!"
+    timerSeconds: 1800
 ---
 
-## Steps
-
-1. Cut the butter and chocolate into bits and melt them together on low heat.
-2. At the same time, whisk the eggs with the sugar.
-3. Add the flour, the vanilla sugar, then add the chocolate-butter mix. Mix them well! (Add any nuts you like, crushed or grounded, for crunchiness or extra flavour! about 100g~)
-4. Pour the mix into your favourite brownie dish and bake for 30min at 180°C. Immediately get the brownie out of the oven when it is done. leave to cool before eating!
