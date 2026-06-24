@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../utils/i18n';
-import { useTranslations, getLocalePath, getTagsPath } from '../utils/i18n';
+import { useTranslations, getLocalePath, getTagsPath, getShoppingListPath } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import Search from '../components/SearchBar.astro';
 import { ClientRouter } from 'astro:transitions';
@@ -24,6 +24,7 @@ const locale = (Astro.currentLocale ?? 'en') as Locale;
 const t = useTranslations(locale);
 const homePath = getLocalePath(locale);
 const tagsPath = getTagsPath(locale);
+const shoppingListPath = getShoppingListPath(locale);
 import '../styles/global.css';
 
 // Lets the search box in the header find recipes from any page (not just
@@ -91,6 +92,8 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             <a href={homePath} class="hidden sm:inline hover:underline">{t('nav.home')}</a>
             <a href={tagsPath} class="hidden sm:inline hover:underline">{t('nav.tags')}</a>
             <a href={tagsPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.tags')}</a>
+            <a href={shoppingListPath} class="hidden sm:inline hover:underline">{t('nav.shoppingList')}</a>
+            <a href={shoppingListPath} class="sm:hidden px-3 py-2 rounded-lg text-base font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">{t('nav.shoppingList')}</a>
             <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
             <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
               <svg id="theme-toggle-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,6 +296,68 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       }
 
       document.addEventListener('astro:page-load', initFavorites);
+    </script>
+    <script is:inline>
+      // Shopping list entries live in localStorage too, keyed by the same
+      // locale-agnostic slug as favorites, but carrying a servings count
+      // alongside it — captured from the recipe page's own servings stepper
+      // at the moment the recipe is added, so a dish added at 2x servings
+      // stays scaled that way on the shopping list page.
+      function getShoppingList() {
+        try {
+          return JSON.parse(localStorage.getItem('shopping-list') || '[]');
+        } catch {
+          return [];
+        }
+      }
+
+      function setShoppingList(list) {
+        localStorage.setItem('shopping-list', JSON.stringify(list));
+      }
+
+      function syncShoppingListButtons() {
+        const list = getShoppingList();
+        const slugs = new Set(list.map((entry) => entry.slug));
+        document.querySelectorAll('[data-shopping-slug]').forEach((button) => {
+          const active = slugs.has(button.dataset.shoppingSlug);
+          button.dataset.inList = String(active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+      }
+
+      function initShoppingListButtons() {
+        if (!window.__shoppingListClickBound) {
+          window.__shoppingListClickBound = true;
+          // Capture phase for the same reason as the favorites handler above:
+          // it has to run before the ClientRouter's own bubble-phase click
+          // listener kicks off navigation.
+          document.addEventListener(
+            'click',
+            (e) => {
+              const button = e.target.closest('[data-shopping-slug]');
+              if (!button) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const slug = button.dataset.shoppingSlug;
+              const list = getShoppingList();
+              const index = list.findIndex((entry) => entry.slug === slug);
+              if (index >= 0) {
+                list.splice(index, 1);
+              } else {
+                const servingsEl = document.querySelector('.servings-value');
+                const servings = servingsEl ? parseFloat(servingsEl.textContent) : 1;
+                list.push({ slug, servings: Number.isFinite(servings) ? servings : 1 });
+              }
+              setShoppingList(list);
+              syncShoppingListButtons();
+            },
+            true
+          );
+        }
+        syncShoppingListButtons();
+      }
+
+      document.addEventListener('astro:page-load', initShoppingListButtons);
     </script>
     <script is:inline>
       // RecipeCard renders every tag server-side; if they'd wrap to a second

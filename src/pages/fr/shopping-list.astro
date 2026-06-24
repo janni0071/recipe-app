@@ -1,0 +1,260 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { useTranslations } from '../../utils/i18n';
+
+const t = useTranslations('fr');
+const allRecipes = await getCollection('recipes');
+const localeRecipes = allRecipes.filter((r: CollectionEntry<'recipes'>) => r.id.startsWith('fr/'));
+
+const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
+  const slug = r.id.replace(/^fr\//, '').replace(/\.md$/, '');
+  return {
+    slug,
+    title: r.data.title,
+    href: `/fr/recipes/${slug}`,
+    servings: r.data.servings,
+    ingredients: r.data.ingredients,
+  };
+});
+---
+<BaseLayout title={t('page.shoppingList.title')}>
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 dark:text-white">{t('page.shoppingList.heading')}</h1>
+    <div
+      id="shopping-list-root"
+      data-empty-label={t('page.shoppingList.empty')}
+      data-your-recipes-label={t('page.shoppingList.yourRecipes')}
+      data-combined-label={t('page.shoppingList.combined')}
+      data-remove-label={t('page.shoppingList.remove')}
+      data-servings-label={t('page.recipe.servings')}
+    ></div>
+    <script type="application/json" id="shopping-list-data" set:html={JSON.stringify(recipesPayload)} />
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  // The shopping list itself is pure client state (localStorage), since this
+  // is a static site with no backend — every locale's page embeds that
+  // locale's recipe ingredients as JSON at build time, and this identical
+  // script (same on all 3 locale pages, so the ClientRouter only ever runs
+  // it once per session) reads localStorage fresh on every render rather
+  // than caching anything, so add/remove/serving-count changes always show
+  // up immediately.
+  function getShoppingListEntries() {
+    try {
+      return JSON.parse(localStorage.getItem('shopping-list') || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function setShoppingListEntries(list) {
+    localStorage.setItem('shopping-list', JSON.stringify(list));
+  }
+
+  function getCheckedKeys() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('shopping-list-checked') || '[]'));
+    } catch {
+      return new Set();
+    }
+  }
+
+  function setCheckedKeys(set) {
+    localStorage.setItem('shopping-list-checked', JSON.stringify([...set]));
+  }
+
+  function scaleAmount(n, multiplier) {
+    return Math.round(n * multiplier * 100) / 100;
+  }
+
+  function formatAmount(amount, amountMax) {
+    if (amount == null) return '';
+    return amountMax != null ? `${amount}-${amountMax}` : `${amount}`;
+  }
+
+  function unitAndName(unit, name) {
+    if (!unit) return name;
+    return unit.endsWith("'") ? `${unit}${name}` : `${unit} ${name}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[c]);
+  }
+
+  // Ingredients are only safe to sum automatically when they share both a
+  // name and a unit (e.g. "200g flour" + "100g flour"). Mismatched units for
+  // the same ingredient (e.g. "100g butter" vs "2 tbsp butter") are kept as
+  // separate lines rather than guessing a conversion factor.
+  function mergeKey(item) {
+    return `${item.name.trim().toLowerCase()}|${(item.unit || '').trim().toLowerCase()}`;
+  }
+
+  function renderShoppingListPage() {
+    const root = document.getElementById('shopping-list-root');
+    const dataEl = document.getElementById('shopping-list-data');
+    if (!root || !dataEl) return;
+
+    let recipes = [];
+    try {
+      recipes = JSON.parse(dataEl.textContent);
+    } catch {
+      recipes = [];
+    }
+    const recipeBySlug = new Map(recipes.map((r) => [r.slug, r]));
+    const entries = getShoppingListEntries().filter((entry) => recipeBySlug.has(entry.slug));
+    const checked = getCheckedKeys();
+
+    if (entries.length === 0) {
+      root.innerHTML = `<p class="text-gray-500 dark:text-gray-400">${escapeHtml(root.dataset.emptyLabel)}</p>`;
+      return;
+    }
+
+    const merged = new Map();
+    const recipeRows = [];
+
+    for (const entry of entries) {
+      const recipe = recipeBySlug.get(entry.slug);
+      const multiplier = entry.servings / recipe.servings;
+      recipeRows.push({ entry, recipe });
+
+      for (const group of recipe.ingredients) {
+        for (const item of group.items) {
+          const key = mergeKey(item);
+          const scaledAmount = item.amount != null ? scaleAmount(item.amount, multiplier) : undefined;
+          const scaledAmountMax = item.amountMax != null ? scaleAmount(item.amountMax, multiplier) : undefined;
+
+          if (!merged.has(key)) {
+            merged.set(key, {
+              name: item.name,
+              unit: item.unit,
+              amount: scaledAmount,
+              amountMax: scaledAmountMax,
+              recipeTitles: new Set(),
+            });
+          } else {
+            const existing = merged.get(key);
+            if (existing.amount != null && scaledAmount != null) {
+              existing.amount = scaleAmount(existing.amount + scaledAmount, 1);
+              existing.amountMax =
+                existing.amountMax != null && scaledAmountMax != null
+                  ? scaleAmount(existing.amountMax + scaledAmountMax, 1)
+                  : existing.amountMax;
+            }
+          }
+          merged.get(key).recipeTitles.add(recipe.title);
+        }
+      }
+    }
+
+    const recipeRowsHtml = recipeRows
+      .map(
+        ({ entry, recipe }) => `
+        <div class="flex items-center justify-between gap-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
+          <a href="${recipe.href}" class="font-semibold hover:underline dark:text-white">${escapeHtml(recipe.title)}</a>
+          <div class="flex items-center gap-3">
+            <span class="hidden sm:inline text-sm text-gray-500 dark:text-gray-400 capitalize">${escapeHtml(root.dataset.servingsLabel)}</span>
+            <div class="flex items-center rounded-full bg-gray-100 dark:bg-gray-700">
+              <button type="button" data-step="dec" data-entry-slug="${entry.slug}" class="w-9 h-9 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40" ${entry.servings <= 1 ? 'disabled' : ''}>−</button>
+              <span class="min-w-[2rem] text-center text-sm font-semibold dark:text-gray-100">${entry.servings}</span>
+              <button type="button" data-step="inc" data-entry-slug="${entry.slug}" class="w-9 h-9 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition">+</button>
+            </div>
+            <button type="button" data-remove-slug="${entry.slug}" aria-label="${escapeHtml(root.dataset.removeLabel)}" class="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+          </div>
+        </div>
+      `
+      )
+      .join('');
+
+    const combinedHtml = [...merged.entries()]
+      .sort((a, b) => a[1].name.localeCompare(b[1].name, document.documentElement.lang))
+      .map(([key, item]) => {
+        const isChecked = checked.has(key);
+        const amountText = formatAmount(item.amount, item.amountMax);
+        const text = amountText ? `${amountText} ${unitAndName(item.unit, item.name)}` : unitAndName(item.unit, item.name);
+        const attribution =
+          item.recipeTitles.size > 1
+            ? ` <span class="text-xs text-gray-400 dark:text-gray-500">(${[...item.recipeTitles].map(escapeHtml).join(', ')})</span>`
+            : '';
+        return `
+          <li class="flex items-center gap-3 py-2 border-b last:border-b-0 dark:border-gray-700">
+            <input type="checkbox" data-check-key="${escapeHtml(key)}" ${isChecked ? 'checked' : ''} class="w-5 h-5 flex-shrink-0 rounded border-gray-300 text-pink-500 focus:ring-pink-400 dark:border-gray-600 dark:bg-gray-700" />
+            <span data-check-label class="${isChecked ? 'line-through opacity-50' : ''}">${escapeHtml(text)}${attribution}</span>
+          </li>
+        `;
+      })
+      .join('');
+
+    root.innerHTML = `
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-3 dark:text-white">${escapeHtml(root.dataset.yourRecipesLabel)}</h2>
+        <div class="space-y-3">${recipeRowsHtml}</div>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold mb-3 dark:text-white">${escapeHtml(root.dataset.combinedLabel)}</h2>
+        <ul class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">${combinedHtml}</ul>
+      </div>
+    `;
+  }
+
+  function initShoppingListPage() {
+    renderShoppingListPage();
+    if (window.__shoppingListPageBound) return;
+    window.__shoppingListPageBound = true;
+
+    document.addEventListener('click', (e) => {
+      const root = document.getElementById('shopping-list-root');
+      if (!root || !root.contains(e.target)) return;
+
+      const stepButton = e.target.closest('[data-step]');
+      if (stepButton) {
+        const slug = stepButton.dataset.entrySlug;
+        const list = getShoppingListEntries();
+        const entry = list.find((item) => item.slug === slug);
+        if (entry) {
+          if (stepButton.dataset.step === 'inc') {
+            entry.servings++;
+          } else if (entry.servings > 1) {
+            entry.servings--;
+          }
+          setShoppingListEntries(list);
+          renderShoppingListPage();
+        }
+        return;
+      }
+
+      const removeButton = e.target.closest('[data-remove-slug]');
+      if (removeButton) {
+        const list = getShoppingListEntries().filter((entry) => entry.slug !== removeButton.dataset.removeSlug);
+        setShoppingListEntries(list);
+        renderShoppingListPage();
+        return;
+      }
+
+      const checkbox = e.target.closest('input[data-check-key]');
+      if (checkbox) {
+        const key = checkbox.dataset.checkKey;
+        const checkedKeys = getCheckedKeys();
+        if (checkbox.checked) checkedKeys.add(key);
+        else checkedKeys.delete(key);
+        setCheckedKeys(checkedKeys);
+        const label = checkbox.closest('li')?.querySelector('[data-check-label]');
+        if (label) {
+          label.classList.toggle('line-through', checkbox.checked);
+          label.classList.toggle('opacity-50', checkbox.checked);
+        }
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initShoppingListPage);
+</script>
