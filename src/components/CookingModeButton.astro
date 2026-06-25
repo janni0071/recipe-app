@@ -182,6 +182,21 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const y = e.clientY;
       const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
+      // A glowing ring that travels with the wipe's edge. It's a real
+      // element (not just extra keyframes on the root pseudo) because the
+      // ::view-transition tree paints in its own top layer above the rest
+      // of the document — anything we didn't also capture into that tree
+      // would be hidden behind the wipe, not on top of it. Giving it a
+      // view-transition-name of its own pulls it into that same tree as an
+      // independently animatable layer. It starts pre-collapsed (scale 0,
+      // opacity 0) so the "before" snapshot the browser captures is already
+      // invisible — otherwise the ring would flash in fully-formed for one
+      // frame before our animation below ever runs.
+      const ringSize = endRadius * 2;
+      const glow = document.createElement('div');
+      glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(14px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%) scale(0);opacity:0;background:radial-gradient(circle, transparent 58%, rgba(249,115,22,0.6) 68%, rgba(225,29,72,0.4) 80%, transparent 90%);`;
+      document.body.appendChild(glow);
+
       // Only the synchronous class toggle goes through the view transition.
       // Fullscreen is held back until the transition is over (below):
       // toggling it resizes the viewport, and a resize during an active view
@@ -194,9 +209,25 @@ const { label, shortLabel, exitLabel } = Astro.props;
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
           { duration: 600, easing: 'ease-in', pseudoElement: '::view-transition-new(root)' }
         );
+        // A brief overexposed flash as the new content is revealed, like
+        // the wipe is briefly catching light — cheap (just a filter on the
+        // already-existing pseudo-element, no extra layer needed).
+        root.animate(
+          { filter: ['brightness(1.7) saturate(1.6)', 'brightness(1) saturate(1)'] },
+          { duration: 320, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' }
+        );
+        glow.animate(
+          [
+            { transform: 'translate(-50%, -50%) scale(0)', opacity: 0 },
+            { transform: 'translate(-50%, -50%) scale(0.55)', opacity: 0.9, offset: 0.35 },
+            { transform: 'translate(-50%, -50%) scale(1)', opacity: 0 },
+          ],
+          { duration: 700, easing: 'ease-out', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
+        );
       });
       transition.finished.finally(() => {
         root.classList.remove('cooking-mode-wipe');
+        glow.remove();
         if (activating) {
           requestWakeLock();
           if (root.requestFullscreen) root.requestFullscreen().catch(() => {});

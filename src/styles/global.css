@@ -264,3 +264,16 @@ body {
 .cooking-mode-wipe::view-transition-new(root) {
   z-index: 9999;
 }
+
+/* The flame-glow ring (see CookingModeButton.astro) gets its own
+   view-transition layer so it paints above the wipe instead of being
+   hidden behind it. Its "old" state is the same pre-collapsed element the
+   "new" state starts from, so the default crossfade has nothing useful to
+   do here — only the JS-driven Web Animations API call should move it. */
+.cooking-mode-wipe::view-transition-old(cooking-mode-flame-glow),
+.cooking-mode-wipe::view-transition-new(cooking-mode-flame-glow) {
+  animation: none;
+}
+.cooking-mode-wipe::view-transition-new(cooking-mode-flame-glow) {
+  z-index: 10000;
+}
