@@ -49,6 +49,19 @@ body {
 .dark .prose h2 {
   color: #f9a8d4;
 }
+/* Cooking mode gets its own warm fire-toned gradient instead of the flat
+   brand pink, echoing the flame icons next to "Steps" so the section
+   titles read as part of the same warm theme rather than just colored text. */
+.cooking-mode .prose h2 {
+  background-image: linear-gradient(135deg, #f97316, #e11d48);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.dark.cooking-mode .prose h2 {
+  background-image: linear-gradient(135deg, #fb923c, #fb7185);
+}
 
 .prose h3 {
   font-size: 1.25rem;
@@ -73,6 +86,14 @@ body {
 }
 .dark .prose li::marker {
   color: #f9a8d4;
+}
+/* Bullets pick up the same warm orange as the flame icons, instead of the
+   brand pink used outside cooking mode. */
+.cooking-mode .prose li::marker {
+  color: #f97316;
+}
+.dark.cooking-mode .prose li::marker {
+  color: #fb923c;
 }
 
 /* Steps (ordered lists) – card-like with proper indentation */
@@ -135,6 +156,12 @@ body {
 .dark .prose ul + h2 {
   border-top-color: #374151;
 }
+.cooking-mode .prose ul + h2 {
+  border-top-color: #fdba74;
+}
+.dark.cooking-mode .prose ul + h2 {
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
 
 /* Regular paragraphs */
 .prose p {
@@ -164,6 +191,10 @@ body {
      gradient instead of belonging to it. A translucent white overlay lets
      the gradient's own warmth show through underneath. */
   background-color: rgba(255, 255, 255, 0.55);
+  /* Rose instead of the brand pink border, plus a soft warm glow, so the
+     step cards read as "fire-lit" rather than just a recolored default card. */
+  border-left-color: #e11d48;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 16px rgba(249, 115, 22, 0.15);
 }
 /* The flat slate-gray card from regular dark mode reads as a "cool" color
    against cooking mode's warm maroon/black backdrop. A translucent tint of
@@ -173,7 +204,8 @@ body {
    ".dark .cooking-mode" would require one to be a descendant of the other. */
 .dark.cooking-mode .prose ol li {
   background-color: rgba(255, 255, 255, 0.07);
-  border-left-color: #f472b6;
+  border-left-color: #fb7185;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.18);
 }
 
 /* Cooking mode: a pair of small flames flank the "Steps" heading for some
