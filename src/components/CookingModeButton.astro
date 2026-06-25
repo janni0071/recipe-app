@@ -221,7 +221,13 @@ const { label, shortLabel, exitLabel } = Astro.props;
           { filter: ['brightness(1.7) saturate(1.6)', 'brightness(1) saturate(1)'] },
           { duration: 320, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' }
         );
-        glow.animate(
+        // Animating a ::view-transition-* pseudo always goes through
+        // document.documentElement, regardless of which element the name
+        // came from — the whole pseudo-element tree is anchored under
+        // <html>, not under the originating element. Calling this on
+        // `glow` itself targets a pseudo that doesn't exist relative to
+        // it, so the animation silently never applies.
+        root.animate(
           [
             { transform: 'translate(-50%, -50%) scale(0)', opacity: 0 },
             { transform: 'translate(-50%, -50%) scale(0.55)', opacity: 1, offset: 0.35 },
