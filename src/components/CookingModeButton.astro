@@ -119,6 +119,16 @@ const { label, shortLabel, exitLabel } = Astro.props;
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
 
+    // Tracks this button's own in-flight wipe so a second click landing
+    // before the previous one's cleanup ran can tear it down first. Without
+    // this, the new click's glow div gets appended — carrying the same
+    // view-transition-name as the still-present previous one — before that
+    // older glow is removed, which the browser treats as a duplicate name
+    // and responds to by silently skipping the whole transition: no error,
+    // just no wipe and no glow at all.
+    let pendingTransition = null;
+    let pendingGlow = null;
+
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
 
@@ -177,6 +187,12 @@ const { label, shortLabel, exitLabel } = Astro.props;
         return;
       }
 
+      // Tear down a still-pending wipe from a previous click before this
+      // one's glow div claims the same view-transition-name (see comment
+      // on the pendingTransition/pendingGlow declarations above).
+      pendingTransition?.skipTransition();
+      pendingGlow?.remove();
+
       const root = document.documentElement;
       const x = e.clientX;
       const y = e.clientY;
@@ -198,6 +214,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const glow = document.createElement('div');
       glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);opacity:0;background:radial-gradient(circle, transparent 70%, rgba(254,240,138,0.9) 80%, rgba(249,115,22,0.95) 88%, rgba(225,29,72,0.85) 95%, transparent 100%);`;
       document.body.appendChild(glow);
+      pendingGlow = glow;
 
       // Only the synchronous class toggle goes through the view transition.
       // Fullscreen is held back until the transition is over (below):
@@ -209,6 +226,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
         setActive(activating);
         glow.style.opacity = '1';
       });
+      pendingTransition = transition;
       transition.ready.then(() => {
         root.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
@@ -252,9 +270,21 @@ const { label, shortLabel, exitLabel } = Astro.props;
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
       });
+      // A duplicate-name conflict (see above) makes the browser skip the
+      // transition outright, rejecting `ready` with nothing to catch it —
+      // not an error worth surfacing, since the cooking-mode toggle itself
+      // (inside the startViewTransition callback above) already went
+      // through regardless; only the wipe/glow animation was skipped.
+      transition.ready.catch(() => {});
       transition.finished.finally(() => {
-        root.classList.remove('cooking-mode-wipe');
+        if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
+        // A later click may have already skipped this transition and
+        // started its own — don't let this stale finally undo state (the
+        // wipe class, wake lock, fullscreen) that the newer one now owns.
+        if (pendingTransition !== transition) return;
+        pendingTransition = null;
+        root.classList.remove('cooking-mode-wipe');
         if (activating) {
           requestWakeLock();
           if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
