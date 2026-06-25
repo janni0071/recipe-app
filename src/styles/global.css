@@ -277,3 +277,19 @@ body {
 .cooking-mode-wipe::view-transition-new(cooking-mode-flame-glow) {
   z-index: 10000;
 }
+
+/* The z-index rules above only order each name's own old/new images
+   relative to each other — they don't affect stacking *between* different
+   named transitions. Astro's page-navigation transitions leave elements
+   like the recipe title/image tagged with their own view-transition-name
+   even outside of a page navigation, so those still get pulled into our
+   cooking-mode transition (anything carrying a name is captured) and,
+   without this, their ::view-transition-group can paint over the glow
+   regardless of the z-index set above — the group pseudo is what controls
+   stacking order across different names, and is otherwise unstyled here. */
+.cooking-mode-wipe::view-transition-group(root) {
+  z-index: 9999;
+}
+.cooking-mode-wipe::view-transition-group(cooking-mode-flame-glow) {
+  z-index: 10000;
+}
