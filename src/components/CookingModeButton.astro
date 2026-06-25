@@ -15,7 +15,7 @@ const { label, exitLabel } = Astro.props;
   data-exit-label={exitLabel}
   aria-label={label}
   aria-pressed="false"
-  class="group flex-shrink-0 ml-auto inline-flex items-center gap-2 px-3 sm:px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 text-pink-800 dark:text-pink-100 font-semibold leading-none transition"
+  class="group flex-shrink-0 ml-auto inline-flex items-center px-3 sm:px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 text-pink-800 dark:text-pink-100 font-semibold leading-none transition"
 >
   <svg class="w-5 h-5 group-data-[active=true]:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
@@ -28,11 +28,14 @@ const { label, exitLabel } = Astro.props;
   <svg class="hidden w-5 h-5 group-data-[active=true]:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round"></path>
   </svg>
-  {/* This label's text is what pushes the 5-button header row past the available width on narrow phones — icon + aria-label stays identifiable below sm:. The exit label stays untouched since by then it's the only button left in the row. */}
+  {/* This label's text is what pushes the 5-button header row past the available width on narrow phones — icon + aria-label stays identifiable below sm:. The exit label stays untouched since by then it's the only button left in the row.
+  Spacing to the icon is margin on the text itself (not a flex `gap` on the
+  button) so the icon stays centered when the text is hidden — a gap would
+  still reserve space for this span even with no visible content. */}
   <span class="group-data-[active=true]:hidden">
-    <span class="hidden sm:inline">{label}</span>
+    <span class="hidden sm:inline ml-2">{label}</span>
   </span>
-  <span class="hidden group-data-[active=true]:block">{exitLabel}</span>
+  <span class="hidden group-data-[active=true]:block ml-2">{exitLabel}</span>
 </button>
 
 <script is:inline>
