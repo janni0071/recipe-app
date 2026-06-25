@@ -161,3 +161,42 @@ body {
   font-size: 1.2em;
   line-height: 1.6;
 }
+
+/* Cooking mode: a pair of small flames flank the "Steps" heading for some
+   visual drama. Transform/opacity-only keyframes so they're cheap to
+   animate (GPU-composited, no layout/paint work), and the icons are
+   `hidden` outside cooking mode rather than unrendered, so there's nothing
+   here for the browser to even consider animating until cooking mode is
+   actually on. */
+@keyframes cooking-flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(-3deg);
+    opacity: 0.9;
+  }
+  20% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(0.92) rotate(-4deg);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.06) rotate(3deg);
+    opacity: 1;
+  }
+}
+.cooking-flame {
+  transform-origin: 50% 100%;
+  animation: cooking-flame-flicker 2.2s ease-in-out infinite;
+}
+.cooking-flame--alt {
+  animation-duration: 2.6s;
+  animation-delay: -1.1s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cooking-flame {
+    animation: none;
+  }
+}
