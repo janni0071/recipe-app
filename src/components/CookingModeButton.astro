@@ -111,20 +111,39 @@ const { label, exitLabel } = Astro.props;
       window.__cookingModeBound = true;
 
       // Syncs state when the user backs out via Escape or a back-gesture
-      // instead of clicking our own button.
+      // instead of clicking our own button. Locking the screen also
+      // force-exits fullscreen on some browsers, but that's not a
+      // deliberate "leave cooking mode" action — it shouldn't drop the
+      // wake lock or any running timers. The document goes hidden in that
+      // case too, around the same time, so wait a beat and check
+      // visibility before deciding; a real Escape press or back-gesture
+      // leaves the document visible throughout.
       document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && document.documentElement.classList.contains('cooking-mode')) {
-          setActive(false);
-          releaseWakeLock();
-        }
+        if (document.fullscreenElement) return;
+        setTimeout(() => {
+          if (
+            document.visibilityState === 'visible' &&
+            !document.fullscreenElement &&
+            document.documentElement.classList.contains('cooking-mode')
+          ) {
+            setActive(false);
+            releaseWakeLock();
+          }
+        }, 150);
       });
 
       // The Wake Lock is auto-released by the browser whenever the page
       // loses visibility (tab switch, screen lock) — reacquire it once
       // we're back, but only if cooking mode is still meant to be on.
+      // Fullscreen may have been force-exited too (see above); best-effort
+      // re-request it, though most browsers require a fresh user gesture
+      // to grant that, so this silently no-ops there.
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && document.documentElement.classList.contains('cooking-mode')) {
           requestWakeLock();
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
         }
       });
 
