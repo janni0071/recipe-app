@@ -160,6 +160,10 @@ body {
   padding-left: 1.25rem;
   font-size: 1.2em;
   line-height: 1.6;
+  /* Flat near-white (#f3f4f6) reads as a plain gray box against the warm
+     gradient instead of belonging to it. A translucent white overlay lets
+     the gradient's own warmth show through underneath. */
+  background-color: rgba(255, 255, 255, 0.55);
 }
 /* The flat slate-gray card from regular dark mode reads as a "cool" color
    against cooking mode's warm maroon/black backdrop. A translucent tint of
