@@ -204,17 +204,18 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // of the document — anything we didn't also capture into that tree
       // would be hidden behind the wipe, not on top of it. Giving it a
       // view-transition-name of its own pulls it into that same tree as an
-      // independently animatable layer. It starts at opacity 0 so the
-      // "before" snapshot the browser captures synchronously (right when
-      // startViewTransition is called) is blank — but it's flipped back to
-      // visible inside the transition callback below, before the "after"
-      // snapshot is taken, since a captured raster's own alpha can't be
-      // restored later by animating the resulting pseudo-element's opacity.
+      // independently animatable layer.
+      //
+      // It's created inside the startViewTransition callback (rather than
+      // appended beforehand and flipped from opacity 0 to 1 there) so it
+      // simply doesn't exist in the "before" snapshot at all — no old
+      // counterpart to keep blank, and no reliance on a same-tick style
+      // mutation being picked up before the "after" snapshot is captured.
+      // That timing is consistent on Chromium desktop, but isn't a
+      // cross-engine guarantee, and a raster captured fully transparent
+      // can't be un-done later by animating the resulting pseudo's opacity.
       const ringSize = endRadius * 2;
-      const glow = document.createElement('div');
-      glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);opacity:0;background:radial-gradient(circle, transparent 70%, rgba(254,240,138,0.9) 80%, rgba(249,115,22,0.95) 88%, rgba(225,29,72,0.85) 95%, transparent 100%);`;
-      document.body.appendChild(glow);
-      pendingGlow = glow;
+      let glow;
 
       // Only the synchronous class toggle goes through the view transition.
       // Fullscreen is held back until the transition is over (below):
@@ -224,8 +225,11 @@ const { label, shortLabel, exitLabel } = Astro.props;
       root.classList.add('cooking-mode-wipe');
       const transition = document.startViewTransition(() => {
         setActive(activating);
-        glow.style.opacity = '1';
+        glow = document.createElement('div');
+        glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle, transparent 70%, rgba(254,240,138,0.9) 80%, rgba(249,115,22,0.95) 88%, rgba(225,29,72,0.85) 95%, transparent 100%);`;
+        document.body.appendChild(glow);
       });
+      pendingGlow = glow;
       pendingTransition = transition;
       transition.ready.then(() => {
         root.animate(
