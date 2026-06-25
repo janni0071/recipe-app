@@ -43,7 +43,7 @@ const {
         type="button"
         id="step-prev"
         aria-label={prevLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
       >
         ‹
       </button>
@@ -52,7 +52,7 @@ const {
         type="button"
         id="step-next"
         aria-label={nextLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
       >
         ›
       </button>
@@ -305,8 +305,12 @@ const {
     getAudioContext();
 
     const trayEl = document.createElement('div');
+    // Translucent + blurred rather than the flat white/gray card used outside
+    // cooking mode: this tray is fixed over whatever's scrolled underneath
+    // (recipe content, not just the gradient), so the blur keeps it legible
+    // while letting the warm backdrop tint show through.
     trayEl.className =
-      'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700';
+      'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-sm px-4 py-3 shadow-lg ring-1 ring-pink-200/70 dark:bg-white/10 dark:ring-pink-900/40';
     trayEl.innerHTML = `
       <div class="flex-1 min-w-0">
         <p class="truncate text-xs text-gray-500 dark:text-gray-400"></p>

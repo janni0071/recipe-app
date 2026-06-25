@@ -19,12 +19,12 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
     data-base-servings={servings}
   >
     <span class="print:hidden capitalize">{servingsLabel}</span>
-    <div class="print:hidden flex items-center rounded-full bg-gray-100 dark:bg-gray-700">
+    <div class="print:hidden flex items-center rounded-full bg-gray-100 cooking-mode:bg-white/55 dark:bg-gray-700 dark:cooking-mode:bg-white/10">
       <button
         type="button"
         id="servings-decrement"
         aria-label="Decrease servings"
-        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
+        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition disabled:opacity-40"
       >
         −
       </button>
@@ -33,7 +33,7 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
         type="button"
         id="servings-increment"
         aria-label="Increase servings"
-        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition"
+        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition"
       >
         +
       </button>
