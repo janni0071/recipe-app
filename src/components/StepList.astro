@@ -1,5 +1,5 @@
 ---
-import { renderStepHtml, formatTimerDuration, type Step } from '../utils/steps';
+import { renderStepHtml, stepPlainText, formatTimerDuration, type Step } from '../utils/steps';
 
 export interface Props {
   heading: string;
@@ -10,10 +10,20 @@ export interface Props {
   startTimerLabel: string;
   cancelTimerLabel: string;
   timerDoneLabel: string;
+  extendTimerLabel: string;
 }
 
-const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel, cancelTimerLabel, timerDoneLabel } =
-  Astro.props;
+const {
+  heading,
+  steps,
+  prevLabel,
+  nextLabel,
+  progressTemplate,
+  startTimerLabel,
+  cancelTimerLabel,
+  timerDoneLabel,
+  extendTimerLabel,
+} = Astro.props;
 ---
 <div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -43,17 +53,18 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
       <li>
         <span set:html={renderStepHtml(step.text)} />
         {step.timerSeconds != null && (
-          <div class="hidden cooking-mode:block mt-2">
+          <div class="hidden cooking-mode:block mt-3">
             <button
               type="button"
               data-timer-button
               data-timer-seconds={step.timerSeconds}
-              data-start-label={`${startTimerLabel} (${formatTimerDuration(step.timerSeconds)})`}
+              data-step-label={stepPlainText(step.text)}
               data-cancel-label={cancelTimerLabel}
               data-done-label={timerDoneLabel}
-              class="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-sm font-medium text-pink-700 hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-200 dark:hover:bg-pink-800 transition"
+              data-extend-label={extendTimerLabel}
+              class="inline-flex items-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-base font-semibold text-white shadow-md hover:bg-pink-600 active:bg-pink-700 dark:bg-pink-600 dark:hover:bg-pink-500 transition"
             >
-              ⏱ {formatTimerDuration(step.timerSeconds)}
+              ⏱ {startTimerLabel} ({formatTimerDuration(step.timerSeconds)})
             </button>
           </div>
         )}
@@ -61,6 +72,12 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     ))}
   </ol>
 </div>
+
+<div
+  id="timer-tray"
+  class="hidden cooking-mode:flex fixed inset-x-0 bottom-0 z-50 flex-col items-center gap-2 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] pointer-events-none"
+  aria-live="polite"
+></div>
 
 <script is:inline>
   // Astro's ClientRouter dedups byte-identical inline script content across
@@ -128,6 +145,16 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
   // Timer buttons are re-rendered on every navigation, so binding lives once
   // on document via delegation rather than per-button — same pattern as the
   // favorites click handler in BaseLayout.
+  //
+  // Running timers live in a tray fixed to the viewport (window.__timers,
+  // keyed by button element) instead of inside the per-step button itself.
+  // Steps are shown one at a time in cooking mode, so a countdown rendered
+  // into the button disappears the moment you move to the next step — the
+  // tray keeps every active timer visible no matter which step is on screen.
+  const EXTEND_SECONDS = 60;
+  const CHIME_REPEATS = 8;
+  const CHIME_INTERVAL_MS = 4000;
+
   function formatRemaining(ms) {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
     const minutes = Math.floor(totalSeconds / 60);
@@ -135,48 +162,172 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     return `${minutes}:${String(seconds).padStart(2, '0')}`;
   }
 
-  function cancelTimer(button) {
-    clearInterval(Number(button.dataset.timerInterval));
-    delete button.dataset.timerEndsAt;
-    delete button.dataset.timerInterval;
-    button.textContent = `⏱ ${button.dataset.startLabel.replace(/^.*\(|\)$/g, '')}`;
+  // Lazily created on the first Start-timer click (a user gesture), so the
+  // AudioContext is already running by the time a timer finishes and browser
+  // autoplay policies don't silently swallow the completion chime.
+  function getAudioContext() {
+    if (!window.__timerAudioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) window.__timerAudioCtx = new Ctx();
+    }
+    if (window.__timerAudioCtx && window.__timerAudioCtx.state === 'suspended') {
+      window.__timerAudioCtx.resume();
+    }
+    return window.__timerAudioCtx;
+  }
+
+  function playChime() {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [0, 0.18, 0.36].forEach((offset, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = i % 2 === 0 ? 880 : 660;
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.16);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.18);
+    });
+  }
+
+  function getTray() {
+    return document.getElementById('timer-tray');
+  }
+
+  // The tray is fixed to the viewport so it stays visible across step
+  // navigation, which means in-flow content (like the per-step button under
+  // a short step) can end up underneath it. Reserving exactly its height as
+  // body padding makes room to scroll into; growing the tray also scrolls
+  // the page down by the same amount so already-visible content shifts up
+  // out from under it immediately, instead of only being reachable by a
+  // manual scroll the user has no reason to make.
+  function syncTrayPadding() {
+    const tray = getTray();
+    const newHeight = tray.children.length ? tray.offsetHeight : 0;
+    const delta = newHeight - (window.__trayHeight || 0);
+    document.body.style.paddingBottom = newHeight ? `${newHeight + 16}px` : '';
+    if (delta > 0) window.scrollBy(0, delta);
+    window.__trayHeight = newHeight;
+  }
+
+  function removeTimer(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    clearInterval(timer.intervalId);
+    clearInterval(timer.chimeIntervalId);
+    timer.trayEl.remove();
+    window.__timers.delete(button);
+    button.textContent = button.dataset.startLabelText;
+    syncTrayPadding();
+  }
+
+  function markDone(button, timer) {
+    clearInterval(timer.intervalId);
+    timer.done = true;
+    timer.trayEl.classList.add('animate-pulse', 'ring-2', 'ring-red-400', 'bg-red-50', 'dark:bg-red-950');
+    timer.countdownEl.textContent = button.dataset.doneLabel;
+    button.textContent = button.dataset.cancelLabel;
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    playChime();
+    let chimes = 1;
+    timer.chimeIntervalId = setInterval(() => {
+      if (chimes >= CHIME_REPEATS) {
+        clearInterval(timer.chimeIntervalId);
+        return;
+      }
+      playChime();
+      chimes++;
+    }, CHIME_INTERVAL_MS);
+  }
+
+  function extendTimer(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    if (timer.done) {
+      clearInterval(timer.chimeIntervalId);
+      timer.done = false;
+      timer.trayEl.classList.remove('animate-pulse', 'ring-2', 'ring-red-400', 'bg-red-50', 'dark:bg-red-950');
+      timer.endsAt = Date.now() + EXTEND_SECONDS * 1000;
+      button.textContent = button.dataset.cancelLabel;
+      timer.intervalId = setInterval(() => tick(button), 1000);
+    } else {
+      timer.endsAt += EXTEND_SECONDS * 1000;
+    }
+    tick(button);
+  }
+
+  // Recomputed from the absolute end time on every tick instead of just
+  // decrementing, so background-tab throttling can't make the countdown
+  // drift from wall-clock time.
+  function tick(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    const remaining = timer.endsAt - Date.now();
+    if (remaining <= 0) {
+      markDone(button, timer);
+      return;
+    }
+    timer.countdownEl.textContent = formatRemaining(remaining);
   }
 
   function startTimer(button) {
     const seconds = parseInt(button.dataset.timerSeconds, 10);
-    const endsAt = Date.now() + seconds * 1000;
-    button.dataset.timerEndsAt = String(endsAt);
+    const tray = getTray();
+    if (!tray) return;
+    getAudioContext();
 
-    // Recomputed from the absolute end time on every tick instead of just
-    // decrementing, so background-tab throttling can't make the countdown
-    // drift from wall-clock time.
-    function tick() {
-      const remaining = endsAt - Date.now();
-      if (remaining <= 0) {
-        clearInterval(intervalId);
-        delete button.dataset.timerEndsAt;
-        delete button.dataset.timerInterval;
-        button.textContent = button.dataset.doneLabel;
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        return;
-      }
-      button.textContent = formatRemaining(remaining);
-    }
+    const trayEl = document.createElement('div');
+    trayEl.className =
+      'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700';
+    trayEl.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <p class="truncate text-xs text-gray-500 dark:text-gray-400"></p>
+        <p class="text-xl font-bold tabular-nums text-gray-900 dark:text-white"></p>
+      </div>
+      <button type="button" data-tray-extend class="flex-shrink-0 rounded-full bg-pink-100 px-3 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-200 dark:hover:bg-pink-800 transition"></button>
+      <button type="button" data-tray-cancel aria-label="${button.dataset.cancelLabel}" class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition">✕</button>
+    `;
+    trayEl.querySelector('p.truncate').textContent = button.dataset.stepLabel || '';
+    trayEl.querySelector('[data-tray-extend]').textContent = button.dataset.extendLabel;
+    tray.appendChild(trayEl);
+    syncTrayPadding();
 
-    const intervalId = setInterval(tick, 1000);
-    button.dataset.timerInterval = String(intervalId);
-    tick();
+    window.__timers.set(button, {
+      endsAt: Date.now() + seconds * 1000,
+      trayEl,
+      countdownEl: trayEl.querySelector('p.tabular-nums'),
+      intervalId: null,
+      chimeIntervalId: null,
+      done: false,
+    });
+
+    const timer = window.__timers.get(button);
+    timer.intervalId = setInterval(() => tick(button), 1000);
+    trayEl.querySelector('[data-tray-extend]').addEventListener('click', () => extendTimer(button));
+    trayEl.querySelector('[data-tray-cancel]').addEventListener('click', () => removeTimer(button));
+
+    button.textContent = button.dataset.cancelLabel;
+    tick(button);
   }
 
   function initStepTimers() {
     if (window.__stepTimersBound) return;
     window.__stepTimersBound = true;
+    window.__timers = new Map();
 
     document.addEventListener('click', (e) => {
       const button = e.target.closest('[data-timer-button]');
       if (!button) return;
-      if (button.dataset.timerEndsAt) {
-        cancelTimer(button);
+      // Cache the button's own start label once, since after starting we
+      // overwrite textContent with the cancel label and need to restore it.
+      if (!button.dataset.startLabelText) {
+        button.dataset.startLabelText = button.textContent.trim();
+      }
+      if (window.__timers.has(button)) {
+        removeTimer(button);
       } else {
         startTimer(button);
       }
@@ -186,7 +337,7 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     // countdown would have no UI left to show or cancel it from.
     document.addEventListener('cookingmodechange', (e) => {
       if (e.detail.active) return;
-      document.querySelectorAll('[data-timer-button][data-timer-ends-at]').forEach(cancelTimer);
+      Array.from(window.__timers.keys()).forEach(removeTimer);
     });
   }
 
