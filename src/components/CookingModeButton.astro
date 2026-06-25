@@ -245,7 +245,14 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const transition = document.startViewTransition(() => {
         setActive(activating);
         glow = document.createElement('div');
-        glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle, transparent 70%, rgba(254,240,138,0.9) 80%, rgba(249,115,22,0.95) 88%, rgba(225,29,72,0.85) 95%, transparent 100%);`;
+        // Both cooking-mode backdrops (light: amber/orange/rose pastels, dark:
+        // near-black with a rose tint) are themselves warm-toned, so a glow
+        // built only from mid-tone oranges/roses blends straight into either
+        // one. Contrast comes from pairing a hot white-yellow core with a
+        // near-black sooty rim right next to it — the core pops against the
+        // dark backdrop, the rim pops against the light one, and at least one
+        // of the two reads clearly regardless of what's behind it.
+        glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(4px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle farthest-side, transparent 65%, rgba(255,255,255,0.95) 76%, rgba(254,240,138,1) 82%, rgba(249,115,22,1) 88%, rgba(190,18,60,0.95) 93%, rgba(20,5,8,0.85) 97%, transparent 100%);`;
         document.body.appendChild(glow);
       });
       pendingGlow = glow;
@@ -269,6 +276,15 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // `glow` itself targets a pseudo that doesn't exist relative to
         // it, so the animation silently never applies.
         //
+        // No translate here, unlike the live element's own inline style:
+        // the view-transition group is already captured centered on the
+        // click point (it's sized and positioned from the live element's
+        // rect, which has the -50%/-50% baked in), so this pseudo's box
+        // already sits correctly. A translate(-50%, -50%) on top of that
+        // would shift the rendered image by half its own (ringSize-wide)
+        // box — hundreds of pixels — leaving the gradient's true center
+        // nowhere near the click point at any scale.
+        //
         // The ring's scale is kept in lockstep with the wipe's own clip
         // radius (same 600ms/ease-in growth, since "scale 1" here means
         // "radius endRadius" — the same value the wipe grows to) so the
@@ -286,11 +302,35 @@ const { label, shortLabel, exitLabel } = Astro.props;
             // one, not the segment leading into it — so 'ease-in' belongs on
             // keyframe 0 (covers 0→2/3, the growth) and 'ease-out' on
             // keyframe 1 (covers 2/3→1, the tail), not the other way round.
-            { transform: 'translate(-50%, -50%) scale(0)', opacity: 0, easing: 'ease-in' },
-            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, offset: 2 / 3, easing: 'ease-out' },
-            { transform: 'translate(-50%, -50%) scale(1.08)', opacity: 0 },
+            { transform: 'scale(0)', easing: 'ease-in' },
+            { transform: 'scale(1)', offset: 2 / 3, easing: 'ease-out' },
+            { transform: 'scale(1.08)' },
           ],
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
+        );
+        // Opacity used to ride the same 'ease-in' curve as the scale above,
+        // which seemed natural — same element, same growth — but 'ease-in'
+        // stays slow for most of its run and only accelerates right at the
+        // end. That meant the ring was both dim AND still close to the
+        // click point (i.e. safely on screen) for most of the animation,
+        // and only reached full brightness right as its radius approached
+        // endRadius — by definition the distance to the *farthest* viewport
+        // corner, so for any click point off-center most of that fully-grown,
+        // fully-bright circle's edge has already exited through a nearer
+        // edge. The net effect was a glow that was only ever bright while
+        // mostly off-screen. Giving opacity its own timeline — ramping to
+        // full brightness almost immediately and holding it there — means
+        // the ring is already lit up while it's still small and near the
+        // click point, fading out only at the very end regardless of how
+        // far it's grown by then.
+        root.animate(
+          [
+            { opacity: 0 },
+            { opacity: 1, offset: 0.18 },
+            { opacity: 1, offset: 0.7 },
+            { opacity: 0 },
+          ],
+          { duration: 900, fill: 'forwards', easing: 'ease-out', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
       });
       // A duplicate-name conflict (see above) makes the browser skip the
