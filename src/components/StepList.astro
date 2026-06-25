@@ -107,7 +107,7 @@ const {
     let current = 0;
     let cookingModeActive = document.documentElement.classList.contains('cooking-mode');
 
-    function render() {
+    function render({ scroll = true } = {}) {
       items.forEach((li, i) => {
         li.classList.toggle('hidden', cookingModeActive && i !== current);
       });
@@ -121,8 +121,13 @@ const {
       // the fold (or its timer button can) depending on how far the previous
       // step had scrolled the page — re-anchoring on the heading/nav row
       // keeps every step's start, and the controls to move on, in view.
+      // Skipped on the initial entry into cooking mode (see cookingmodechange
+      // below) — there's nowhere to "re-anchor" from yet, and scrolling
+      // while the entry wipe transition is running can race it.
       if (cookingModeActive) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (scroll) {
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         // A one-shot Web Animations API call rather than a CSS class+transition:
         // the same step element gets shown again and again as you move back and
         // forth, and a CSS transition only fires on a style change, not on
@@ -157,7 +162,7 @@ const {
     document.addEventListener('cookingmodechange', (e) => {
       cookingModeActive = e.detail.active;
       if (cookingModeActive) current = 0;
-      render();
+      render({ scroll: false });
     });
 
     render();

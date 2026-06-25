@@ -183,10 +183,10 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
       // Only the synchronous class toggle goes through the view transition.
-      // Wake lock/fullscreen are async side effects that already don't block
-      // it today (see enter/exitCookingMode) — routing them through the
-      // transition's update callback would make it wait for fullscreen to
-      // actually settle before capturing the "new" snapshot.
+      // Fullscreen is held back until the transition is over (below):
+      // toggling it resizes the viewport, and a resize during an active view
+      // transition makes the browser silently skip it — exactly the kind of
+      // race that would explain the wipe only sometimes showing up.
       root.classList.add('cooking-mode-wipe');
       const transition = document.startViewTransition(() => setActive(activating));
       transition.ready.then(() => {
@@ -195,15 +195,16 @@ const { label, shortLabel, exitLabel } = Astro.props;
           { duration: 600, easing: 'ease-in', pseudoElement: '::view-transition-new(root)' }
         );
       });
-      transition.finished.finally(() => root.classList.remove('cooking-mode-wipe'));
-
-      if (activating) {
-        requestWakeLock();
-        if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
-      } else {
-        releaseWakeLock();
-        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-      }
+      transition.finished.finally(() => {
+        root.classList.remove('cooking-mode-wipe');
+        if (activating) {
+          requestWakeLock();
+          if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
+        } else {
+          releaseWakeLock();
+          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        }
+      });
     });
   }
 
