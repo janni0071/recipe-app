@@ -246,3 +246,21 @@ body {
     animation: none;
   }
 }
+
+/* Circular "wipe" reveal for entering/exiting cooking mode, anchored at the
+   button's click position (see CookingModeButton.astro). Scoped to the
+   .cooking-mode-wipe marker — set only for the duration of that specific
+   transition — rather than the bare ::view-transition-old/new(root)
+   selectors, so Astro's own page-navigation view transitions keep their
+   default crossfade instead of losing it to this override. */
+.cooking-mode-wipe::view-transition-old(root),
+.cooking-mode-wipe::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+.cooking-mode-wipe::view-transition-old(root) {
+  z-index: 1;
+}
+.cooking-mode-wipe::view-transition-new(root) {
+  z-index: 9999;
+}
