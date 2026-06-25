@@ -72,7 +72,7 @@ const {
               data-cancel-label={cancelTimerLabel}
               data-done-label={timerDoneLabel}
               data-extend-label={extendTimerLabel}
-              class="inline-flex items-center gap-2 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 px-5 py-3 text-base font-semibold text-pink-800 dark:text-pink-100 transition"
+              class="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-rose-600 hover:brightness-110 active:brightness-95 dark:from-orange-400 dark:to-rose-400 px-5 py-3 text-base font-semibold text-white transition"
             >
               ⏱ {startTimerLabel} ({formatTimerDuration(step.timerSeconds)})
             </button>
@@ -316,7 +316,7 @@ const {
         <p class="truncate text-xs text-gray-500 dark:text-gray-400"></p>
         <p class="text-xl font-bold tabular-nums text-gray-900 dark:text-white"></p>
       </div>
-      <button type="button" data-tray-extend class="flex-shrink-0 rounded-full bg-pink-100 px-3 py-2 text-sm font-semibold text-pink-700 hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-200 dark:hover:bg-pink-800 transition"></button>
+      <button type="button" data-tray-extend class="flex-shrink-0 rounded-full bg-orange-100 px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-200 dark:bg-white/15 dark:text-rose-200 dark:hover:bg-white/20 transition"></button>
       <button type="button" data-tray-cancel aria-label="${button.dataset.cancelLabel}" class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition">✕</button>
     `;
     trayEl.querySelector('p.truncate').textContent = button.dataset.stepLabel || '';
