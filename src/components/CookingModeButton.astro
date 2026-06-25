@@ -39,11 +39,11 @@ const { label, exitLabel } = Astro.props;
   //
   // setActive/enterCookingMode/exitCookingMode live at module scope (rather
   // than closing over a single page-load's button) because the
-  // fullscreenchange/astro:before-swap listeners below are only ever bound
-  // once (window.__cookingModeBound guards against piling up a listener per
+  // keydown/astro:before-swap listeners below are only ever bound once
+  // (window.__cookingModeBound guards against piling up a listener per
   // navigation). If they closed over one navigation's button, every later
-  // navigation's exit-via-back-gesture would update a detached button
-  // instead of whatever button is actually live on screen.
+  // navigation's exit-via-Escape would update a detached button instead of
+  // whatever button is actually live on screen.
   function setActive(active) {
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
@@ -110,26 +110,20 @@ const { label, exitLabel } = Astro.props;
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
 
-      // Syncs state when the user backs out via Escape or a back-gesture
-      // instead of clicking our own button. Locking the screen also
-      // force-exits fullscreen on some browsers, but that's not a
-      // deliberate "leave cooking mode" action — it shouldn't drop the
-      // wake lock or any running timers. The document goes hidden in that
-      // case too, around the same time, so wait a beat and check
-      // visibility before deciding; a real Escape press or back-gesture
-      // leaves the document visible throughout.
-      document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) return;
-        setTimeout(() => {
-          if (
-            document.visibilityState === 'visible' &&
-            !document.fullscreenElement &&
-            document.documentElement.classList.contains('cooking-mode')
-          ) {
-            setActive(false);
-            releaseWakeLock();
-          }
-        }, 150);
+      // Fullscreen gets exited by plenty of things besides a deliberate
+      // "leave cooking mode" action — screen lock, switching apps, a
+      // phone's hardware back button — and whether the document even
+      // reports itself as hidden when that happens is inconsistent across
+      // browsers (Brave doesn't mark it hidden on screen lock the way
+      // Chrome/Firefox do, so that can't be used to tell the cases apart
+      // reliably). So losing fullscreen no longer ends cooking mode by
+      // itself: the wake lock and any running timers stay alive, and the
+      // still-visible exit button (or Escape, below) is how you actually
+      // leave.
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.documentElement.classList.contains('cooking-mode')) {
+          exitCookingMode();
+        }
       });
 
       // The Wake Lock is auto-released by the browser whenever the page
