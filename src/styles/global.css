@@ -161,6 +161,16 @@ body {
   font-size: 1.2em;
   line-height: 1.6;
 }
+/* The flat slate-gray card from regular dark mode reads as a "cool" color
+   against cooking mode's warm maroon/black backdrop. A translucent tint of
+   whatever's behind it (instead of an unrelated solid gray) blends with
+   that backdrop at any point along the gradient. Selector must be compound
+   (no space) since .dark and .cooking-mode land on the same <html> element —
+   ".dark .cooking-mode" would require one to be a descendant of the other. */
+.dark.cooking-mode .prose ol li {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-left-color: #f472b6;
+}
 
 /* Cooking mode: a pair of small flames flank the "Steps" heading for some
    visual drama. Transform/opacity-only keyframes so they're cheap to
