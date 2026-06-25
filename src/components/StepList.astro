@@ -123,6 +123,21 @@ const {
       // keeps every step's start, and the controls to move on, in view.
       if (cookingModeActive) {
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // A one-shot Web Animations API call rather than a CSS class+transition:
+        // the same step element gets shown again and again as you move back and
+        // forth, and a CSS transition only fires on a style change, not on
+        // every "show" — re-triggering it would need the same remove/reflow/
+        // re-add dance as the keyframe animations elsewhere in this app.
+        // animate() just plays every time, no bookkeeping required.
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          items[current].animate(
+            [
+              { opacity: 0, transform: 'translateY(8px)' },
+              { opacity: 1, transform: 'translateY(0)' },
+            ],
+            { duration: 180, easing: 'ease-out' }
+          );
+        }
       }
     }
 
