@@ -196,7 +196,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // restored later by animating the resulting pseudo-element's opacity.
       const ringSize = endRadius * 2;
       const glow = document.createElement('div');
-      glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);opacity:0;background:radial-gradient(circle, transparent 56%, rgba(254,240,138,0.9) 64%, rgba(249,115,22,0.95) 72%, rgba(225,29,72,0.85) 82%, transparent 92%);`;
+      glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(7px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);opacity:0;background:radial-gradient(circle, transparent 70%, rgba(254,240,138,0.9) 80%, rgba(249,115,22,0.95) 88%, rgba(225,29,72,0.85) 95%, transparent 100%);`;
       document.body.appendChild(glow);
 
       // Only the synchronous class toggle goes through the view transition.
@@ -227,14 +227,29 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // <html>, not under the originating element. Calling this on
         // `glow` itself targets a pseudo that doesn't exist relative to
         // it, so the animation silently never applies.
+        //
+        // The ring's scale is kept in lockstep with the wipe's own clip
+        // radius (same 600ms/ease-in growth, since "scale 1" here means
+        // "radius endRadius" — the same value the wipe grows to) so the
+        // glow's gradient band, which now sits close to the ring's outer
+        // edge, traces the wipe's boundary the whole time it's expanding
+        // instead of drifting through its own unrelated timeline. Without
+        // this, the only place the band stays on-screen long enough to
+        // notice is wherever it happens to be once it's grown large — for
+        // an off-center click point, that's the far edge, making the glow
+        // look like it appears out of nowhere there instead of growing
+        // outward from the click.
         root.animate(
           [
-            { transform: 'translate(-50%, -50%) scale(0)', opacity: 0 },
-            { transform: 'translate(-50%, -50%) scale(0.55)', opacity: 1, offset: 0.35 },
-            { transform: 'translate(-50%, -50%) scale(0.9)', opacity: 1, offset: 0.6 },
-            { transform: 'translate(-50%, -50%) scale(1.05)', opacity: 0 },
+            // A keyframe's `easing` governs the segment FROM it to the next
+            // one, not the segment leading into it — so 'ease-in' belongs on
+            // keyframe 0 (covers 0→2/3, the growth) and 'ease-out' on
+            // keyframe 1 (covers 2/3→1, the tail), not the other way round.
+            { transform: 'translate(-50%, -50%) scale(0)', opacity: 0, easing: 'ease-in' },
+            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1, offset: 2 / 3, easing: 'ease-out' },
+            { transform: 'translate(-50%, -50%) scale(1.08)', opacity: 0 },
           ],
-          { duration: 750, easing: 'ease-out', fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
+          { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
       });
       transition.finished.finally(() => {
