@@ -105,14 +105,18 @@ const jsonLd = buildRecipeJsonLd({
         <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
       </div>
-      <div class="print:hidden flex flex-wrap items-center gap-2 w-full sm:w-auto">
+      <div class="print:hidden flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
         <span class="cooking-mode:hidden flex items-center gap-2">
           <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
           <ShoppingListButton slug={slug} label={t('page.recipe.shoppingList')} />
           <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
           <PrintButton label={t('page.recipe.print')} />
         </span>
-        <CookingModeButton label={t('page.recipe.cookingMode')} exitLabel={t('page.recipe.exitCookingMode')} />
+        <CookingModeButton
+          label={t('page.recipe.cookingMode')}
+          shortLabel={t('page.recipe.cookingModeShort')}
+          exitLabel={t('page.recipe.exitCookingMode')}
+        />
       </div>
     </div>
 
