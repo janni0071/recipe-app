@@ -198,6 +198,25 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const y = e.clientY;
       const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
+      // Astro tags elements like the recipe image/title with a persistent
+      // view-transition-name (via a stylesheet rule keyed on this data
+      // attribute) for its own page-navigation transitions — not just
+      // while one is in flight. Anything carrying a name gets pulled into
+      // ANY view transition on the page, ours included, where it picks up
+      // Astro's own unconditional fade animation (held in place the whole
+      // time via animation-fill-mode: both, well past its own short
+      // duration, for as long as our much longer wipe keeps the overall
+      // transition alive). An inline override beats that stylesheet rule's
+      // specificity and keeps these elements out of our transition
+      // entirely — ordinary pixels in the page's one flat snapshot, as
+      // they should be, since this isn't a navigation. Restored once our
+      // transition settles so a real navigation afterwards still gets its
+      // own shared-element animation.
+      const persisted = Array.from(document.querySelectorAll('[data-astro-transition-scope]'));
+      persisted.forEach((el) => {
+        el.style.viewTransitionName = 'none';
+      });
+
       // A glowing ring that travels with the wipe's edge. It's a real
       // element (not just extra keyframes on the root pseudo) because the
       // ::view-transition tree paints in its own top layer above the rest
@@ -283,6 +302,9 @@ const { label, shortLabel, exitLabel } = Astro.props;
       transition.finished.finally(() => {
         if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
+        persisted.forEach((el) => {
+          el.style.viewTransitionName = '';
+        });
         // A later click may have already skipped this transition and
         // started its own — don't let this stale finally undo state (the
         // wipe class, wake lock, fullscreen) that the newer one now owns.
