@@ -28,38 +28,17 @@ const {
 } = Astro.props;
 ---
 <div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
-  <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3">
-    <h2 class="!mt-0 !mb-0 flex items-center gap-2">
-      <svg class="hidden cooking-mode:inline-block cooking-flame w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
-        <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
-      </svg>
-      {heading}
-      <svg class="hidden cooking-mode:inline-block cooking-flame cooking-flame--alt w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
-        <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
-      </svg>
-    </h2>
-    <div class="hidden cooking-mode:flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-      <button
-        type="button"
-        id="step-prev"
-        aria-label={prevLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
-      >
-        ‹
-      </button>
-      <span id="step-progress"></span>
-      <button
-        type="button"
-        id="step-next"
-        aria-label={nextLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
-      >
-        ›
-      </button>
-    </div>
-  </div>
+  <h2 class="!mt-0 !mb-0 flex items-center gap-2">
+    <svg class="hidden cooking-mode:inline-block cooking-flame w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
+      <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
+    </svg>
+    {heading}
+    <svg class="hidden cooking-mode:inline-block cooking-flame cooking-flame--alt w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
+      <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
+    </svg>
+  </h2>
   <ol>
     {steps.map((step) => (
       <li>
@@ -83,6 +62,25 @@ const {
       </li>
     ))}
   </ol>
+  <div class="hidden cooking-mode:flex items-center justify-between gap-3 mt-6">
+    <button
+      type="button"
+      id="step-prev"
+      aria-label={prevLabel}
+      class="w-14 h-14 flex-shrink-0 flex items-center justify-center text-2xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
+    >
+      ‹
+    </button>
+    <span id="step-progress" class="text-base font-semibold text-gray-700 dark:text-gray-200"></span>
+    <button
+      type="button"
+      id="step-next"
+      aria-label={nextLabel}
+      class="w-14 h-14 flex-shrink-0 flex items-center justify-center text-2xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
+    >
+      ›
+    </button>
+  </div>
   <div id="step-complete" class="hidden mt-4 rounded-2xl px-6 py-8 text-center bg-white/55 dark:bg-white/10 ring-1 ring-rose-300/60 dark:ring-rose-400/30" aria-live="polite">
     <p class="text-3xl mb-2" aria-hidden="true">🎉</p>
     <p class="text-lg font-semibold text-gray-900 dark:text-white">{allDoneLabel}</p>
