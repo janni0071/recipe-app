@@ -233,7 +233,20 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // That timing is consistent on Chromium desktop, but isn't a
       // cross-engine guarantee, and a raster captured fully transparent
       // can't be un-done later by animating the resulting pseudo's opacity.
-      const ringSize = endRadius * 2;
+      //
+      // Fixed size, deliberately not tied to endRadius: this used to be
+      // endRadius * 2 so the ring's gradient band would reach exactly as
+      // far as the wipe does, but that meant the box (and the gradient
+      // raster painted into it) could be thousands of pixels across on a
+      // typical screen — measured with rAF timestamps during the
+      // transition, that was costing 15-20ms+ of extra frame time on top
+      // of an otherwise-clean ~16.7ms/frame baseline, the actual source of
+      // the felt "lag". A small fixed box (confirmed back down at ~16.7ms)
+      // reads as a contained flare at the click point that fades well
+      // before the wipe finishes, rather than a band that chases the wipe
+      // all the way to the far corner — also just a smaller, thinner ring,
+      // which was the other ask.
+      const ringSize = 260;
       let glow;
 
       // Only the synchronous class toggle goes through the view transition.
@@ -253,9 +266,10 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // light one. The rim is a low-alpha ember brown rather than a flat
         // near-black: a fully opaque dark stop right next to the transparent
         // edge reads as a solid ring outline, not fire, so it fades out
-        // gradually (93%→100%, instead of snapping dark at 97%) like cooling
-        // smoke instead of a hard border.
-        glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(4px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle farthest-side, transparent 65%, rgba(255,244,214,0.95) 76%, rgba(254,240,138,1) 82%, rgba(249,115,22,1) 88%, rgba(190,18,60,0.9) 93%, rgba(76,16,12,0.5) 98%, transparent 100%);`;
+        // gradually instead of snapping dark. The colored stops are bunched
+        // up near the outer edge (80%+) rather than spread from 65%, so the
+        // band itself reads as a slim ring instead of a wide glowing disc.
+        glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(3px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle farthest-side, transparent 80%, rgba(255,244,214,0.95) 90%, rgba(254,240,138,1) 93%, rgba(249,115,22,1) 95.5%, rgba(190,18,60,0.9) 97.5%, rgba(76,16,12,0.5) 99%, transparent 100%);`;
         document.body.appendChild(glow);
       });
       pendingGlow = glow;
@@ -288,17 +302,11 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // box — hundreds of pixels — leaving the gradient's true center
         // nowhere near the click point at any scale.
         //
-        // The ring's scale is kept in lockstep with the wipe's own clip
-        // radius (same 600ms/ease-in growth, since "scale 1" here means
-        // "radius endRadius" — the same value the wipe grows to) so the
-        // glow's gradient band, which now sits close to the ring's outer
-        // edge, traces the wipe's boundary the whole time it's expanding
-        // instead of drifting through its own unrelated timeline. Without
-        // this, the only place the band stays on-screen long enough to
-        // notice is wherever it happens to be once it's grown large — for
-        // an off-center click point, that's the far edge, making the glow
-        // look like it appears out of nowhere there instead of growing
-        // outward from the click.
+        // The ring grows from nothing up to its full 260px size and settles
+        // with a slight overshoot, independent of the wipe's own (much
+        // larger, endRadius-based) clip radius — it's a small flare at the
+        // click point now, not a band tracing the wipe's edge out to the
+        // far corner.
         root.animate(
           [
             // A keyframe's `easing` governs the segment FROM it to the next
@@ -334,23 +342,6 @@ const { label, shortLabel, exitLabel } = Astro.props;
             { opacity: 0 },
           ],
           { duration: 900, fill: 'forwards', easing: 'ease-out', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
-        );
-        // A single smooth fade reads as a glow, not fire — real flame
-        // brightness wobbles unevenly as it burns. Layered on top of (not
-        // baked into) the opacity envelope above so the on/off timing stays
-        // clean while this just adds texture during the visible window.
-        // Offsets are deliberately uneven, not a regular pulse, since a
-        // metronomic flicker looks more like a strobe than a flame.
-        root.animate(
-          [
-            { filter: 'brightness(1) saturate(1)' },
-            { filter: 'brightness(1.2) saturate(1.3)', offset: 0.22 },
-            { filter: 'brightness(0.92) saturate(0.95)', offset: 0.4 },
-            { filter: 'brightness(1.25) saturate(1.3)', offset: 0.58 },
-            { filter: 'brightness(0.95) saturate(1)', offset: 0.8 },
-            { filter: 'brightness(1.05) saturate(1.05)' },
-          ],
-          { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
       });
       // A duplicate-name conflict (see above) makes the browser skip the
