@@ -254,13 +254,16 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const ringSize = 260;
       let glow;
 
-      // A scatter of embers flung from the same point, baked into one small
-      // canvas rather than drawn as N separate elements — N elements would
-      // mean N separate view-transition layers (each with its own
-      // group/image-pair pseudo overhead), where one small canvas is a
-      // single cheap layer, reusing the glow ring's small-texture-stretched-
-      // via-transform trick (see maxScale below) instead of paying for that
-      // overhead N times over.
+      // A scatter of embers riding the wipe's own advancing edge — baked
+      // into one small canvas rather than drawn as N separate elements (N
+      // elements would mean N separate view-transition layers, each with
+      // its own group/image-pair pseudo overhead, where one small canvas is
+      // a single cheap layer), and animated with the exact same
+      // endRadius-lockstep scale curve as the glow ring (see sparkMaxScale
+      // below) so they expand in step with the wipe/ring rather than on
+      // their own independent timeline. The two together read as the flame
+      // front throwing off embers as it sweeps through the page, rather
+      // than a single burst that just happens to be flung from the button.
       const sparkSize = 280;
       const sparkCount = 32;
       let sparks;
@@ -295,14 +298,20 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // Drawn once into the canvas's own small pixel space rather than
         // animated per frame — each spark's distance-from-center is baked
         // in at a random fraction of the canvas's own radius, so scaling
-        // the whole canvas up later (see maxSparkScale) carries every spark
+        // the whole canvas up later (see sparkMaxScale) carries every spark
         // outward together while preserving their relative distances, the
         // same "dots on an expanding sheet" trick the ring above relies on.
+        // Bunched into a tight band near the canvas's own edge (0.68-0.95,
+        // rather than spread all the way back to the center) so that once
+        // stretched by the same lockstep scale as the ring, they sit right
+        // around the ring's own edge instead of trailing all the way back
+        // to the click point — embers thrown off the front, not left
+        // behind at the source.
         const sparkCtx = sparks.getContext('2d');
         const sparkCenter = sparkSize / 2;
         for (let i = 0; i < sparkCount; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const dist = sparkCenter * (0.25 + Math.random() * 0.7);
+          const dist = sparkCenter * (0.68 + Math.random() * 0.27);
           const sx = sparkCenter + Math.cos(angle) * dist;
           const sy = sparkCenter + Math.sin(angle) * dist;
           const r = 0.8 + Math.random() * 1.2;
@@ -435,31 +444,35 @@ const { label, shortLabel, exitLabel } = Astro.props;
           ],
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
-        // Sparks pop out quicker than the glow ring (peaking at 40% of
-        // their own duration, not 2/3) and now reach nearly as far as the
-        // wipe itself — short of the exact endRadius so the *1.15 tail
-        // overshoot below still lands inside the visible area rather than
-        // flying off past the wipe's own edge. Each spark's baked-in
-        // distance (see sparkCount loop above) is a fraction of the
-        // canvas's own radius, so this scale target is what that fraction
-        // is *of* — i.e. the farthest sparks land at roughly 95% of
-        // sparkReach, the closest ones much nearer the click point.
-        const sparkReach = endRadius * 0.85;
-        const maxSparkScale = sparkReach / (sparkSize / 2);
+        // Same endRadius-lockstep curve as the glow ring's maxScale above —
+        // same target, same 'ease-in' over the same 600ms (the 2/3 offset
+        // of this animation's own 900ms duration too) — so the embers'
+        // band (baked at 0.68-0.95 of the canvas's own radius, see the
+        // sparkCount loop above) expands in step with the wipe/ring instead
+        // of drifting outward on its own independent schedule. That keeps
+        // them anchored to the advancing edge itself, landing in a spread
+        // around endRadius (from ~0.73x at the band's inner edge to ~1.03x
+        // at its outer one, given the *1.08 overshoot) rather than at a
+        // fixed fraction of it.
+        const sparkMaxScale = ((endRadius * 2) / sparkSize) * 1.08;
         root.animate(
           [
-            { transform: 'scale(0.2)', easing: 'ease-out' },
-            { transform: `scale(${maxSparkScale})`, offset: 0.4, easing: 'ease-out' },
-            { transform: `scale(${maxSparkScale * 1.15})` },
+            { transform: 'scale(0)', easing: 'ease-in' },
+            { transform: `scale(${sparkMaxScale / 1.08})`, offset: 2 / 3, easing: 'ease-out' },
+            { transform: `scale(${sparkMaxScale})` },
           ],
-          { duration: 1000, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-sparks)' }
+          { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-sparks)' }
         );
         // Faster ramp-up and a later, more gradual fade than the glow ring
         // (which has the wipe behind it to read against) — sparks are
         // small enough that a slow fade reads as "drifting out" rather
         // than "still here", giving the embers a chance to feel like
         // they're floating/dying out after the main flash instead of
-        // popping off all at once with everything else.
+        // popping off all at once with everything else. A duration 100ms
+        // longer than the scale animation above means the embers keep
+        // fading for a moment after their expansion has already frozen in
+        // place (fill: forwards holds the last scale keyframe), rather than
+        // both ending in the same instant.
         root.animate(
           [
             { opacity: 0 },
