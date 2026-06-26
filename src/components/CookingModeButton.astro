@@ -128,6 +128,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
     // just no wipe and no glow at all.
     let pendingTransition = null;
     let pendingGlow = null;
+    let pendingSparks = null;
 
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
@@ -192,6 +193,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // on the pendingTransition/pendingGlow declarations above).
       pendingTransition?.skipTransition();
       pendingGlow?.remove();
+      pendingSparks?.remove();
 
       const root = document.documentElement;
       const x = e.clientX;
@@ -252,6 +254,17 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const ringSize = 260;
       let glow;
 
+      // A scatter of embers flung from the same point, baked into one small
+      // canvas rather than drawn as N separate elements — N elements would
+      // mean N separate view-transition layers (each with its own
+      // group/image-pair pseudo overhead), where one small canvas is a
+      // single cheap layer, reusing the glow ring's small-texture-stretched-
+      // via-transform trick (see maxScale below) instead of paying for that
+      // overhead N times over.
+      const sparkSize = 280;
+      const sparkCount = 18;
+      let sparks;
+
       // Only the synchronous class toggle goes through the view transition.
       // Fullscreen is held back until the transition is over (below):
       // toggling it resizes the viewport, and a resize during an active view
@@ -274,8 +287,64 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // band itself reads as a slim ring instead of a wide glowing disc.
         glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(3px);view-transition-name:cooking-mode-flame-glow;transform:translate(-50%,-50%);background:radial-gradient(circle farthest-side, transparent 80%, rgba(255,244,214,0.95) 90%, rgba(254,240,138,1) 93%, rgba(249,115,22,1) 95.5%, rgba(190,18,60,0.9) 97.5%, rgba(76,16,12,0.5) 99%, transparent 100%);`;
         document.body.appendChild(glow);
+
+        sparks = document.createElement('canvas');
+        sparks.width = sparkSize;
+        sparks.height = sparkSize;
+        sparks.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${sparkSize}px;height:${sparkSize}px;pointer-events:none;view-transition-name:cooking-mode-sparks;transform:translate(-50%,-50%);`;
+        // Drawn once into the canvas's own small pixel space rather than
+        // animated per frame — each spark's distance-from-center is baked
+        // in at a random fraction of the canvas's own radius, so scaling
+        // the whole canvas up later (see maxSparkScale) carries every spark
+        // outward together while preserving their relative distances, the
+        // same "dots on an expanding sheet" trick the ring above relies on.
+        const sparkCtx = sparks.getContext('2d');
+        const sparkCenter = sparkSize / 2;
+        for (let i = 0; i < sparkCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = sparkCenter * (0.25 + Math.random() * 0.7);
+          const sx = sparkCenter + Math.cos(angle) * dist;
+          const sy = sparkCenter + Math.sin(angle) * dist;
+          const r = 2 + Math.random() * 3.5;
+          // Percentage-based gradient stops on a radius this small put the
+          // dark rim band under a pixel wide (e.g. 8% of a 2px radius),
+          // invisible regardless of how much the canvas is later stretched
+          // — confirmed by screenshotting a first attempt that used plain
+          // percentage stops on `r` directly: every spark just read as a
+          // soft blob, no rim. haloR adds a fixed ~2.2px ring beyond the
+          // bright core instead, so the rim band's actual pixel width stays
+          // roughly constant across every spark's size, not shrinking along
+          // with the smaller ones.
+          const haloR = r + 2.2;
+          const coreEdge = r / haloR;
+          // Same hot-core-vs-ember-rim contrast logic as the glow ring:
+          // most sparks are the mid-tone orange that needs the dark rim to
+          // read against the light backdrop, a minority are near-white so
+          // a few pop against the dark backdrop too.
+          const hot = Math.random() < 0.35;
+          const grad = sparkCtx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+          if (hot) {
+            grad.addColorStop(0, 'rgba(255,250,230,1)');
+            grad.addColorStop(coreEdge * 0.55, 'rgba(254,240,138,0.95)');
+            grad.addColorStop(coreEdge, 'rgba(249,115,22,0.9)');
+            grad.addColorStop(coreEdge + (1 - coreEdge) * 0.45, 'rgba(120,30,15,0.6)');
+            grad.addColorStop(1, 'rgba(120,30,15,0)');
+          } else {
+            grad.addColorStop(0, 'rgba(255,237,160,1)');
+            grad.addColorStop(coreEdge * 0.55, 'rgba(249,115,22,0.9)');
+            grad.addColorStop(coreEdge, 'rgba(190,18,60,0.85)');
+            grad.addColorStop(coreEdge + (1 - coreEdge) * 0.45, 'rgba(76,16,12,0.6)');
+            grad.addColorStop(1, 'rgba(76,16,12,0)');
+          }
+          sparkCtx.fillStyle = grad;
+          sparkCtx.beginPath();
+          sparkCtx.arc(sx, sy, haloR, 0, Math.PI * 2);
+          sparkCtx.fill();
+        }
+        document.body.appendChild(sparks);
       });
       pendingGlow = glow;
+      pendingSparks = sparks;
       pendingTransition = transition;
       transition.ready.then(() => {
         root.animate(
@@ -364,6 +433,41 @@ const { label, shortLabel, exitLabel } = Astro.props;
           ],
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
+        // Sparks pop out quicker than the glow ring (peaking at 40% of
+        // their own duration, not 2/3) and don't aim for the wipe's full
+        // endRadius — real embers thrown from a point don't travel as far
+        // as the wipe's reveal, and capping the reach also caps how far
+        // this small canvas's texture gets stretched, keeping the upscale
+        // soft-looking rather than visibly smeared. Each spark's baked-in
+        // distance (see sparkCount loop above) is a fraction of the
+        // canvas's own radius, so this scale target is what that fraction
+        // is *of* — i.e. the farthest sparks land at roughly 95% of
+        // sparkReach, the closest ones much nearer the click point.
+        const sparkReach = endRadius * 0.45;
+        const maxSparkScale = sparkReach / (sparkSize / 2);
+        root.animate(
+          [
+            { transform: 'scale(0.2)', easing: 'ease-out' },
+            { transform: `scale(${maxSparkScale})`, offset: 0.4, easing: 'ease-out' },
+            { transform: `scale(${maxSparkScale * 1.15})` },
+          ],
+          { duration: 1000, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-sparks)' }
+        );
+        // Faster ramp-up and a later, more gradual fade than the glow ring
+        // (which has the wipe behind it to read against) — sparks are
+        // small enough that a slow fade reads as "drifting out" rather
+        // than "still here", giving the embers a chance to feel like
+        // they're floating/dying out after the main flash instead of
+        // popping off all at once with everything else.
+        root.animate(
+          [
+            { opacity: 0 },
+            { opacity: 1, offset: 0.08 },
+            { opacity: 1, offset: 0.45, easing: 'ease-out' },
+            { opacity: 0 },
+          ],
+          { duration: 1000, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-sparks)' }
+        );
       });
       // A duplicate-name conflict (see above) makes the browser skip the
       // transition outright, rejecting `ready` with nothing to catch it —
@@ -374,6 +478,8 @@ const { label, shortLabel, exitLabel } = Astro.props;
       transition.finished.finally(() => {
         if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
+        if (pendingSparks === sparks) pendingSparks = null;
+        sparks.remove();
         persisted.forEach((el) => {
           el.style.viewTransitionName = '';
         });

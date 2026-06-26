@@ -278,6 +278,17 @@ body {
   z-index: 10000;
 }
 
+/* Sparks (see CookingModeButton.astro) get the same treatment as the
+   flame-glow ring above, one layer higher so the embers paint in front of
+   the glow they're flung out of rather than behind it. */
+.cooking-mode-wipe::view-transition-old(cooking-mode-sparks),
+.cooking-mode-wipe::view-transition-new(cooking-mode-sparks) {
+  animation: none;
+}
+.cooking-mode-wipe::view-transition-new(cooking-mode-sparks) {
+  z-index: 10001;
+}
+
 /* The z-index rules above only order each name's own old/new images
    relative to each other — they don't affect stacking *between* different
    named transitions. Astro's page-navigation transitions leave elements
@@ -292,4 +303,7 @@ body {
 }
 .cooking-mode-wipe::view-transition-group(cooking-mode-flame-glow) {
   z-index: 10000;
+}
+.cooking-mode-wipe::view-transition-group(cooking-mode-sparks) {
+  z-index: 10001;
 }
