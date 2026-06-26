@@ -62,6 +62,10 @@ const {
       </li>
     ))}
   </ol>
+  <div id="step-complete" class="hidden mt-6 rounded-2xl px-6 py-8 text-center bg-white/55 dark:bg-white/10 ring-1 ring-rose-300/60 dark:ring-rose-400/30" aria-live="polite">
+    <p class="text-3xl mb-2" aria-hidden="true">🎉</p>
+    <p class="text-lg font-semibold text-gray-900 dark:text-white">{allDoneLabel}</p>
+  </div>
   <div class="hidden cooking-mode:block mt-6">
     <div
       id="step-progress-bar-track"
@@ -72,10 +76,6 @@ const {
     >
       <div id="step-progress-bar" class="h-full rounded-full bg-linear-to-r from-orange-500 to-rose-600 dark:from-orange-400 dark:to-rose-400 transition-all duration-300 ease-out" style="width: 0%" />
     </div>
-  </div>
-  <div id="step-complete" class="hidden mt-4 rounded-2xl px-6 py-8 text-center bg-white/55 dark:bg-white/10 ring-1 ring-rose-300/60 dark:ring-rose-400/30" aria-live="polite">
-    <p class="text-3xl mb-2" aria-hidden="true">🎉</p>
-    <p class="text-lg font-semibold text-gray-900 dark:text-white">{allDoneLabel}</p>
   </div>
   <div class="hidden cooking-mode:flex items-center justify-between gap-3 mt-3">
     <button
