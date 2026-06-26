@@ -88,6 +88,18 @@ const { label, shortLabel, exitLabel } = Astro.props;
     }
   }
 
+  // transition.finished resolving is a promise-level signal, not a
+  // guarantee that the browser has actually painted the animation's last
+  // frame(s) yet — on slower/mobile devices there can be a frame or two of
+  // lag between the two. Waiting two rAF ticks here gives that paint a
+  // chance to land before the (heavier, especially when entering) native
+  // fullscreen UI change runs and potentially clips it.
+  function nextPaint() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  }
+
   async function enterCookingMode() {
     setActive(true);
     requestWakeLock();
@@ -489,7 +501,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // (inside the startViewTransition callback above) already went
       // through regardless; only the wipe/glow animation was skipped.
       transition.ready.catch(() => {});
-      transition.finished.finally(() => {
+      transition.finished.finally(async () => {
         if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
         if (pendingSparks === sparks) pendingSparks = null;
@@ -503,6 +515,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
         if (pendingTransition !== transition) return;
         pendingTransition = null;
         root.classList.remove('cooking-mode-wipe');
+        await nextPaint();
         if (activating) {
           requestWakeLock();
           if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
