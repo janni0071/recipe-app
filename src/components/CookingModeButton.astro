@@ -262,7 +262,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // via-transform trick (see maxScale below) instead of paying for that
       // overhead N times over.
       const sparkSize = 280;
-      const sparkCount = 18;
+      const sparkCount = 32;
       let sparks;
 
       // Only the synchronous class toggle goes through the view transition.
@@ -305,17 +305,19 @@ const { label, shortLabel, exitLabel } = Astro.props;
           const dist = sparkCenter * (0.25 + Math.random() * 0.7);
           const sx = sparkCenter + Math.cos(angle) * dist;
           const sy = sparkCenter + Math.sin(angle) * dist;
-          const r = 2 + Math.random() * 3.5;
+          const r = 1.3 + Math.random() * 2.2;
           // Percentage-based gradient stops on a radius this small put the
           // dark rim band under a pixel wide (e.g. 8% of a 2px radius),
           // invisible regardless of how much the canvas is later stretched
           // — confirmed by screenshotting a first attempt that used plain
           // percentage stops on `r` directly: every spark just read as a
-          // soft blob, no rim. haloR adds a fixed ~2.2px ring beyond the
+          // soft blob, no rim. haloR adds a fixed ~1.6px ring beyond the
           // bright core instead, so the rim band's actual pixel width stays
           // roughly constant across every spark's size, not shrinking along
-          // with the smaller ones.
-          const haloR = r + 2.2;
+          // with the smaller ones. (Scaled down from the original 2.2px
+          // alongside the smaller core radius above — keeping it at 2.2
+          // would let the rim swallow these smaller cores entirely.)
+          const haloR = r + 1.6;
           const coreEdge = r / haloR;
           // Same hot-core-vs-ember-rim contrast logic as the glow ring:
           // most sparks are the mid-tone orange that needs the dark rim to
@@ -434,16 +436,15 @@ const { label, shortLabel, exitLabel } = Astro.props;
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
         // Sparks pop out quicker than the glow ring (peaking at 40% of
-        // their own duration, not 2/3) and don't aim for the wipe's full
-        // endRadius — real embers thrown from a point don't travel as far
-        // as the wipe's reveal, and capping the reach also caps how far
-        // this small canvas's texture gets stretched, keeping the upscale
-        // soft-looking rather than visibly smeared. Each spark's baked-in
+        // their own duration, not 2/3) and now reach nearly as far as the
+        // wipe itself — short of the exact endRadius so the *1.15 tail
+        // overshoot below still lands inside the visible area rather than
+        // flying off past the wipe's own edge. Each spark's baked-in
         // distance (see sparkCount loop above) is a fraction of the
         // canvas's own radius, so this scale target is what that fraction
         // is *of* — i.e. the farthest sparks land at roughly 95% of
         // sparkReach, the closest ones much nearer the click point.
-        const sparkReach = endRadius * 0.45;
+        const sparkReach = endRadius * 0.85;
         const maxSparkScale = sparkReach / (sparkSize / 2);
         root.animate(
           [
