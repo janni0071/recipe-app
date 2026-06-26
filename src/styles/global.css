@@ -106,6 +106,13 @@ body {
 .cooking-mode .prose ul.ing-list {
   list-style: none;
   padding-left: 0;
+  /* Gathering ingredients is the same glance-from-across-the-counter task as
+     reading a step, so it gets the same readability bump — slightly more
+     conservative than the steps' 1.2em (global.css further down) since every
+     ingredient renders at once here rather than one-at-a-time, so the size
+     increase multiplies across the whole list instead of just one line. */
+  font-size: 1.1em;
+  line-height: 1.5;
 }
 .cooking-mode .ing-row {
   display: flex;
