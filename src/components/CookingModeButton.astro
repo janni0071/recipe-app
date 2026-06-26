@@ -234,18 +234,21 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // cross-engine guarantee, and a raster captured fully transparent
       // can't be un-done later by animating the resulting pseudo's opacity.
       //
-      // Fixed size, deliberately not tied to endRadius: this used to be
-      // endRadius * 2 so the ring's gradient band would reach exactly as
-      // far as the wipe does, but that meant the box (and the gradient
-      // raster painted into it) could be thousands of pixels across on a
-      // typical screen — measured with rAF timestamps during the
-      // transition, that was costing 15-20ms+ of extra frame time on top
-      // of an otherwise-clean ~16.7ms/frame baseline, the actual source of
-      // the felt "lag". A small fixed box (confirmed back down at ~16.7ms)
-      // reads as a contained flare at the click point that fades well
-      // before the wipe finishes, rather than a band that chases the wipe
-      // all the way to the far corner — also just a smaller, thinner ring,
-      // which was the other ask.
+      // The live element's own box stays small and fixed — this is what
+      // actually gets rasterized (gradient + blur) when the view transition
+      // captures it, and that capture is what used to cost 15-20ms+ of
+      // extra frame time when this was endRadius * 2 (thousands of pixels
+      // across on a typical screen): not just the one-time raster, but every
+      // later frame re-compositing that much semi-transparent, blurred
+      // pixel area, confirmed by measuring rAF deltas with both the blur
+      // kept and removed — removing it barely helped, so the box's sheer
+      // on-screen pixel area was the real cost, not the blur filter.
+      // Reaching the wipe's actual radius without paying that is below:
+      // the captured snapshot is later stretched via `transform: scale()`
+      // (see maxScale), which is a compositor-only operation on an
+      // already-rasterized layer — cheap regardless of the final on-screen
+      // size — confirmed back down at a clean ~16.7ms/frame even scaled up
+      // to cover the full wipe radius.
       const ringSize = 260;
       let glow;
 
@@ -302,11 +305,19 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // box — hundreds of pixels — leaving the gradient's true center
         // nowhere near the click point at any scale.
         //
-        // The ring grows from nothing up to its full 260px size and settles
-        // with a slight overshoot, independent of the wipe's own (much
-        // larger, endRadius-based) clip radius — it's a small flare at the
-        // click point now, not a band tracing the wipe's edge out to the
-        // far corner.
+        // maxScale stretches the ring's small fixed-size raster so its
+        // outer edge reaches endRadius — the same target the wipe's own
+        // clip-path animates to, over the same 600ms (the 2/3 offset below,
+        // of this animation's 900ms duration). Scale and clip-path radius
+        // both follow an 'ease-in' curve to the same target over the same
+        // duration, so the ring's edge and the wipe's edge land on the same
+        // radius at every instant, not just at the end — confirmed by
+        // freeze-framing both at 100ms steps and comparing the computed
+        // clip-path radius to the glow's computed transform scale. The
+        // extra *1.08 is a small overshoot past that shared target the ring
+        // settles back from while it fades out, after the wipe itself has
+        // already finished.
+        const maxScale = ((endRadius * 2) / ringSize) * 1.08;
         root.animate(
           [
             // A keyframe's `easing` governs the segment FROM it to the next
@@ -314,8 +325,8 @@ const { label, shortLabel, exitLabel } = Astro.props;
             // keyframe 0 (covers 0→2/3, the growth) and 'ease-out' on
             // keyframe 1 (covers 2/3→1, the tail), not the other way round.
             { transform: 'scale(0)', easing: 'ease-in' },
-            { transform: 'scale(1)', offset: 2 / 3, easing: 'ease-out' },
-            { transform: 'scale(1.08)' },
+            { transform: `scale(${maxScale / 1.08})`, offset: 2 / 3, easing: 'ease-out' },
+            { transform: `scale(${maxScale})` },
           ],
           { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
