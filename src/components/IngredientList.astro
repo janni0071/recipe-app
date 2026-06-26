@@ -151,6 +151,17 @@ const { heading, groups, servings, servingsLabel, slug, gatherLabel } = Astro.pr
       checkbox.checked = checked.has(checkbox.dataset.ingKey);
     });
 
+    // Gathering is a cooking-mode-only concept (see global.css) — the
+    // checkboxes are hidden outside it, and `disabled` additionally blocks
+    // the label-click-toggles-its-control behavior browsers still give a
+    // checkbox regardless of display, so clicking ingredient text while just
+    // browsing the recipe can't silently flip state with no visible feedback.
+    function syncDisabled(active) {
+      checkboxes.forEach((checkbox) => { checkbox.disabled = !active; });
+    }
+    syncDisabled(document.documentElement.classList.contains('cooking-mode'));
+    document.addEventListener('cookingmodechange', (e) => syncDisabled(e.detail.active));
+
     container.addEventListener('change', (e) => {
       const checkbox = e.target.closest('.ing-checkbox');
       if (!checkbox) return;

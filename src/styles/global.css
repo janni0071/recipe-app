@@ -96,37 +96,37 @@ body {
   color: #fb923c;
 }
 
-/* Ingredients get a real checkbox instead of a bare bullet, so gathering one
-   and crossing it off its line is the same tap rather than two separate
-   affordances. The checkbox itself takes over the "marker" role the disc
-   bullet played above, so the list-style is dropped here to avoid showing
-   both. */
-.prose ul.ing-list {
+/* Ingredients get a real checkbox instead of a bare bullet, but only inside
+   cooking mode — the app already has a shopping list for tracking what's
+   been bought, so this is scoped to read as a distinct "gather your mise en
+   place while you're actually cooking" moment rather than a second, easily
+   confused checkbox for the same thing. Outside cooking mode the list looks
+   like a plain bullet list (the checkbox stays hidden+disabled, see
+   IngredientList.astro), exactly as it did before this feature existed. */
+.cooking-mode .prose ul.ing-list {
   list-style: none;
   padding-left: 0;
 }
-.ing-row {
+.cooking-mode .ing-row {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   cursor: pointer;
 }
 .ing-checkbox {
+  display: none;
   flex-shrink: 0;
   width: 1.15rem;
   height: 1.15rem;
-  accent-color: #db2777;
-}
-.dark .ing-checkbox {
-  accent-color: #f9a8d4;
 }
 .cooking-mode .ing-checkbox {
+  display: inline-block;
   accent-color: #f97316;
 }
 .dark.cooking-mode .ing-checkbox {
   accent-color: #fb923c;
 }
-.ing-checkbox:checked ~ .ing-text {
+.cooking-mode .ing-checkbox:checked ~ .ing-text {
   text-decoration: line-through;
   opacity: 0.55;
 }
