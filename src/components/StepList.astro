@@ -28,7 +28,7 @@ const {
 } = Astro.props;
 ---
 <div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
-  <div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3">
     <h2 class="!mt-0 !mb-0 flex items-center gap-2">
       <svg class="hidden cooking-mode:inline-block cooking-flame w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
