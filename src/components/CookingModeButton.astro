@@ -334,14 +334,24 @@ const { label, shortLabel, exitLabel } = Astro.props;
         // the ring is already lit up while it's still small and near the
         // click point, fading out only at the very end regardless of how
         // far it's grown by then.
+        //
+        // 'easing' as a top-level option (rather than per-keyframe) warps
+        // progress across the WHOLE duration before keyframes are looked
+        // up, not within each segment — so putting 'ease-out' there (as
+        // this used to) raced the eased progress ahead of real time and
+        // ate into the 0.18–0.7 plateau, fading the ring out well before
+        // 630ms instead of holding it at full brightness until then.
+        // Putting 'ease-out' on the offset-0.7 keyframe instead scopes it
+        // to just the tail segment (0.7→1) it's meant to ease, leaving the
+        // ramp-up and plateau untouched.
         root.animate(
           [
             { opacity: 0 },
             { opacity: 1, offset: 0.18 },
-            { opacity: 1, offset: 0.7 },
+            { opacity: 1, offset: 0.7, easing: 'ease-out' },
             { opacity: 0 },
           ],
-          { duration: 900, fill: 'forwards', easing: 'ease-out', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
+          { duration: 900, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-flame-glow)' }
         );
       });
       // A duplicate-name conflict (see above) makes the browser skip the
