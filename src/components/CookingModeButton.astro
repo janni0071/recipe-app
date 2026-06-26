@@ -88,17 +88,32 @@ const { label, shortLabel, exitLabel } = Astro.props;
     }
   }
 
-  // transition.finished resolving is a promise-level signal, not a
-  // guarantee that the browser has actually painted the animation's last
-  // frame(s) yet — on slower/mobile devices there can be a frame or two of
-  // lag between the two. Waiting two rAF ticks here gives that paint a
-  // chance to land before the (heavier, especially when entering) native
-  // fullscreen UI change runs and potentially clips it.
+  // A couple of paint frames to flush whatever's already on screen — used
+  // as the floor below once the animations' own known duration has
+  // elapsed, so there's still a tiny buffer even on engines where
+  // `transition.finished` tracks them accurately.
   function nextPaint() {
     return new Promise((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
   }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // The longest of the custom pseudo-element animations kicked off in
+  // transition.ready.then() below (the spark opacity fade). `finished` is
+  // supposed to resolve only once every animation on the transition's
+  // pseudo-elements — including these — has actually finished playing, but
+  // that's not reliable on every engine: on Brave/Android it resolves well
+  // ahead of schedule, letting requestFullscreen() clip them mid-flight
+  // regardless of any small fixed buffer added on top. Tracking when the
+  // animations actually started and waiting out whatever's left of this
+  // duration (see the `finished.finally()` below) means fullscreen never
+  // engages earlier than they were always going to take, independent of
+  // what a given engine's `finished` reports.
+  const ANIMATION_DURATION_MS = 1000;
 
   async function enterCookingMode() {
     setActive(true);
@@ -141,6 +156,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
     let pendingTransition = null;
     let pendingGlow = null;
     let pendingSparks = null;
+    let animationsStartedAt = 0;
 
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
@@ -370,6 +386,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       pendingSparks = sparks;
       pendingTransition = transition;
       transition.ready.then(() => {
+        animationsStartedAt = performance.now();
         root.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
           { duration: 600, easing: 'ease-in', pseudoElement: '::view-transition-new(root)' }
@@ -515,6 +532,10 @@ const { label, shortLabel, exitLabel } = Astro.props;
         if (pendingTransition !== transition) return;
         pendingTransition = null;
         root.classList.remove('cooking-mode-wipe');
+        // See the ANIMATION_DURATION_MS comment above: don't trust
+        // `finished` alone for how long the animations actually ran.
+        const remaining = ANIMATION_DURATION_MS - (performance.now() - animationsStartedAt);
+        if (remaining > 0) await sleep(remaining);
         await nextPaint();
         if (activating) {
           requestWakeLock();
