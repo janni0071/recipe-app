@@ -305,19 +305,19 @@ const { label, shortLabel, exitLabel } = Astro.props;
           const dist = sparkCenter * (0.25 + Math.random() * 0.7);
           const sx = sparkCenter + Math.cos(angle) * dist;
           const sy = sparkCenter + Math.sin(angle) * dist;
-          const r = 1.3 + Math.random() * 2.2;
+          const r = 0.8 + Math.random() * 1.2;
           // Percentage-based gradient stops on a radius this small put the
           // dark rim band under a pixel wide (e.g. 8% of a 2px radius),
           // invisible regardless of how much the canvas is later stretched
           // — confirmed by screenshotting a first attempt that used plain
           // percentage stops on `r` directly: every spark just read as a
-          // soft blob, no rim. haloR adds a fixed ~1.6px ring beyond the
+          // soft blob, no rim. haloR adds a fixed ~1px ring beyond the
           // bright core instead, so the rim band's actual pixel width stays
           // roughly constant across every spark's size, not shrinking along
-          // with the smaller ones. (Scaled down from the original 2.2px
-          // alongside the smaller core radius above — keeping it at 2.2
-          // would let the rim swallow these smaller cores entirely.)
-          const haloR = r + 1.6;
+          // with the smaller ones. (Scaled down again alongside the smaller
+          // core radius above — a wider fixed offset would swallow cores
+          // this small entirely.)
+          const haloR = r + 1;
           const coreEdge = r / haloR;
           // Same hot-core-vs-ember-rim contrast logic as the glow ring:
           // most sparks are the mid-tone orange that needs the dark rim to
