@@ -119,12 +119,63 @@ body {
   width: 1.15rem;
   height: 1.15rem;
 }
+/* A bare native checkbox renders flat white/gray regardless of theme, which
+   reads as boring against the warm cooking-mode backdrop. `appearance: none`
+   hands the whole box over to us — warm border at rest (the same #fdba74
+   already used for the ingredients/steps divider below), filled with the
+   same orange-to-rose gradient as the cooking-mode heading once checked. The
+   checkmark has to be baked into an SVG background image since
+   `appearance: none` drops the browser's native one. */
 .cooking-mode .ing-checkbox {
   display: inline-block;
-  accent-color: #f97316;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0.3rem;
+  border: 2px solid #fdba74;
+  background-color: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cooking-mode .ing-checkbox:hover {
+  border-color: #f97316;
+}
+.cooking-mode .ing-checkbox:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+.cooking-mode .ing-checkbox:checked {
+  border-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #f97316, #e11d48);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: 65%, cover;
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.35);
 }
 .dark.cooking-mode .ing-checkbox {
-  accent-color: #fb923c;
+  /* A translucent white border reads as basically invisible against the
+     near-black dark backdrop — a translucent orange keeps the warm
+     theme visible at rest instead of just being darkly boring. */
+  border-color: rgba(251, 146, 60, 0.55);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.dark.cooking-mode .ing-checkbox:hover {
+  border-color: #fb923c;
+}
+.dark.cooking-mode .ing-checkbox:focus-visible {
+  outline-color: #fb923c;
+}
+.dark.cooking-mode .ing-checkbox:checked {
+  /* Same specificity as the :hover rule above (both .dark.cooking-mode
+     .ing-checkbox:<pseudo>), so border-color must be set explicitly here
+     too — otherwise hovering a checked box mid-hover would fall through to
+     :hover's border-color instead of staying transparent. */
+  border-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #fb923c, #fb7185);
+  box-shadow: 0 0 6px rgba(251, 146, 60, 0.3);
 }
 .cooking-mode .ing-checkbox:checked ~ .ing-text {
   text-decoration: line-through;
