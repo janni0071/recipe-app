@@ -1,5 +1,5 @@
 ---
-import { formatAmount, unitAndName, type IngredientGroup } from '../utils/ingredients';
+import { formatAmount, formatIngredientText, unitAndName, type IngredientGroup } from '../utils/ingredients';
 export type { IngredientItem, IngredientGroup } from '../utils/ingredients';
 
 export interface Props {
@@ -7,62 +7,76 @@ export interface Props {
   groups: IngredientGroup[];
   servings: number;
   servingsLabel: string;
+  slug: string;
+  gatherLabel: string;
 }
 
-const { heading, groups, servings, servingsLabel } = Astro.props;
+const { heading, groups, servings, servingsLabel, slug, gatherLabel } = Astro.props;
 ---
-<div class="flex flex-wrap items-center justify-between gap-3">
-  <h2 class="!mt-0 !mb-0">{heading}</h2>
-  <div
-    id="servings-stepper"
-    class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300"
-    data-base-servings={servings}
-  >
-    <span class="print:hidden capitalize">{servingsLabel}</span>
-    <div class="print:hidden flex items-center rounded-full bg-gray-100 cooking-mode:bg-white/55 dark:bg-gray-700 dark:cooking-mode:bg-white/10">
-      <button
-        type="button"
-        id="servings-decrement"
-        aria-label="Decrease servings"
-        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition disabled:opacity-40"
-      >
-        −
-      </button>
-      <span class="servings-value min-w-[2rem] text-center text-base font-semibold text-gray-900 dark:text-gray-100">{servings}</span>
-      <button
-        type="button"
-        id="servings-increment"
-        aria-label="Increase servings"
-        class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition"
-      >
-        +
-      </button>
+<div id="ingredient-list" data-slug={slug}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="!mt-0 !mb-0">{heading}</h2>
+    <div
+      id="servings-stepper"
+      class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300"
+      data-base-servings={servings}
+    >
+      <span class="print:hidden capitalize">{servingsLabel}</span>
+      <div class="print:hidden flex items-center rounded-full bg-gray-100 cooking-mode:bg-white/55 dark:bg-gray-700 dark:cooking-mode:bg-white/10">
+        <button
+          type="button"
+          id="servings-decrement"
+          aria-label="Decrease servings"
+          class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition disabled:opacity-40"
+        >
+          −
+        </button>
+        <span class="servings-value min-w-[2rem] text-center text-base font-semibold text-gray-900 dark:text-gray-100">{servings}</span>
+        <button
+          type="button"
+          id="servings-increment"
+          aria-label="Increase servings"
+          class="w-11 h-11 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 cooking-mode:hover:bg-white/75 cooking-mode:active:bg-white/90 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:cooking-mode:hover:bg-white/15 dark:cooking-mode:active:bg-white/20 transition"
+        >
+          +
+        </button>
+      </div>
+      <span class="hidden print:inline capitalize">
+        <span class="servings-value">{servings}</span> {servingsLabel}
+      </span>
     </div>
-    <span class="hidden print:inline capitalize">
-      <span class="servings-value">{servings}</span> {servingsLabel}
-    </span>
   </div>
-</div>
 
-{groups.map((group) => (
-  <>
-    {group.heading && <h3>{group.heading}</h3>}
-    <ul>
-      {group.items.map((item) => (
-        <li>
-          {item.amount != null && (
-            <>
-              <span class="ing-amount" data-amount={item.amount} data-amount-max={item.amountMax}>
-                {formatAmount(item.amount, item.amountMax)}
-              </span>{' '}
-            </>
-          )}
-          {unitAndName(item.unit, item.name)}
-        </li>
-      ))}
-    </ul>
-  </>
-))}
+  {groups.map((group, groupIndex) => (
+    <>
+      {group.heading && <h3>{group.heading}</h3>}
+      <ul class="ing-list">
+        {group.items.map((item, itemIndex) => (
+          <li>
+            <label class="ing-row">
+              <input
+                type="checkbox"
+                class="ing-checkbox"
+                data-ing-key={`${groupIndex}-${itemIndex}`}
+                aria-label={`${gatherLabel}: ${formatIngredientText(item)}`}
+              />
+              <span class="ing-text">
+                {item.amount != null && (
+                  <>
+                    <span class="ing-amount" data-amount={item.amount} data-amount-max={item.amountMax}>
+                      {formatAmount(item.amount, item.amountMax)}
+                    </span>{' '}
+                  </>
+                )}
+                {unitAndName(item.unit, item.name)}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+</div>
 
 <script is:inline>
   function initServingsStepper() {
@@ -103,4 +117,49 @@ const { heading, groups, servings, servingsLabel } = Astro.props;
   }
 
   document.addEventListener('astro:page-load', initServingsStepper);
+</script>
+
+<script is:inline>
+  // Checked-off ingredients persist per recipe across reloads and locale
+  // switches, keyed by the same locale-agnostic slug FavoriteButton and
+  // ShoppingListButton use — one shared localStorage object rather than one
+  // key per recipe, matching that existing convention.
+  function readCheckedIngredientsStore() {
+    try {
+      return JSON.parse(localStorage.getItem('checked-ingredients') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function writeCheckedIngredientsForSlug(slug, keys) {
+    const store = readCheckedIngredientsStore();
+    if (keys.size) store[slug] = [...keys];
+    else delete store[slug];
+    localStorage.setItem('checked-ingredients', JSON.stringify(store));
+  }
+
+  function initIngredientChecklist() {
+    const container = document.getElementById('ingredient-list');
+    if (!container) return;
+    const slug = container.dataset.slug;
+    if (!slug) return;
+
+    const checkboxes = Array.from(container.querySelectorAll('.ing-checkbox'));
+    const checked = new Set(readCheckedIngredientsStore()[slug] || []);
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = checked.has(checkbox.dataset.ingKey);
+    });
+
+    container.addEventListener('change', (e) => {
+      const checkbox = e.target.closest('.ing-checkbox');
+      if (!checkbox) return;
+      const keys = new Set(readCheckedIngredientsStore()[slug] || []);
+      if (checkbox.checked) keys.add(checkbox.dataset.ingKey);
+      else keys.delete(checkbox.dataset.ingKey);
+      writeCheckedIngredientsForSlug(slug, keys);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initIngredientChecklist);
 </script>

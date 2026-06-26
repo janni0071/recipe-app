@@ -96,6 +96,41 @@ body {
   color: #fb923c;
 }
 
+/* Ingredients get a real checkbox instead of a bare bullet, so gathering one
+   and crossing it off its line is the same tap rather than two separate
+   affordances. The checkbox itself takes over the "marker" role the disc
+   bullet played above, so the list-style is dropped here to avoid showing
+   both. */
+.prose ul.ing-list {
+  list-style: none;
+  padding-left: 0;
+}
+.ing-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+.ing-checkbox {
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: #db2777;
+}
+.dark .ing-checkbox {
+  accent-color: #f9a8d4;
+}
+.cooking-mode .ing-checkbox {
+  accent-color: #f97316;
+}
+.dark.cooking-mode .ing-checkbox {
+  accent-color: #fb923c;
+}
+.ing-checkbox:checked ~ .ing-text {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
 /* Steps (ordered lists) – card-like with proper indentation */
 .prose ol {
   margin: 1rem 0;
@@ -243,6 +278,48 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .cooking-flame {
+    animation: none;
+  }
+}
+
+/* The cooking-mode button's own flame sits among plain icon buttons outside
+   cooking mode, where flickering all the time would draw more attention
+   than the icon deserves on every single page load. Pausing the same
+   flicker keyframes by default and only releasing them on hover/focus
+   foreshadows the blaze right when a click is actually likely. */
+.cooking-mode-button-flame {
+  transform-origin: 50% 100%;
+  animation: cooking-flame-flicker 1.4s ease-in-out infinite;
+  animation-play-state: paused;
+}
+#cooking-mode-button:hover .cooking-mode-button-flame,
+#cooking-mode-button:focus-visible .cooking-mode-button-flame {
+  animation-play-state: running;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cooking-mode-button-flame {
+    animation: none;
+  }
+}
+
+/* Completion card shown once the step navigator (see StepList.astro)
+   reaches the last step — a slow ambient glow rather than a one-shot
+   flash, since it stays on screen for as long as you're reading the final
+   step, not just for an instant. */
+@keyframes step-complete-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(249, 115, 22, 0.32);
+  }
+}
+#step-complete {
+  animation: step-complete-glow 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  #step-complete {
     animation: none;
   }
 }

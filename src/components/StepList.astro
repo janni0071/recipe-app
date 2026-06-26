@@ -11,6 +11,7 @@ export interface Props {
   cancelTimerLabel: string;
   timerDoneLabel: string;
   extendTimerLabel: string;
+  allDoneLabel: string;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   cancelTimerLabel,
   timerDoneLabel,
   extendTimerLabel,
+  allDoneLabel,
 } = Astro.props;
 ---
 <div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
@@ -81,6 +83,10 @@ const {
       </li>
     ))}
   </ol>
+  <div id="step-complete" class="hidden mt-4 rounded-2xl px-6 py-8 text-center bg-white/55 dark:bg-white/10 ring-1 ring-rose-300/60 dark:ring-rose-400/30" aria-live="polite">
+    <p class="text-3xl mb-2" aria-hidden="true">🎉</p>
+    <p class="text-lg font-semibold text-gray-900 dark:text-white">{allDoneLabel}</p>
+  </div>
 </div>
 
 <div
@@ -102,12 +108,14 @@ const {
     const prevBtn = document.getElementById('step-prev');
     const nextBtn = document.getElementById('step-next');
     const progressEl = document.getElementById('step-progress');
+    const completeEl = document.getElementById('step-complete');
     const progressTemplate = container.dataset.progressTemplate || '';
 
     let current = 0;
     let cookingModeActive = document.documentElement.classList.contains('cooking-mode');
 
     function render({ scroll = true } = {}) {
+      const onLastStep = current === items.length - 1;
       items.forEach((li, i) => {
         li.classList.toggle('hidden', cookingModeActive && i !== current);
       });
@@ -116,6 +124,13 @@ const {
         .replace('{total}', String(items.length));
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === items.length - 1;
+
+      // The celebration card only makes sense one-step-at-a-time — outside
+      // cooking mode every step (including the last) is already visible at
+      // once, so there's no single "arrival" moment to celebrate.
+      const showComplete = cookingModeActive && onLastStep;
+      const wasHidden = completeEl.classList.contains('hidden');
+      completeEl.classList.toggle('hidden', !showComplete);
 
       // Steps vary in length, so without this the next step can start below
       // the fold (or its timer button can) depending on how far the previous
@@ -142,6 +157,15 @@ const {
             ],
             { duration: 180, easing: 'ease-out' }
           );
+          if (showComplete && wasHidden) {
+            completeEl.animate(
+              [
+                { opacity: 0, transform: 'scale(0.95)' },
+                { opacity: 1, transform: 'scale(1)' },
+              ],
+              { duration: 260, easing: 'ease-out' }
+            );
+          }
         }
       }
     }
