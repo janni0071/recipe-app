@@ -62,7 +62,18 @@ const {
       </li>
     ))}
   </ol>
-  <div class="hidden cooking-mode:flex items-center justify-between gap-3 mt-6">
+  <div class="hidden cooking-mode:block mt-6">
+    <div
+      id="step-progress-bar-track"
+      class="h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden"
+      role="progressbar"
+      aria-valuemin="1"
+      aria-valuemax={steps.length}
+    >
+      <div id="step-progress-bar" class="h-full rounded-full bg-linear-to-r from-orange-500 to-rose-600 dark:from-orange-400 dark:to-rose-400 transition-all duration-300 ease-out" style="width: 0%" />
+    </div>
+  </div>
+  <div class="hidden cooking-mode:flex items-center justify-between gap-3 mt-3">
     <button
       type="button"
       id="step-prev"
@@ -106,6 +117,8 @@ const {
     const prevBtn = document.getElementById('step-prev');
     const nextBtn = document.getElementById('step-next');
     const progressEl = document.getElementById('step-progress');
+    const progressBarFill = document.getElementById('step-progress-bar');
+    const progressBarTrack = document.getElementById('step-progress-bar-track');
     const completeEl = document.getElementById('step-complete');
     const progressTemplate = container.dataset.progressTemplate || '';
 
@@ -122,6 +135,10 @@ const {
         .replace('{total}', String(items.length));
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === items.length - 1;
+
+      progressBarFill.style.width = `${((current + 1) / items.length) * 100}%`;
+      progressBarTrack.setAttribute('aria-valuenow', String(current + 1));
+      progressBarTrack.setAttribute('aria-valuetext', progressEl.textContent);
 
       // The celebration card only makes sense one-step-at-a-time — outside
       // cooking mode every step (including the last) is already visible at
