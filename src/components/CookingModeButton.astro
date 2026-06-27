@@ -230,6 +230,25 @@ const { label, shortLabel, exitLabel } = Astro.props;
         return;
       }
 
+      // TEMPORARY diagnostic — see debugLog above. A resize of the document
+      // or visual viewport during an active transition is documented to
+      // make the browser skip/end it early; logging these alongside the
+      // scrollHeight/scrollY at each stage will show whether toggling
+      // .cooking-mode (which hides/shows the header+footer and changes
+      // ingredient text size) is triggering one.
+      const logViewport = (label) => {
+        debugLog(
+          `${label} scrollHeight=${document.documentElement.scrollHeight} innerHeight=${window.innerHeight} ` +
+            `vvHeight=${window.visualViewport ? window.visualViewport.height : 'n/a'} scrollY=${window.scrollY}`
+        );
+      };
+      const onDebugResize = () => debugLog(`window 'resize' event — innerHeight=${window.innerHeight}`);
+      const onDebugVVResize = () =>
+        debugLog(`visualViewport 'resize' event — height=${window.visualViewport.height}`);
+      window.addEventListener('resize', onDebugResize);
+      window.visualViewport?.addEventListener('resize', onDebugVVResize);
+      logViewport('pre-transition viewport');
+
       // Tear down a still-pending wipe from a previous click before this
       // one's glow div claims the same view-transition-name (see comment
       // on the pendingTransition/pendingGlow declarations above).
@@ -320,6 +339,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const transition = document.startViewTransition(() => {
         debugLog('update callback running (DOM mutated here)');
         setActive(activating);
+        logViewport('post-mutation viewport');
         glow = document.createElement('div');
         // Both cooking-mode backdrops (light: amber/orange/rose pastels, dark:
         // near-black with a rose tint) are themselves warm-toned, so a glow
@@ -403,6 +423,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       pendingTransition = transition;
       transition.ready.then(() => {
         debugLog('ready RESOLVED — kicking off animations');
+        logViewport('post-ready viewport');
         root.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
           { duration: 600, easing: 'ease-in', pseudoElement: '::view-transition-new(root)' }
@@ -539,6 +560,9 @@ const { label, shortLabel, exitLabel } = Astro.props;
       });
       transition.finished.finally(() => {
         debugLog(`finished SETTLED (stale=${pendingTransition !== transition})`);
+        logViewport('post-finished viewport');
+        window.removeEventListener('resize', onDebugResize);
+        window.visualViewport?.removeEventListener('resize', onDebugVVResize);
         if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
         if (pendingSparks === sparks) pendingSparks = null;
