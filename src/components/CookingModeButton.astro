@@ -96,6 +96,18 @@ const { label, shortLabel, exitLabel } = Astro.props;
     document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
   }
 
+  // Separate from setActive(): this toggles `cooking-mode-chrome`, the variant
+  // that hides/shows the header, footer, tags row, similar-recipes section and
+  // the inline favorite/share/print row — everything whose hide/show changes
+  // the page's height. Kept apart from the `cooking-mode` class above (which
+  // still toggles instantly, for the colors/text-size the wipe needs to reveal
+  // immediately) so callers can defer just this one until a view transition
+  // is no longer in flight. See the comment above root.classList.add(
+  // 'cooking-mode-wipe') below for why that matters.
+  function setChromeHidden(hidden) {
+    document.documentElement.classList.toggle('cooking-mode-chrome', hidden);
+  }
+
   async function releaseWakeLock() {
     if (window.__cookingModeWakeLock) {
       try {
@@ -120,6 +132,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
 
   async function enterCookingMode() {
     setActive(true);
+    setChromeHidden(true);
     requestWakeLock();
     // iOS Safari has no Fullscreen API for arbitrary elements, so this is
     // a progressive enhancement on top of the CSS-driven immersive layout
@@ -135,6 +148,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
 
   async function exitCookingMode() {
     setActive(false);
+    setChromeHidden(false);
     releaseWakeLock();
     if (document.fullscreenElement) {
       try {
@@ -329,11 +343,15 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const sparkCount = 32;
       let sparks;
 
-      // Only the synchronous class toggle goes through the view transition.
-      // Fullscreen is held back until the transition is over (below):
-      // toggling it resizes the viewport, and a resize during an active view
+      // Only the `cooking-mode` class toggle (colors/text-size) goes through
+      // the view transition synchronously. Fullscreen AND the chrome-hide
+      // (header/footer/tags/etc, via cooking-mode-chrome) are both held back
+      // until the transition is over (below): toggling either one changes
+      // the viewport or document height, and a resize during an active view
       // transition makes the browser silently skip it — exactly the kind of
-      // race that would explain the wipe only sometimes showing up.
+      // race that would explain the wipe only sometimes showing up. (Confirmed
+      // on real devices via the debug overlay: a resize event was landing
+      // within single-digit ms of `finished` settling tens of times early.)
       root.classList.add('cooking-mode-wipe');
       debugLog('calling startViewTransition');
       const transition = document.startViewTransition(() => {
@@ -576,6 +594,12 @@ const { label, shortLabel, exitLabel } = Astro.props;
         if (pendingTransition !== transition) return;
         pendingTransition = null;
         root.classList.remove('cooking-mode-wipe');
+        // Deferred until here (see the comment above root.classList.add(
+        // 'cooking-mode-wipe') above) so this height-changing mutation never
+        // lands while the transition is still active.
+        debugLog(`calling setChromeHidden(${activating})`);
+        setChromeHidden(activating);
+        logViewport('post-chrome-toggle viewport');
         if (activating) {
           requestWakeLock();
           debugLog('calling requestFullscreen');

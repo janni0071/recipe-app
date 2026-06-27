@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant cooking-mode (&:where(.cooking-mode, .cooking-mode *));
+/* Separate from `cooking-mode` above: this one drives every hide/show that
+   changes the page's height (header, footer, tags, similar-recipes, the
+   inline favorite/share/print row). It's toggled a beat later than
+   `cooking-mode` itself — see CookingModeButton.astro — so that mutation
+   never lands while a view transition is in flight, which is what was
+   making mobile browsers resize and silently abort the wipe mid-flight. */
+@custom-variant cooking-mode-chrome (&:where(.cooking-mode-chrome, .cooking-mode-chrome *));
 
 /* Base body font – clean sans‑serif using system UI stack */
 body {
