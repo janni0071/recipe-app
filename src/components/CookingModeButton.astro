@@ -81,8 +81,8 @@ const { label, shortLabel, exitLabel } = Astro.props;
   // font-size bump — every mutation that changes the page's height. Kept
   // apart from the `cooking-mode` class above (which still toggles instantly,
   // for the colors/text-fill right under the tap) so the click handler below
-  // can defer it until the whole wipe/glow/spark show has settled — see the
-  // comment on the deferred Promise.all further down.
+  // can defer it until the mask's hole has finished growing — see the
+  // comment on maskAnim.finished further down.
   // The wipe's "old state" snapshot (see bindCookingModeButton below) clones
   // <body> into a Shadow DOM tree so it stays visually frozen at the
   // pre-toggle cooking-mode/cooking-mode-layout state even after the real
@@ -455,11 +455,14 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // none of this is visible until the hole-grow animation below starts
       // eating into it. Only the `cooking-mode` class (colors/backgrounds)
       // changes here — cooking-mode-layout (header/footer/step-list
-      // collapse/etc, see setCookingModeLayout below) still waits until the
-      // whole wipe+glow+spark show is done rather than tracking the hole's
-      // growth, exactly like the original view-transition build, which
-      // only ever animated the `cooking-mode` class's colors through the
-      // wipe itself.
+      // collapse/etc, see setCookingModeLayout below) waits until
+      // maskAnim.finished instead, rather than tracking the hole's growth
+      // itself: colors apply to whatever's already in the box the snapshot
+      // froze, but collapsing/growing layout moves content to different
+      // boxes entirely, so revealing it mid-wipe makes the live page (in
+      // its new, shorter/taller layout) and the frozen snapshot (still in
+      // the old one) show the same content at two different positions at
+      // once. See the comment on maskAnim.finished further down.
       setActive(activating);
 
       const maskAnim = snapshotHost.animate(
@@ -564,23 +567,39 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // it can just be dropped. No second "reveal" phase needed, unlike the
       // old opaque-fill design: the live page underneath was the real,
       // already-mutated page the entire time.
+      //
+      // cooking-mode-layout's height-changing mutations (header/footer,
+      // step-list collapse, ingredient font-size) land right here too, not
+      // earlier: tried firing them in lockstep with the hole's growth, same
+      // as `cooking-mode`'s colors, and it doesn't work like that fix did —
+      // those colors apply to whatever's already in the box the snapshot
+      // froze, but collapsing/growing layout moves content to different
+      // boxes entirely, so the live page visible through the hole and the
+      // frozen snapshot around it end up showing the same heading or photo
+      // at two different positions at once mid-wipe. Landing it the instant
+      // the snapshot is gone — rather than waiting for the slower glow/spark
+      // decoration to also finish (~300-400ms later) — at least lands it on
+      // the same beat as the wipe's own finish instead of as a separate,
+      // detached snap afterward.
       maskAnim.finished
         .then(() => {
           if (pendingSnapshot === snapshotHost) pendingSnapshot = null;
           snapshotHost.remove();
+          // A later click may have already cancelled this one and started
+          // its own — don't mutate state on its behalf.
+          if (myToken !== activeToken) return;
+          setCookingModeLayout(activating);
         })
         .catch(() => {
           // Cancelled by a newer click (see above) — that click already
           // removed this snapshot directly.
         });
 
-      // Deferred until every wipe/glow/spark animation has settled — same
-      // as the original view-transition build deferring this past
-      // transition.finished — so none of cooking-mode-layout's height-
-      // changing mutations (header/footer, step-list collapse, ingredient
-      // font-size) land while any of this is still in flight.
+      // Wake lock/fullscreen wait for the glow/spark decoration too, not
+      // just the mask: requestFullscreen() can resize the viewport, and the
+      // glow ring/spark canvas are still animating toward an endRadius
+      // computed from the pre-fullscreen dimensions at that point.
       Promise.all([
-        maskAnim.finished,
         flashAnim.finished,
         glowScaleAnim.finished,
         glowOpacityAnim.finished,
@@ -592,7 +611,6 @@ const { label, shortLabel, exitLabel } = Astro.props;
           // its own — don't mutate state on its behalf.
           if (myToken !== activeToken) return;
 
-          setCookingModeLayout(activating);
           if (activating) {
             requestWakeLock();
             if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
