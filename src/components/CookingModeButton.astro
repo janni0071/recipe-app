@@ -49,6 +49,36 @@ const { label, shortLabel, exitLabel } = Astro.props;
   // astro:page-load pattern as ShareButton/PrintButton. Labels live in data
   // attributes read fresh at toggle time, so nothing here goes stale.
   //
+  // TEMPORARY diagnostic overlay for tracking down the Brave/Chrome/Edge
+  // entry-animation clipping bug — logs timestamped lifecycle events
+  // straight to an on-screen panel so this can be read off a phone screen
+  // without devtools. Remove once that's resolved.
+  let debugClickStart = 0;
+  function debugLog(msg, reset) {
+    const panel = document.getElementById('cooking-mode-debug');
+    if (!panel) return;
+    if (reset) {
+      debugClickStart = performance.now();
+      panel.textContent = '';
+    }
+    const t = (performance.now() - debugClickStart).toFixed(0);
+    panel.textContent += `+${t}ms ${msg}\n`;
+    panel.scrollTop = panel.scrollHeight;
+  }
+  function initDebugPanel() {
+    if (document.getElementById('cooking-mode-debug')) return;
+    const panel = document.createElement('div');
+    panel.id = 'cooking-mode-debug';
+    panel.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:2147483647;max-height:42vh;overflow-y:auto;' +
+      'background:rgba(0,0,0,0.85);color:#39ff14;font:11px/1.4 ui-monospace,monospace;' +
+      'padding:6px 8px;pointer-events:none;white-space:pre-wrap;';
+    panel.textContent =
+      `[diag] startViewTransition=${!!document.startViewTransition} ` +
+      `reduceMotion=${window.matchMedia('(prefers-reduced-motion: reduce)').matches}\n`;
+    document.body.appendChild(panel);
+  }
+
   // setActive/enterCookingMode/exitCookingMode live at module scope (rather
   // than closing over a single page-load's button) because the
   // keydown/astro:before-swap listeners below are only ever bound once
@@ -119,6 +149,8 @@ const { label, shortLabel, exitLabel } = Astro.props;
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
 
+    initDebugPanel();
+
     // Tracks this button's own in-flight wipe so a second click landing
     // before the previous one's cleanup ran can tear it down first. Without
     // this, the new click's glow div gets appended — carrying the same
@@ -171,6 +203,11 @@ const { label, shortLabel, exitLabel } = Astro.props;
           exitCookingMode();
         }
       });
+
+      // TEMPORARY diagnostic — see debugLog above.
+      document.addEventListener('fullscreenchange', () => {
+        debugLog(`fullscreenchange event, fullscreenElement=${!!document.fullscreenElement}`);
+      });
     }
 
     button.addEventListener('click', (e) => {
@@ -182,7 +219,12 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // button click is the one place we have a pointer position to anchor
       // the reveal on, so only it gets the animated treatment.
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      debugLog(
+        `click activating=${activating} vtSupported=${!!document.startViewTransition} reduceMotion=${reduceMotion}`,
+        true
+      );
       if (!document.startViewTransition || reduceMotion) {
+        debugLog('fallback path — no view transition, calling enter/exitCookingMode directly');
         if (activating) enterCookingMode();
         else exitCookingMode();
         return;
@@ -274,7 +316,9 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // transition makes the browser silently skip it — exactly the kind of
       // race that would explain the wipe only sometimes showing up.
       root.classList.add('cooking-mode-wipe');
+      debugLog('calling startViewTransition');
       const transition = document.startViewTransition(() => {
+        debugLog('update callback running (DOM mutated here)');
         setActive(activating);
         glow = document.createElement('div');
         // Both cooking-mode backdrops (light: amber/orange/rose pastels, dark:
@@ -358,6 +402,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       pendingSparks = sparks;
       pendingTransition = transition;
       transition.ready.then(() => {
+        debugLog('ready RESOLVED — kicking off animations');
         root.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
           { duration: 600, easing: 'ease-in', pseudoElement: '::view-transition-new(root)' }
@@ -482,14 +527,18 @@ const { label, shortLabel, exitLabel } = Astro.props;
           ],
           { duration: 1000, fill: 'forwards', pseudoElement: '::view-transition-new(cooking-mode-sparks)' }
         );
+        debugLog('animate() calls issued');
       });
       // A duplicate-name conflict (see above) makes the browser skip the
       // transition outright, rejecting `ready` with nothing to catch it —
       // not an error worth surfacing, since the cooking-mode toggle itself
       // (inside the startViewTransition callback above) already went
       // through regardless; only the wipe/glow animation was skipped.
-      transition.ready.catch(() => {});
+      transition.ready.catch((err) => {
+        debugLog(`ready REJECTED: ${err}`);
+      });
       transition.finished.finally(() => {
+        debugLog(`finished SETTLED (stale=${pendingTransition !== transition})`);
         if (pendingGlow === glow) pendingGlow = null;
         glow.remove();
         if (pendingSparks === sparks) pendingSparks = null;
@@ -505,10 +554,22 @@ const { label, shortLabel, exitLabel } = Astro.props;
         root.classList.remove('cooking-mode-wipe');
         if (activating) {
           requestWakeLock();
-          if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
+          debugLog('calling requestFullscreen');
+          if (root.requestFullscreen) {
+            root.requestFullscreen().then(
+              () => debugLog('requestFullscreen GRANTED'),
+              (err) => debugLog(`requestFullscreen DENIED: ${err}`)
+            );
+          }
         } else {
           releaseWakeLock();
-          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+          debugLog('calling exitFullscreen');
+          if (document.fullscreenElement) {
+            document.exitFullscreen().then(
+              () => debugLog('exitFullscreen done'),
+              (err) => debugLog(`exitFullscreen error: ${err}`)
+            );
+          }
         }
       });
     });
