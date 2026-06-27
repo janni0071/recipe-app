@@ -1,10 +1,11 @@
 ---
 export interface Props {
   label: string;
+  shortLabel: string;
   exitLabel: string;
 }
 
-const { label, exitLabel } = Astro.props;
+const { label, shortLabel, exitLabel } = Astro.props;
 ---
 
 <button
@@ -15,9 +16,9 @@ const { label, exitLabel } = Astro.props;
   data-exit-label={exitLabel}
   aria-label={label}
   aria-pressed="false"
-  class="group flex-shrink-0 ml-auto inline-flex items-center gap-2 px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 text-pink-800 dark:text-pink-100 font-semibold leading-none transition"
+  class="group flex-shrink-0 ml-auto inline-flex items-center px-2.5 sm:px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 text-pink-800 dark:text-pink-100 font-semibold leading-none transition cooking-mode:bg-linear-to-r cooking-mode:from-orange-500 cooking-mode:to-rose-600 cooking-mode:hover:brightness-110 cooking-mode:active:brightness-95 cooking-mode:text-white dark:cooking-mode:from-orange-400 dark:cooking-mode:to-rose-400"
 >
-  <svg class="w-5 h-5 group-data-[active=true]:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg class="cooking-mode-button-flame w-5 h-5 group-data-[active=true]:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
       stroke-width="2"
@@ -28,22 +29,41 @@ const { label, exitLabel } = Astro.props;
   <svg class="hidden w-5 h-5 group-data-[active=true]:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round"></path>
   </svg>
-  <span class="group-data-[active=true]:hidden">{label}</span>
-  <span class="hidden group-data-[active=true]:block">{exitLabel}</span>
+  {/* Full label pushes the 5-button header row past the available width on
+  narrow phones, so below sm: it's swapped for a short one instead of being
+  dropped entirely — a bare icon blended in with the other plain icon
+  buttons and lost the "tap me" prominence the text was added for. The exit
+  label stays untouched since by then it's the only button left in the row.
+  Spacing to the icon is margin on the text itself (not a flex `gap` on the
+  button) so the icon stays centered when a label is hidden — a gap would
+  still reserve space for this span even with no visible content.
+  Swapped on `cooking-mode-layout`, not `data-active` directly — these two
+  labels differ in width, and swapping instantly (mid-transition, before the
+  sibling header buttons are hidden) can tip the still-crowded button row
+  into an extra flex-wrap line, changing the page's height while the wipe is
+  still in flight. Deferring it alongside everything else that affects
+  height (see global.css/CookingModeButton.astro) avoids that. The icon
+  swap above stays on `data-active` since two fixed 20×20 icons swapping has
+  no layout impact and needs to track the wipe's reveal point instantly. */}
+  <span class="cooking-mode-layout:hidden">
+    <span class="sm:hidden ml-1.5">{shortLabel}</span>
+    <span class="hidden sm:inline ml-2">{label}</span>
+  </span>
+  <span class="hidden cooking-mode-layout:block ml-2">{exitLabel}</span>
 </button>
 
 <script is:inline>
   // Generic, identical content on every recipe page — same dedup-safe
   // astro:page-load pattern as ShareButton/PrintButton. Labels live in data
   // attributes read fresh at toggle time, so nothing here goes stale.
-  //
+
   // setActive/enterCookingMode/exitCookingMode live at module scope (rather
   // than closing over a single page-load's button) because the
-  // fullscreenchange/astro:before-swap listeners below are only ever bound
-  // once (window.__cookingModeBound guards against piling up a listener per
+  // keydown/astro:before-swap listeners below are only ever bound once
+  // (window.__cookingModeBound guards against piling up a listener per
   // navigation). If they closed over one navigation's button, every later
-  // navigation's exit-via-back-gesture would update a detached button
-  // instead of whatever button is actually live on screen.
+  // navigation's exit-via-Escape would update a detached button instead of
+  // whatever button is actually live on screen.
   function setActive(active) {
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
@@ -51,6 +71,53 @@ const { label, exitLabel } = Astro.props;
     button.setAttribute('aria-pressed', String(active));
     button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
     document.documentElement.classList.toggle('cooking-mode', active);
+  }
+
+  // Separate from setActive(): this toggles `cooking-mode-layout`, the variant
+  // that hides/shows the header, footer, tags row, similar-recipes section,
+  // the inline favorite/share/print row, AND (via the cookingmodechange event
+  // dispatched here) StepList's one-step-at-a-time collapse, its per-step
+  // timer button/progress bar/prev-next controls, and the ingredient list's
+  // font-size bump — every mutation that changes the page's height. Kept
+  // apart from the `cooking-mode` class above (which still toggles instantly,
+  // for the colors/text-fill right under the tap) so the click handler below
+  // can defer it until the mask's hole has finished growing — see the
+  // comment on maskAnim.finished further down.
+  // The wipe's "old state" snapshot (see bindCookingModeButton below) clones
+  // <body> into a Shadow DOM tree so it stays visually frozen at the
+  // pre-toggle cooking-mode/cooking-mode-layout state even after the real
+  // <html>'s classes flip. A plain (non-shadow) clone has no such immunity:
+  // `cooking-mode *` matches on ANY ancestor having the class, not just the
+  // nearest one, so a clone inserted anywhere under the real (about to be
+  // mutated) <html> would pick up its new classes regardless of what's set
+  // on the clone itself. A shadow tree's adopted stylesheet only matches
+  // elements inside that same tree, so the real <html>'s classes can't
+  // reach in. Built once and cached rather than per click, since
+  // constructing a stylesheet from the page's full compiled CSS isn't free.
+  let cachedSnapshotStyleSheets = null;
+  function getSnapshotStyleSheets() {
+    if (cachedSnapshotStyleSheets) return cachedSnapshotStyleSheets;
+    cachedSnapshotStyleSheets = Array.from(document.styleSheets)
+      .map((sheet) => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join('\n');
+        } catch {
+          return ''; // Cross-origin sheet — unreadable, and not needed here.
+        }
+      })
+      .filter(Boolean)
+      .map((cssText) => {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(cssText);
+        return sheet;
+      });
+    return cachedSnapshotStyleSheets;
+  }
+
+  function setCookingModeLayout(active) {
+    document.documentElement.classList.toggle('cooking-mode-layout', active);
     document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
   }
 
@@ -78,6 +145,7 @@ const { label, exitLabel } = Astro.props;
 
   async function enterCookingMode() {
     setActive(true);
+    setCookingModeLayout(true);
     requestWakeLock();
     // iOS Safari has no Fullscreen API for arbitrary elements, so this is
     // a progressive enhancement on top of the CSS-driven immersive layout
@@ -93,6 +161,7 @@ const { label, exitLabel } = Astro.props;
 
   async function exitCookingMode() {
     setActive(false);
+    setCookingModeLayout(false);
     releaseWakeLock();
     if (document.fullscreenElement) {
       try {
@@ -107,24 +176,51 @@ const { label, exitLabel } = Astro.props;
     const button = document.getElementById('cooking-mode-button');
     if (!button) return;
 
+    // Tracks this button's own in-flight wipe so a second click landing
+    // before the previous one's cleanup ran can tear it down first, rather
+    // than piling up overlapping overlays/glows/sparks.
+    let pendingSnapshot = null;
+    let pendingGlow = null;
+    let pendingSparks = null;
+    let pendingAnimations = [];
+    // Bumped once per click; deferred work below compares against it rather
+    // than against pendingSnapshot directly, since pendingSnapshot is
+    // legitimately cleared by this same click's own (earlier) cleanup well
+    // before its later (layout) cleanup runs — a stale check against it
+    // would otherwise mistake its own click for a superseded one.
+    let activeToken = 0;
+
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
 
-      // Syncs state when the user backs out via Escape or a back-gesture
-      // instead of clicking our own button.
-      document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && document.documentElement.classList.contains('cooking-mode')) {
-          setActive(false);
-          releaseWakeLock();
+      // Fullscreen gets exited by plenty of things besides a deliberate
+      // "leave cooking mode" action — screen lock, switching apps, a
+      // phone's hardware back button — and whether the document even
+      // reports itself as hidden when that happens is inconsistent across
+      // browsers (Brave doesn't mark it hidden on screen lock the way
+      // Chrome/Firefox do, so that can't be used to tell the cases apart
+      // reliably). So losing fullscreen no longer ends cooking mode by
+      // itself: the wake lock and any running timers stay alive, and the
+      // still-visible exit button (or Escape, below) is how you actually
+      // leave.
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.documentElement.classList.contains('cooking-mode')) {
+          exitCookingMode();
         }
       });
 
       // The Wake Lock is auto-released by the browser whenever the page
       // loses visibility (tab switch, screen lock) — reacquire it once
       // we're back, but only if cooking mode is still meant to be on.
+      // Fullscreen may have been force-exited too (see above); best-effort
+      // re-request it, though most browsers require a fresh user gesture
+      // to grant that, so this silently no-ops there.
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && document.documentElement.classList.contains('cooking-mode')) {
           requestWakeLock();
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
         }
       });
 
@@ -137,12 +233,396 @@ const { label, exitLabel } = Astro.props;
       });
     }
 
-    button.addEventListener('click', () => {
-      if (button.dataset.active === 'true') {
-        exitCookingMode();
-      } else {
-        enterCookingMode();
+    button.addEventListener('click', (e) => {
+      const activating = button.dataset.active !== 'true';
+
+      // Escape/before-swap/visibilitychange reuse enter/exitCookingMode
+      // directly (no click coordinates, and a multi-hundred-ms wipe has no
+      // business delaying an "I'm leaving" or background re-sync). The
+      // button click is the one place we have a pointer position to anchor
+      // the reveal on, so only it gets the animated treatment.
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion) {
+        if (activating) enterCookingMode();
+        else exitCookingMode();
+        return;
       }
+
+      // A second click landing before the previous wipe's cleanup ran tears
+      // that one down first. Cancelling its animations rejects their
+      // `finished` promises (caught further down), so the older chain's
+      // mutate/reveal/cleanup steps never run, and its elements are gone
+      // before the new ones go up.
+      pendingAnimations.forEach((anim) => anim.cancel());
+      pendingAnimations = [];
+      pendingSnapshot?.remove();
+      pendingGlow?.remove();
+      pendingSparks?.remove();
+      const myToken = ++activeToken;
+
+      const root = document.documentElement;
+      const x = e.clientX;
+      const y = e.clientY;
+      const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+      // The page's pre-toggle appearance has to stay visible everywhere the
+      // wipe hasn't reached yet, while the live page underneath gets
+      // mutated to its post-toggle state right now (see setActive() below)
+      // — so a clone of <body>, taken before any of that happens, sits on
+      // top of the live page with a mask that's opaque everywhere except a
+      // circle that grows from the tap point, letting the live (already
+      // new) page show through only inside that circle as it grows. This
+      // used to come for free from document.startViewTransition(): its
+      // automatic ::view-transition-old(root) snapshot is a flat raster
+      // image, immune to any DOM mutation that follows it. A live DOM clone
+      // has no such immunity on its own — see getSnapshotStyleSheets()
+      // above for how the Shadow DOM wrapper below gets it that immunity.
+      //
+      // This used to be built on document.startViewTransition() entirely,
+      // purely to get that automatic dual-snapshot behavior. Real devices
+      // were silently aborting it mid-flight: their browser UI chrome (the
+      // address/toolbar bar) reacts to the very tap that starts the
+      // transition, firing a resize the page can neither detect nor
+      // prevent, and the View Transitions spec treats any resize during an
+      // active transition as automatic grounds to cancel it — confirmed
+      // across several rounds of real-device retesting and CSS fixes that
+      // ruled out every other cause, including reproducing it with
+      // document.documentElement.scrollHeight provably unchanged for the
+      // whole transition. Plain DOM elements have nothing to do with view
+      // transitions and are never subject to that abort, and cloneNode is a
+      // native structural copy — far cheaper than rasterizing the page into
+      // an image to fake the same effect, which is the only reason a
+      // screenshot-based approach (e.g. html2canvas) was ever a candidate.
+      const snapshotHost = document.createElement('div');
+      snapshotHost.inert = true;
+      snapshotHost.setAttribute('aria-hidden', 'true');
+      snapshotHost.style.cssText =
+        `position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:9999;` +
+        `--cooking-mode-hole-r:0px;` +
+        `mask-image:radial-gradient(circle at ${x}px ${y}px, transparent var(--cooking-mode-hole-r), white var(--cooking-mode-hole-r));` +
+        `-webkit-mask-image:radial-gradient(circle at ${x}px ${y}px, transparent var(--cooking-mode-hole-r), white var(--cooking-mode-hole-r));`;
+      // White/transparent stops (rather than e.g. black/white) read the
+      // same way under both of mask-image's two possible interpretations —
+      // luminance or alpha — since transparent has both zero alpha and zero
+      // luminance, and white has both full alpha and full luminance.
+      // Browsers have historically disagreed on which one a plain CSS
+      // gradient defaults to, so this sidesteps the question rather than
+      // relying on either.
+      const snapshotShadow = snapshotHost.attachShadow({ mode: 'open' });
+      try {
+        snapshotShadow.adoptedStyleSheets = getSnapshotStyleSheets();
+      } catch {
+        // Constructable stylesheets unsupported — the clone below renders
+        // unstyled, which only affects this decorative snapshot, not the
+        // real page underneath it.
+      }
+      const bodyClone = document.body.cloneNode(true);
+      // Dev-only: the Astro dev toolbar is a custom element, and cloning it
+      // re-runs its connectedCallback once inserted below, which throws
+      // (it assumes there's only ever one instance) — stripped here since
+      // it's not part of the page itself and isn't present in production.
+      bodyClone.querySelector('astro-dev-toolbar')?.remove();
+      // dark/cooking-mode/cooking-mode-layout all live on <html>, not <body>,
+      // and their variants are `&:where(.X, .X *)` — an ancestor-or-self
+      // match that a shadow tree's scope boundary stops dead at the shadow
+      // root, since <html> sits outside that tree entirely. Copying <html>'s
+      // current classes onto the clone's own root gives that same selector
+      // an ancestor to match from inside the shadow tree too. Read before
+      // setActive() below changes the real <html>, so this still reflects
+      // the pre-toggle state being frozen — including, when exiting,
+      // cooking-mode/cooking-mode-layout themselves, which are still on
+      // <html> at this exact point.
+      bodyClone.classList.add(...document.documentElement.classList);
+      bodyClone.style.position = 'absolute';
+      bodyClone.style.top = `${-window.scrollY}px`;
+      bodyClone.style.left = '0';
+      bodyClone.style.right = '0';
+      bodyClone.style.margin = '0';
+      // cloneNode copies each checkbox's `checked` attribute (its default),
+      // not the live `checked` property IngredientList's own clicks set
+      // afterward — resynced here by position, since the clone's structure
+      // is still identical to the live one at this exact point.
+      const liveCheckboxes = document.body.querySelectorAll('input[type="checkbox"]');
+      const cloneCheckboxes = bodyClone.querySelectorAll('input[type="checkbox"]');
+      liveCheckboxes.forEach((checkbox, i) => {
+        if (cloneCheckboxes[i]) cloneCheckboxes[i].checked = checkbox.checked;
+      });
+      snapshotShadow.appendChild(bodyClone);
+      document.body.appendChild(snapshotHost);
+
+      // The glow ring and embers below are unchanged from the original
+      // view-transition build (same gradients/canvas drawing, same
+      // endRadius-lockstep scale curve) — only how they're driven changed.
+      // They used to animate ::view-transition-new(...) pseudo-elements
+      // (the only way to layer something above the transition's own
+      // snapshot tree); now they're plain fixed-position elements, stacked
+      // above the snapshot by z-index and animated directly, since there's
+      // no pseudo-element tree to target any more.
+      const ringSize = 260;
+      // Both cooking-mode backdrops (light: amber/orange/rose pastels, dark:
+      // near-black with a rose tint) are themselves warm-toned, so a glow
+      // built only from mid-tone oranges/roses blends straight into either
+      // one. Contrast comes from a hot core next to a much darker rim —
+      // the core pops against the dark backdrop, the rim pops against the
+      // light one. The rim is a low-alpha ember brown rather than a flat
+      // near-black: a fully opaque dark stop right next to the transparent
+      // edge reads as a solid ring outline, not fire, so it fades out
+      // gradually instead of snapping dark. The colored stops are bunched
+      // up near the outer edge (80%+) rather than spread from 65%, so the
+      // band itself reads as a slim ring instead of a wide glowing disc.
+      const glow = document.createElement('div');
+      glow.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${ringSize}px;height:${ringSize}px;border-radius:50%;pointer-events:none;filter:blur(3px);z-index:10000;transform:translate(-50%,-50%) scale(0);background:radial-gradient(circle farthest-side, transparent 80%, rgba(255,244,214,0.95) 90%, rgba(254,240,138,1) 93%, rgba(249,115,22,1) 95.5%, rgba(190,18,60,0.9) 97.5%, rgba(76,16,12,0.5) 99%, transparent 100%);`;
+      document.body.appendChild(glow);
+
+      // A scatter of embers riding the wipe's own advancing edge — baked
+      // into one small canvas rather than drawn as N separate elements, and
+      // animated with the exact same endRadius-lockstep scale curve as the
+      // glow ring (see sparkMaxScale below) so they expand in step with the
+      // wipe/ring rather than on their own independent timeline. The two
+      // together read as the flame front throwing off embers as it sweeps
+      // through the page, rather than a single burst flung from the button.
+      const sparkSize = 280;
+      const sparkCount = 32;
+      const sparks = document.createElement('canvas');
+      sparks.width = sparkSize;
+      sparks.height = sparkSize;
+      sparks.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${sparkSize}px;height:${sparkSize}px;pointer-events:none;z-index:10001;transform:translate(-50%,-50%) scale(0);`;
+      // Drawn once into the canvas's own small pixel space rather than
+      // animated per frame — each spark's distance-from-center is baked
+      // in at a random fraction of the canvas's own radius, so scaling
+      // the whole canvas up later (see sparkMaxScale) carries every spark
+      // outward together while preserving their relative distances, the
+      // same "dots on an expanding sheet" trick the ring above relies on.
+      // Bunched into a tight band near the canvas's own edge (0.68-0.95,
+      // rather than spread all the way back to the center) so that once
+      // stretched by the same lockstep scale as the ring, they sit right
+      // around the ring's own edge instead of trailing all the way back
+      // to the click point — embers thrown off the front, not left
+      // behind at the source.
+      const sparkCtx = sparks.getContext('2d');
+      const sparkCenter = sparkSize / 2;
+      for (let i = 0; i < sparkCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = sparkCenter * (0.68 + Math.random() * 0.27);
+        const sx = sparkCenter + Math.cos(angle) * dist;
+        const sy = sparkCenter + Math.sin(angle) * dist;
+        const r = 0.8 + Math.random() * 1.2;
+        // Percentage-based gradient stops on a radius this small put the
+        // dark rim band under a pixel wide (e.g. 8% of a 2px radius),
+        // invisible regardless of how much the canvas is later stretched
+        // — confirmed by screenshotting a first attempt that used plain
+        // percentage stops on `r` directly: every spark just read as a
+        // soft blob, no rim. haloR adds a fixed ~1px ring beyond the
+        // bright core instead, so the rim band's actual pixel width stays
+        // roughly constant across every spark's size, not shrinking along
+        // with the smaller ones. (Scaled down again alongside the smaller
+        // core radius above — a wider fixed offset would swallow cores
+        // this small entirely.)
+        const haloR = r + 1;
+        const coreEdge = r / haloR;
+        // Same hot-core-vs-ember-rim contrast logic as the glow ring:
+        // most sparks are the mid-tone orange that needs the dark rim to
+        // read against the light backdrop, a minority are near-white so
+        // a few pop against the dark backdrop too.
+        const hot = Math.random() < 0.35;
+        const grad = sparkCtx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+        if (hot) {
+          grad.addColorStop(0, 'rgba(255,250,230,1)');
+          grad.addColorStop(coreEdge * 0.55, 'rgba(254,240,138,0.95)');
+          grad.addColorStop(coreEdge, 'rgba(249,115,22,0.9)');
+          grad.addColorStop(coreEdge + (1 - coreEdge) * 0.45, 'rgba(120,30,15,0.6)');
+          grad.addColorStop(1, 'rgba(120,30,15,0)');
+        } else {
+          grad.addColorStop(0, 'rgba(255,237,160,1)');
+          grad.addColorStop(coreEdge * 0.55, 'rgba(249,115,22,0.9)');
+          grad.addColorStop(coreEdge, 'rgba(190,18,60,0.85)');
+          grad.addColorStop(coreEdge + (1 - coreEdge) * 0.45, 'rgba(76,16,12,0.6)');
+          grad.addColorStop(1, 'rgba(76,16,12,0)');
+        }
+        sparkCtx.fillStyle = grad;
+        sparkCtx.beginPath();
+        sparkCtx.arc(sx, sy, haloR, 0, Math.PI * 2);
+        sparkCtx.fill();
+      }
+      document.body.appendChild(sparks);
+
+      pendingSnapshot = snapshotHost;
+      pendingGlow = glow;
+      pendingSparks = sparks;
+
+      // Safe to mutate the live page for real, right now: the snapshot
+      // above is fully opaque everywhere (its hole radius is still 0), so
+      // none of this is visible until the hole-grow animation below starts
+      // eating into it. Only the `cooking-mode` class (colors/backgrounds)
+      // changes here — cooking-mode-layout (header/footer/step-list
+      // collapse/etc, see setCookingModeLayout below) waits until
+      // maskAnim.finished instead, rather than tracking the hole's growth
+      // itself: colors apply to whatever's already in the box the snapshot
+      // froze, but collapsing/growing layout moves content to different
+      // boxes entirely, so revealing it mid-wipe makes the live page (in
+      // its new, shorter/taller layout) and the frozen snapshot (still in
+      // the old one) show the same content at two different positions at
+      // once. See the comment on maskAnim.finished further down.
+      setActive(activating);
+
+      const maskAnim = snapshotHost.animate(
+        { '--cooking-mode-hole-r': ['0px', `${endRadius}px`] },
+        { duration: 600, easing: 'ease-in', fill: 'forwards' }
+      );
+      // A brief overexposed flash on the live page as it's revealed, like
+      // the wipe is briefly catching light. Applied to the live root
+      // rather than just the growing hole, since only the part the hole
+      // has already exposed is visible to begin with.
+      const flashAnim = root.animate(
+        { filter: ['brightness(1.7) saturate(1.6)', 'brightness(1) saturate(1)'] },
+        { duration: 320, easing: 'ease-out' }
+      );
+      // maxScale stretches the ring's small fixed-size raster so its outer
+      // edge reaches endRadius — the same target the overlay's own
+      // clip-path animates to, over the same 600ms (the 2/3 offset below,
+      // of this animation's 900ms duration). Scale and clip-path radius
+      // both follow an 'ease-in' curve to the same target over the same
+      // duration, so the ring's edge and the cover's edge land on the same
+      // radius at every instant, not just at the end. The extra *1.08 is a
+      // small overshoot past that shared target the ring settles back from
+      // while it fades out, after the cover animation has already finished
+      // and the page is mutating behind it.
+      const maxScale = ((endRadius * 2) / ringSize) * 1.08;
+      const glowScaleAnim = glow.animate(
+        [
+          // A keyframe's `easing` governs the segment FROM it to the next
+          // one, not the segment leading into it — so 'ease-in' belongs on
+          // keyframe 0 (covers 0→2/3, the growth) and 'ease-out' on
+          // keyframe 1 (covers 2/3→1, the tail), not the other way round.
+          { transform: 'translate(-50%,-50%) scale(0)', easing: 'ease-in' },
+          { transform: `translate(-50%,-50%) scale(${maxScale / 1.08})`, offset: 2 / 3, easing: 'ease-out' },
+          { transform: `translate(-50%,-50%) scale(${maxScale})` },
+        ],
+        { duration: 900, fill: 'forwards' }
+      );
+      // Opacity gets its own timeline rather than riding the scale curve
+      // above — ramping to full brightness almost immediately and holding
+      // it there means the ring is already lit up while it's still small
+      // and near the click point, fading out only at the very end
+      // regardless of how far it's grown by then (an 'ease-in' scale stays
+      // dim for most of its run, which left the ring bright only once
+      // mostly off-screen at larger click-to-corner distances).
+      const glowOpacityAnim = glow.animate(
+        [
+          { opacity: 0 },
+          { opacity: 1, offset: 0.18 },
+          { opacity: 1, offset: 0.7, easing: 'ease-out' },
+          { opacity: 0 },
+        ],
+        { duration: 900, fill: 'forwards' }
+      );
+      // Same endRadius-lockstep curve as the glow ring's maxScale above —
+      // same target, same 'ease-in' over the same 600ms — so the embers'
+      // band (baked at 0.68-0.95 of the canvas's own radius, see the
+      // sparkCount loop above) expands in step with the cover/ring instead
+      // of drifting outward on its own independent schedule.
+      const sparkMaxScale = ((endRadius * 2) / sparkSize) * 1.08;
+      const sparkScaleAnim = sparks.animate(
+        [
+          { transform: 'translate(-50%,-50%) scale(0)', easing: 'ease-in' },
+          { transform: `translate(-50%,-50%) scale(${sparkMaxScale / 1.08})`, offset: 2 / 3, easing: 'ease-out' },
+          { transform: `translate(-50%,-50%) scale(${sparkMaxScale})` },
+        ],
+        { duration: 900, fill: 'forwards' }
+      );
+      // Faster ramp-up and a later, more gradual fade than the glow ring —
+      // sparks are small enough that a slow fade reads as "drifting out"
+      // rather than "still here", giving the embers a chance to feel like
+      // they're floating/dying out after the main flash instead of popping
+      // off all at once with everything else.
+      const sparkOpacityAnim = sparks.animate(
+        [
+          { opacity: 0 },
+          { opacity: 1, offset: 0.08 },
+          { opacity: 1, offset: 0.45, easing: 'ease-out' },
+          { opacity: 0 },
+        ],
+        { duration: 1000, fill: 'forwards' }
+      );
+      pendingAnimations = [maskAnim, flashAnim, glowScaleAnim, glowOpacityAnim, sparkScaleAnim, sparkOpacityAnim];
+
+      Promise.all([glowScaleAnim.finished, glowOpacityAnim.finished])
+        .then(() => {
+          if (pendingGlow === glow) pendingGlow = null;
+          glow.remove();
+        })
+        .catch(() => {
+          // Cancelled by a newer click (see above) — that click already
+          // removed this glow directly.
+        });
+      Promise.all([sparkScaleAnim.finished, sparkOpacityAnim.finished])
+        .then(() => {
+          if (pendingSparks === sparks) pendingSparks = null;
+          sparks.remove();
+        })
+        .catch(() => {});
+
+      // Once the hole has grown to cover the whole viewport, the snapshot
+      // is fully transparent everywhere visible — nothing left to mask, so
+      // it can just be dropped. No second "reveal" phase needed, unlike the
+      // old opaque-fill design: the live page underneath was the real,
+      // already-mutated page the entire time.
+      //
+      // cooking-mode-layout's height-changing mutations (header/footer,
+      // step-list collapse, ingredient font-size) land right here too, not
+      // earlier: tried firing them in lockstep with the hole's growth, same
+      // as `cooking-mode`'s colors, and it doesn't work like that fix did —
+      // those colors apply to whatever's already in the box the snapshot
+      // froze, but collapsing/growing layout moves content to different
+      // boxes entirely, so the live page visible through the hole and the
+      // frozen snapshot around it end up showing the same heading or photo
+      // at two different positions at once mid-wipe. Landing it the instant
+      // the snapshot is gone — rather than waiting for the slower glow/spark
+      // decoration to also finish (~300-400ms later) — at least lands it on
+      // the same beat as the wipe's own finish instead of as a separate,
+      // detached snap afterward.
+      maskAnim.finished
+        .then(() => {
+          if (pendingSnapshot === snapshotHost) pendingSnapshot = null;
+          snapshotHost.remove();
+          // A later click may have already cancelled this one and started
+          // its own — don't mutate state on its behalf.
+          if (myToken !== activeToken) return;
+          setCookingModeLayout(activating);
+        })
+        .catch(() => {
+          // Cancelled by a newer click (see above) — that click already
+          // removed this snapshot directly.
+        });
+
+      // Wake lock/fullscreen wait for the glow/spark decoration too, not
+      // just the mask: requestFullscreen() can resize the viewport, and the
+      // glow ring/spark canvas are still animating toward an endRadius
+      // computed from the pre-fullscreen dimensions at that point.
+      Promise.all([
+        flashAnim.finished,
+        glowScaleAnim.finished,
+        glowOpacityAnim.finished,
+        sparkScaleAnim.finished,
+        sparkOpacityAnim.finished,
+      ])
+        .then(() => {
+          // A later click may have already cancelled this one and started
+          // its own — don't mutate state on its behalf.
+          if (myToken !== activeToken) return;
+
+          if (activating) {
+            requestWakeLock();
+            if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
+          } else {
+            releaseWakeLock();
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+          }
+        })
+        .catch(() => {
+          // Cancelled by a newer click (see above) — that click's own
+          // chain owns the mutation/cleanup; nothing further to do.
+        });
     });
   }
 

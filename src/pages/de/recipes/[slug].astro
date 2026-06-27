@@ -97,7 +97,7 @@ const jsonLd = buildRecipeJsonLd({
     ) : (
       <div class="print:hidden w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
     )}
-    <h1 class="text-4xl font-bold dark:text-white break-words mb-4" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
+    <h1 class="text-4xl font-bold dark:text-white break-words mb-4 cooking-mode:bg-linear-to-r cooking-mode:from-orange-500 cooking-mode:to-rose-600 cooking-mode:bg-clip-text cooking-mode:text-transparent dark:cooking-mode:from-orange-400 dark:cooking-mode:to-rose-400" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b dark:border-gray-700">
       <div class="flex flex-1 min-w-0 flex-wrap gap-4 text-gray-600 dark:text-gray-400">
@@ -105,18 +105,22 @@ const jsonLd = buildRecipeJsonLd({
         <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
       </div>
-      <div class="print:hidden flex flex-wrap items-center gap-2 w-full sm:w-auto">
-        <span class="cooking-mode:hidden flex items-center gap-2">
+      <div class="print:hidden flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+        <span class="cooking-mode-layout:hidden flex items-center gap-2">
           <FavoriteButton slug={slug} label={t('page.recipe.favorite')} />
           <ShoppingListButton slug={slug} label={t('page.recipe.shoppingList')} />
           <ShareButton title={recipe.data.title} label={t('page.recipe.share')} copiedLabel={t('page.recipe.linkCopied')} />
           <PrintButton label={t('page.recipe.print')} />
         </span>
-        <CookingModeButton label={t('page.recipe.cookingMode')} exitLabel={t('page.recipe.exitCookingMode')} />
+        <CookingModeButton
+          label={t('page.recipe.cookingMode')}
+          shortLabel={t('page.recipe.cookingModeShort')}
+          exitLabel={t('page.recipe.exitCookingMode')}
+        />
       </div>
     </div>
 
-    <div class="cooking-mode:hidden print:hidden flex flex-wrap gap-2 mb-8">
+    <div class="cooking-mode-layout:hidden print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
           href={`/de/tags/${tag}`}
@@ -133,6 +137,8 @@ const jsonLd = buildRecipeJsonLd({
         groups={recipe.data.ingredients}
         servings={recipe.data.servings}
         servingsLabel={t('page.recipe.servings')}
+        slug={slug}
+        gatherLabel={t('page.recipe.markGathered')}
       />
       <StepList
         heading={t('page.recipe.steps')}
@@ -143,11 +149,13 @@ const jsonLd = buildRecipeJsonLd({
         startTimerLabel={t('page.recipe.startTimer')}
         cancelTimerLabel={t('page.recipe.cancelTimer')}
         timerDoneLabel={t('page.recipe.timerDone')}
+        extendTimerLabel={t('page.recipe.extendTimer')}
+        allDoneLabel={t('page.recipe.allDone')}
       />
     </div>
 
     {similarRecipes.length > 0 && (
-      <div class="cooking-mode:hidden print:hidden mt-12 border-t pt-8 dark:border-gray-700">
+      <div class="cooking-mode-layout:hidden print:hidden mt-12 border-t pt-8 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {similarRecipes.map((similar) => (

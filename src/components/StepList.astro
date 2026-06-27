@@ -1,5 +1,5 @@
 ---
-import { renderStepHtml, formatTimerDuration, type Step } from '../utils/steps';
+import { renderStepHtml, stepPlainText, formatTimerDuration, type Step } from '../utils/steps';
 
 export interface Props {
   heading: string;
@@ -10,57 +10,99 @@ export interface Props {
   startTimerLabel: string;
   cancelTimerLabel: string;
   timerDoneLabel: string;
+  extendTimerLabel: string;
+  allDoneLabel: string;
 }
 
-const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel, cancelTimerLabel, timerDoneLabel } =
-  Astro.props;
+const {
+  heading,
+  steps,
+  prevLabel,
+  nextLabel,
+  progressTemplate,
+  startTimerLabel,
+  cancelTimerLabel,
+  timerDoneLabel,
+  extendTimerLabel,
+  allDoneLabel,
+} = Astro.props;
 ---
 <div id="step-list" data-progress-template={progressTemplate} data-timer-done-label={timerDoneLabel}>
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h2 class="!mt-0 !mb-0">{heading}</h2>
-    <div class="hidden cooking-mode:flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-300">
-      <button
-        type="button"
-        id="step-prev"
-        aria-label={prevLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
-      >
-        ‹
-      </button>
-      <span id="step-progress"></span>
-      <button
-        type="button"
-        id="step-next"
-        aria-label={nextLabel}
-        class="w-11 h-11 flex items-center justify-center text-xl rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition disabled:opacity-40"
-      >
-        ›
-      </button>
-    </div>
-  </div>
+  <h2 class="!mt-0 !mb-0 flex items-center gap-2">
+    <svg class="hidden cooking-mode:inline-block cooking-flame w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
+      <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
+    </svg>
+    {heading}
+    <svg class="hidden cooking-mode:inline-block cooking-flame cooking-flame--alt w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2C12 2 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-7-12-7-12z" fill="#f97316" />
+      <path d="M12 7c0 0-3.5 4-3.5 7a3.5 3.5 0 0 0 7 0c0-3-3.5-7-3.5-7z" fill="#fde047" />
+    </svg>
+  </h2>
   <ol>
     {steps.map((step) => (
       <li>
         <span set:html={renderStepHtml(step.text)} />
         {step.timerSeconds != null && (
-          <div class="hidden cooking-mode:block mt-2">
+          <div class="hidden cooking-mode-layout:block mt-3">
             <button
               type="button"
               data-timer-button
               data-timer-seconds={step.timerSeconds}
-              data-start-label={`${startTimerLabel} (${formatTimerDuration(step.timerSeconds)})`}
+              data-step-label={stepPlainText(step.text)}
               data-cancel-label={cancelTimerLabel}
               data-done-label={timerDoneLabel}
-              class="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-sm font-medium text-pink-700 hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-200 dark:hover:bg-pink-800 transition"
+              data-extend-label={extendTimerLabel}
+              class="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-rose-600 hover:brightness-110 active:brightness-95 dark:from-orange-400 dark:to-rose-400 px-5 py-3 text-base font-semibold text-white transition"
             >
-              ⏱ {formatTimerDuration(step.timerSeconds)}
+              ⏱ {startTimerLabel} ({formatTimerDuration(step.timerSeconds)})
             </button>
           </div>
         )}
       </li>
     ))}
   </ol>
+  <div id="step-complete" class="hidden mt-6 rounded-2xl px-6 py-8 text-center bg-white/55 dark:bg-white/10 ring-1 ring-rose-300/60 dark:ring-rose-400/30" aria-live="polite">
+    <p class="text-3xl mb-2" aria-hidden="true">🎉</p>
+    <p class="text-lg font-semibold text-gray-900 dark:text-white">{allDoneLabel}</p>
+  </div>
+  <div class="hidden cooking-mode-layout:block mt-6">
+    <div
+      id="step-progress-bar-track"
+      class="h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden"
+      role="progressbar"
+      aria-valuemin="1"
+      aria-valuemax={steps.length}
+    >
+      <div id="step-progress-bar" class="h-full rounded-full bg-linear-to-r from-orange-500 to-rose-600 dark:from-orange-400 dark:to-rose-400 transition-all duration-300 ease-out" style="width: 0%" />
+    </div>
+  </div>
+  <div class="hidden cooking-mode-layout:flex items-center justify-between gap-3 mt-3">
+    <button
+      type="button"
+      id="step-prev"
+      aria-label={prevLabel}
+      class="w-14 h-14 flex-shrink-0 flex items-center justify-center text-2xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
+    >
+      ‹
+    </button>
+    <span id="step-progress" class="text-base font-semibold text-gray-700 dark:text-gray-200"></span>
+    <button
+      type="button"
+      id="step-next"
+      aria-label={nextLabel}
+      class="w-14 h-14 flex-shrink-0 flex items-center justify-center text-2xl rounded-full bg-white/55 hover:bg-white/75 active:bg-white/90 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20 transition disabled:opacity-40"
+    >
+      ›
+    </button>
+  </div>
 </div>
+
+<div
+  id="timer-tray"
+  class="hidden cooking-mode:flex fixed inset-x-0 bottom-0 z-50 flex-col items-center gap-2 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] pointer-events-none"
+  aria-live="polite"
+></div>
 
 <script is:inline>
   // Astro's ClientRouter dedups byte-identical inline script content across
@@ -75,12 +117,21 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     const prevBtn = document.getElementById('step-prev');
     const nextBtn = document.getElementById('step-next');
     const progressEl = document.getElementById('step-progress');
+    const progressBarFill = document.getElementById('step-progress-bar');
+    const progressBarTrack = document.getElementById('step-progress-bar-track');
+    const completeEl = document.getElementById('step-complete');
     const progressTemplate = container.dataset.progressTemplate || '';
 
     let current = 0;
-    let cookingModeActive = document.documentElement.classList.contains('cooking-mode');
+    // Mirrors `cooking-mode-layout`, not `cooking-mode` — that's the variant
+    // driving this collapse-to-one-step layout (see global.css), and what
+    // the cookingmodechange event's `detail.active` below is in lockstep
+    // with (CookingModeButton.astro dispatches it from the same function
+    // that toggles that class).
+    let cookingModeActive = document.documentElement.classList.contains('cooking-mode-layout');
 
-    function render() {
+    function render({ scroll = true } = {}) {
+      const onLastStep = current === items.length - 1;
       items.forEach((li, i) => {
         li.classList.toggle('hidden', cookingModeActive && i !== current);
       });
@@ -90,12 +141,52 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === items.length - 1;
 
+      progressBarFill.style.width = `${((current + 1) / items.length) * 100}%`;
+      progressBarTrack.setAttribute('aria-valuenow', String(current + 1));
+      progressBarTrack.setAttribute('aria-valuetext', progressEl.textContent);
+
+      // The celebration card only makes sense one-step-at-a-time — outside
+      // cooking mode every step (including the last) is already visible at
+      // once, so there's no single "arrival" moment to celebrate.
+      const showComplete = cookingModeActive && onLastStep;
+      const wasHidden = completeEl.classList.contains('hidden');
+      completeEl.classList.toggle('hidden', !showComplete);
+
       // Steps vary in length, so without this the next step can start below
       // the fold (or its timer button can) depending on how far the previous
       // step had scrolled the page — re-anchoring on the heading/nav row
       // keeps every step's start, and the controls to move on, in view.
+      // Skipped on the initial entry into cooking mode (see cookingmodechange
+      // below) — there's nowhere to "re-anchor" from yet, and scrolling
+      // while the entry wipe transition is running can race it.
       if (cookingModeActive) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (scroll) {
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        // A one-shot Web Animations API call rather than a CSS class+transition:
+        // the same step element gets shown again and again as you move back and
+        // forth, and a CSS transition only fires on a style change, not on
+        // every "show" — re-triggering it would need the same remove/reflow/
+        // re-add dance as the keyframe animations elsewhere in this app.
+        // animate() just plays every time, no bookkeeping required.
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          items[current].animate(
+            [
+              { opacity: 0, transform: 'translateY(8px)' },
+              { opacity: 1, transform: 'translateY(0)' },
+            ],
+            { duration: 180, easing: 'ease-out' }
+          );
+          if (showComplete && wasHidden) {
+            completeEl.animate(
+              [
+                { opacity: 0, transform: 'scale(0.95)' },
+                { opacity: 1, transform: 'scale(1)' },
+              ],
+              { duration: 260, easing: 'ease-out' }
+            );
+          }
+        }
       }
     }
 
@@ -115,7 +206,7 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     document.addEventListener('cookingmodechange', (e) => {
       cookingModeActive = e.detail.active;
       if (cookingModeActive) current = 0;
-      render();
+      render({ scroll: false });
     });
 
     render();
@@ -128,6 +219,16 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
   // Timer buttons are re-rendered on every navigation, so binding lives once
   // on document via delegation rather than per-button — same pattern as the
   // favorites click handler in BaseLayout.
+  //
+  // Running timers live in a tray fixed to the viewport (window.__timers,
+  // keyed by button element) instead of inside the per-step button itself.
+  // Steps are shown one at a time in cooking mode, so a countdown rendered
+  // into the button disappears the moment you move to the next step — the
+  // tray keeps every active timer visible no matter which step is on screen.
+  const EXTEND_SECONDS = 60;
+  const CHIME_REPEATS = 8;
+  const CHIME_INTERVAL_MS = 4000;
+
   function formatRemaining(ms) {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
     const minutes = Math.floor(totalSeconds / 60);
@@ -135,48 +236,176 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     return `${minutes}:${String(seconds).padStart(2, '0')}`;
   }
 
-  function cancelTimer(button) {
-    clearInterval(Number(button.dataset.timerInterval));
-    delete button.dataset.timerEndsAt;
-    delete button.dataset.timerInterval;
-    button.textContent = `⏱ ${button.dataset.startLabel.replace(/^.*\(|\)$/g, '')}`;
+  // Lazily created on the first Start-timer click (a user gesture), so the
+  // AudioContext is already running by the time a timer finishes and browser
+  // autoplay policies don't silently swallow the completion chime.
+  function getAudioContext() {
+    if (!window.__timerAudioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) window.__timerAudioCtx = new Ctx();
+    }
+    if (window.__timerAudioCtx && window.__timerAudioCtx.state === 'suspended') {
+      window.__timerAudioCtx.resume();
+    }
+    return window.__timerAudioCtx;
+  }
+
+  function playChime() {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [0, 0.18, 0.36].forEach((offset, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = i % 2 === 0 ? 880 : 660;
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.16);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.18);
+    });
+  }
+
+  function getTray() {
+    return document.getElementById('timer-tray');
+  }
+
+  // The tray is fixed to the viewport so it stays visible across step
+  // navigation, which means in-flow content (like the per-step button under
+  // a short step) can end up underneath it. Reserving exactly its height as
+  // body padding makes room to scroll into; growing the tray also scrolls
+  // the page down by the same amount so already-visible content shifts up
+  // out from under it immediately, instead of only being reachable by a
+  // manual scroll the user has no reason to make.
+  function syncTrayPadding() {
+    const tray = getTray();
+    const newHeight = tray.children.length ? tray.offsetHeight : 0;
+    const delta = newHeight - (window.__trayHeight || 0);
+    document.body.style.paddingBottom = newHeight ? `${newHeight + 16}px` : '';
+    if (delta > 0) window.scrollBy(0, delta);
+    window.__trayHeight = newHeight;
+  }
+
+  function removeTimer(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    clearInterval(timer.intervalId);
+    clearInterval(timer.chimeIntervalId);
+    timer.trayEl.remove();
+    window.__timers.delete(button);
+    button.textContent = button.dataset.startLabelText;
+    syncTrayPadding();
+  }
+
+  function markDone(button, timer) {
+    clearInterval(timer.intervalId);
+    timer.done = true;
+    timer.trayEl.classList.add('animate-pulse', 'ring-2', 'ring-red-400', 'bg-red-50', 'dark:bg-red-950');
+    timer.countdownEl.textContent = button.dataset.doneLabel;
+    button.textContent = button.dataset.cancelLabel;
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    playChime();
+    let chimes = 1;
+    timer.chimeIntervalId = setInterval(() => {
+      if (chimes >= CHIME_REPEATS) {
+        clearInterval(timer.chimeIntervalId);
+        return;
+      }
+      playChime();
+      chimes++;
+    }, CHIME_INTERVAL_MS);
+  }
+
+  function extendTimer(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    if (timer.done) {
+      clearInterval(timer.chimeIntervalId);
+      timer.done = false;
+      timer.trayEl.classList.remove('animate-pulse', 'ring-2', 'ring-red-400', 'bg-red-50', 'dark:bg-red-950');
+      timer.endsAt = Date.now() + EXTEND_SECONDS * 1000;
+      button.textContent = button.dataset.cancelLabel;
+      timer.intervalId = setInterval(() => tick(button), 1000);
+    } else {
+      timer.endsAt += EXTEND_SECONDS * 1000;
+    }
+    tick(button);
+  }
+
+  // Recomputed from the absolute end time on every tick instead of just
+  // decrementing, so background-tab throttling can't make the countdown
+  // drift from wall-clock time.
+  function tick(button) {
+    const timer = window.__timers.get(button);
+    if (!timer) return;
+    const remaining = timer.endsAt - Date.now();
+    if (remaining <= 0) {
+      markDone(button, timer);
+      return;
+    }
+    timer.countdownEl.textContent = formatRemaining(remaining);
   }
 
   function startTimer(button) {
     const seconds = parseInt(button.dataset.timerSeconds, 10);
-    const endsAt = Date.now() + seconds * 1000;
-    button.dataset.timerEndsAt = String(endsAt);
+    const tray = getTray();
+    if (!tray) return;
+    getAudioContext();
 
-    // Recomputed from the absolute end time on every tick instead of just
-    // decrementing, so background-tab throttling can't make the countdown
-    // drift from wall-clock time.
-    function tick() {
-      const remaining = endsAt - Date.now();
-      if (remaining <= 0) {
-        clearInterval(intervalId);
-        delete button.dataset.timerEndsAt;
-        delete button.dataset.timerInterval;
-        button.textContent = button.dataset.doneLabel;
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        return;
-      }
-      button.textContent = formatRemaining(remaining);
-    }
+    const trayEl = document.createElement('div');
+    // Translucent + blurred rather than the flat white/gray card used outside
+    // cooking mode: this tray is fixed over whatever's scrolled underneath
+    // (recipe content, not just the gradient), so the blur keeps it legible
+    // while letting the warm backdrop tint show through.
+    trayEl.className =
+      'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-white/70 backdrop-blur-sm px-4 py-3 shadow-lg ring-1 ring-pink-200/70 dark:bg-white/10 dark:ring-pink-900/40';
+    trayEl.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <p class="truncate text-xs text-gray-500 dark:text-gray-400"></p>
+        <p class="text-xl font-bold tabular-nums text-gray-900 dark:text-white"></p>
+      </div>
+      <button type="button" data-tray-extend class="flex-shrink-0 rounded-full bg-orange-100 px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-200 dark:bg-white/15 dark:text-rose-200 dark:hover:bg-white/20 transition"></button>
+      <button type="button" data-tray-cancel aria-label="${button.dataset.cancelLabel}" class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 transition">✕</button>
+    `;
+    trayEl.querySelector('p.truncate').textContent = button.dataset.stepLabel || '';
+    trayEl.querySelector('[data-tray-extend]').textContent = button.dataset.extendLabel;
+    tray.appendChild(trayEl);
+    syncTrayPadding();
 
-    const intervalId = setInterval(tick, 1000);
-    button.dataset.timerInterval = String(intervalId);
-    tick();
+    window.__timers.set(button, {
+      endsAt: Date.now() + seconds * 1000,
+      trayEl,
+      countdownEl: trayEl.querySelector('p.tabular-nums'),
+      intervalId: null,
+      chimeIntervalId: null,
+      done: false,
+    });
+
+    const timer = window.__timers.get(button);
+    timer.intervalId = setInterval(() => tick(button), 1000);
+    trayEl.querySelector('[data-tray-extend]').addEventListener('click', () => extendTimer(button));
+    trayEl.querySelector('[data-tray-cancel]').addEventListener('click', () => removeTimer(button));
+
+    button.textContent = button.dataset.cancelLabel;
+    tick(button);
   }
 
   function initStepTimers() {
     if (window.__stepTimersBound) return;
     window.__stepTimersBound = true;
+    window.__timers = new Map();
 
     document.addEventListener('click', (e) => {
       const button = e.target.closest('[data-timer-button]');
       if (!button) return;
-      if (button.dataset.timerEndsAt) {
-        cancelTimer(button);
+      // Cache the button's own start label once, since after starting we
+      // overwrite textContent with the cancel label and need to restore it.
+      if (!button.dataset.startLabelText) {
+        button.dataset.startLabelText = button.textContent.trim();
+      }
+      if (window.__timers.has(button)) {
+        removeTimer(button);
       } else {
         startTimer(button);
       }
@@ -186,7 +415,7 @@ const { heading, steps, prevLabel, nextLabel, progressTemplate, startTimerLabel,
     // countdown would have no UI left to show or cancel it from.
     document.addEventListener('cookingmodechange', (e) => {
       if (e.detail.active) return;
-      document.querySelectorAll('[data-timer-button][data-timer-ends-at]').forEach(cancelTimer);
+      Array.from(window.__timers.keys()).forEach(removeTimer);
     });
   }
 

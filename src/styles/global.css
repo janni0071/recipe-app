@@ -2,6 +2,30 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant cooking-mode (&:where(.cooking-mode, .cooking-mode *));
+/* Separate from `cooking-mode` above: this one drives every hide/show or
+   resize that changes the page's height — header, footer, tags,
+   similar-recipes, the inline favorite/share/print row, AND (see
+   StepList.astro/global.css further down) the step list's one-at-a-time
+   collapse, its per-step timer button, progress bar and prev/next controls,
+   and the ingredient list's cooking-mode font-size bump. It's toggled a beat
+   later than `cooking-mode` itself — see CookingModeButton.astro — so none
+   of that ever lands while a view transition is in flight, which is what
+   was making mobile browsers resize and silently abort the wipe mid-flight.
+   (`cooking-mode` itself still toggles instantly — colors/text-fill/icons
+   that don't change layout height are fine to reveal immediately, and need
+   to be for the wipe to have anything themed to reveal.) */
+@custom-variant cooking-mode-layout (&:where(.cooking-mode-layout, .cooking-mode-layout *));
+
+/* Backs the cooking-mode wipe's growing "reveal hole" (see
+   CookingModeButton.astro) — a typed custom property so the Web Animations
+   API can interpolate it smoothly frame-by-frame. Without this
+   registration, an animated custom property is just an opaque token stream
+   to the browser and snaps straight to its end value instead of growing. */
+@property --cooking-mode-hole-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
 
 /* Base body font – clean sans‑serif using system UI stack */
 body {
@@ -49,6 +73,19 @@ body {
 .dark .prose h2 {
   color: #f9a8d4;
 }
+/* Cooking mode gets its own warm fire-toned gradient instead of the flat
+   brand pink, echoing the flame icons next to "Steps" so the section
+   titles read as part of the same warm theme rather than just colored text. */
+.cooking-mode .prose h2 {
+  background-image: linear-gradient(135deg, #f97316, #e11d48);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.dark.cooking-mode .prose h2 {
+  background-image: linear-gradient(135deg, #fb923c, #fb7185);
+}
 
 .prose h3 {
   font-size: 1.25rem;
@@ -73,6 +110,132 @@ body {
 }
 .dark .prose li::marker {
   color: #f9a8d4;
+}
+/* Bullets pick up the same warm orange as the flame icons, instead of the
+   brand pink used outside cooking mode. */
+.cooking-mode .prose li::marker {
+  color: #f97316;
+}
+.dark.cooking-mode .prose li::marker {
+  color: #fb923c;
+}
+
+/* Ingredients get a real checkbox instead of a bare bullet, but only inside
+   cooking mode — the app already has a shopping list for tracking what's
+   been bought, so this is scoped to read as a distinct "gather your mise en
+   place while you're actually cooking" moment rather than a second, easily
+   confused checkbox for the same thing. Outside cooking mode the list looks
+   like a plain bullet list (the checkbox stays hidden+disabled, see
+   IngredientList.astro), exactly as it did before this feature existed. */
+.cooking-mode .prose ul.ing-list {
+  /* list-style-position is the outside default, so removing the marker
+     doesn't touch the content box's width — purely cosmetic, safe instant. */
+  list-style: none;
+}
+/* padding-left and font-size/line-height (rather than list-style above) are
+   on the deferred layout variant since they change every <li>'s height —
+   see the comment on @custom-variant cooking-mode-layout above. padding-left
+   going from the base ul's 1.5rem to 0 widens the text column enough to
+   shift wrap points (confirmed on a real device, same bug as StepList's
+   padding-left a few rules down — caught only once content longer than this
+   file's short English test recipes was tried). Gathering ingredients is
+   the same glance-from-across-the-counter task as reading a step, so it
+   gets the same readability bump — slightly more conservative than the
+   steps' 1.2em (further down) since every ingredient renders at once here
+   rather than one-at-a-time, so the size increase multiplies across the
+   whole list instead of just one line. */
+.cooking-mode-layout .prose ul.ing-list {
+  padding-left: 0;
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+/* display (only) is on the deferred layout variant — block-to-flex changes
+   how the row's text wraps (confirmed on a real device with longer
+   ingredient names: it shrank wrapped text down to one line, a real height
+   change despite looking like a non-issue with this file's other short
+   English test content). align-items/gap only matter once display is flex,
+   so they move with it; cursor is genuinely cosmetic and stays instant. */
+.cooking-mode-layout .ing-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.cooking-mode .ing-row {
+  cursor: pointer;
+}
+.ing-checkbox {
+  display: none;
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+/* A bare native checkbox renders flat white/gray regardless of theme, which
+   reads as boring against the warm cooking-mode backdrop. `appearance: none`
+   hands the whole box over to us — warm border at rest (the same #fdba74
+   already used for the ingredients/steps divider below), filled with the
+   same orange-to-rose gradient as the cooking-mode heading once checked. The
+   checkmark has to be baked into an SVG background image since
+   `appearance: none` drops the browser's native one. */
+/* The display toggle (only) is on the deferred layout variant — going from
+   `none` to anything else changes the row's box, where appearance/border/
+   colors below don't, since they only ever paint inside a box that's
+   already there. Harmless to apply instantly while still display:none. */
+.cooking-mode-layout .ing-checkbox {
+  display: inline-block;
+}
+.cooking-mode .ing-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0.3rem;
+  border: 2px solid #fdba74;
+  background-color: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cooking-mode .ing-checkbox:hover {
+  border-color: #f97316;
+}
+.cooking-mode .ing-checkbox:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+.cooking-mode .ing-checkbox:checked {
+  border-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #f97316, #e11d48);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: 65%, cover;
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.35);
+}
+.dark.cooking-mode .ing-checkbox {
+  /* A translucent white border reads as basically invisible against the
+     near-black dark backdrop — a translucent orange keeps the warm
+     theme visible at rest instead of just being darkly boring. */
+  border-color: rgba(251, 146, 60, 0.55);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.dark.cooking-mode .ing-checkbox:hover {
+  border-color: #fb923c;
+}
+.dark.cooking-mode .ing-checkbox:focus-visible {
+  outline-color: #fb923c;
+}
+.dark.cooking-mode .ing-checkbox:checked {
+  /* Same specificity as the :hover rule above (both .dark.cooking-mode
+     .ing-checkbox:<pseudo>), so border-color must be set explicitly here
+     too — otherwise hovering a checked box mid-hover would fall through to
+     :hover's border-color instead of staying transparent. */
+  border-color: transparent;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #fb923c, #fb7185);
+  box-shadow: 0 0 6px rgba(251, 146, 60, 0.3);
+}
+.cooking-mode .ing-checkbox:checked ~ .ing-text {
+  text-decoration: line-through;
+  opacity: 0.55;
 }
 
 /* Steps (ordered lists) – card-like with proper indentation */
@@ -135,6 +298,12 @@ body {
 .dark .prose ul + h2 {
   border-top-color: #374151;
 }
+.cooking-mode .prose ul + h2 {
+  border-top-color: #fdba74;
+}
+.dark.cooking-mode .prose ul + h2 {
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
 
 /* Regular paragraphs */
 .prose p {
@@ -156,8 +325,130 @@ body {
 .cooking-mode .prose ol li::before {
   display: none;
 }
-.cooking-mode .prose ol li {
+/* padding-left (only) is on the deferred layout variant — it widens the
+   text column (less padding needed once the ::before counter above is
+   hidden), which shifts wrap points. Confirmed on a real device: with every
+   step still visible pre-collapse, that was enough to drop a wrapped line
+   off one of them, a real height change despite reading as a harmless
+   spacing tweak. The colors/shadow below only ever paint inside whatever
+   box is already there, so they stay instant. */
+.cooking-mode-layout .prose ol li {
   padding-left: 1.25rem;
+}
+.cooking-mode .prose ol li {
+  /* Flat near-white (#f3f4f6) reads as a plain gray box against the warm
+     gradient instead of belonging to it. A translucent white overlay lets
+     the gradient's own warmth show through underneath. */
+  background-color: rgba(255, 255, 255, 0.55);
+  /* Rose instead of the brand pink border, plus a soft warm glow, so the
+     step cards read as "fire-lit" rather than just a recolored default card. */
+  border-left-color: #e11d48;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 16px rgba(249, 115, 22, 0.15);
+}
+/* font-size/line-height are on the deferred layout variant, not the rest of
+   the rule above — they change every <li>'s height, and with one-step-at-a-
+   time collapse (StepList.astro) ALSO deferred to that same variant, having
+   this land any earlier would briefly grow every still-uncollapsed step by
+   20% before they collapse down to one, a bigger mid-transition height swing
+   than not having this fix at all. */
+.cooking-mode-layout .prose ol li {
   font-size: 1.2em;
   line-height: 1.6;
 }
+/* The flat slate-gray card from regular dark mode reads as a "cool" color
+   against cooking mode's warm maroon/black backdrop. A translucent tint of
+   whatever's behind it (instead of an unrelated solid gray) blends with
+   that backdrop at any point along the gradient. Selector must be compound
+   (no space) since .dark and .cooking-mode land on the same <html> element —
+   ".dark .cooking-mode" would require one to be a descendant of the other. */
+.dark.cooking-mode .prose ol li {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-left-color: #fb7185;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.18);
+}
+
+/* Cooking mode: a pair of small flames flank the "Steps" heading for some
+   visual drama. Transform/opacity-only keyframes so they're cheap to
+   animate (GPU-composited, no layout/paint work), and the icons are
+   `hidden` outside cooking mode rather than unrendered, so there's nothing
+   here for the browser to even consider animating until cooking mode is
+   actually on. */
+@keyframes cooking-flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(-3deg);
+    opacity: 0.9;
+  }
+  20% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(0.92) rotate(-4deg);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.06) rotate(3deg);
+    opacity: 1;
+  }
+}
+.cooking-flame {
+  transform-origin: 50% 100%;
+  animation: cooking-flame-flicker 2.2s ease-in-out infinite;
+}
+.cooking-flame--alt {
+  animation-duration: 2.6s;
+  animation-delay: -1.1s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cooking-flame {
+    animation: none;
+  }
+}
+
+/* The cooking-mode button's own flame sits among plain icon buttons outside
+   cooking mode, where flickering all the time would draw more attention
+   than the icon deserves on every single page load. Pausing the same
+   flicker keyframes by default and only releasing them on hover/focus
+   foreshadows the blaze right when a click is actually likely. */
+.cooking-mode-button-flame {
+  transform-origin: 50% 100%;
+  animation: cooking-flame-flicker 1.4s ease-in-out infinite;
+  animation-play-state: paused;
+}
+#cooking-mode-button:hover .cooking-mode-button-flame,
+#cooking-mode-button:focus-visible .cooking-mode-button-flame {
+  animation-play-state: running;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cooking-mode-button-flame {
+    animation: none;
+  }
+}
+
+/* Completion card shown once the step navigator (see StepList.astro)
+   reaches the last step — a slow ambient glow rather than a one-shot
+   flash, since it stays on screen for as long as you're reading the final
+   step, not just for an instant. */
+@keyframes step-complete-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(249, 115, 22, 0.32);
+  }
+}
+#step-complete {
+  animation: step-complete-glow 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  #step-complete {
+    animation: none;
+  }
+}
+
+/* The circular "wipe" reveal for entering/exiting cooking mode (see
+   CookingModeButton.astro) is a plain animated overlay `<div>` with its own
+   inline z-index/clip-path — not document.startViewTransition() — so there
+   are no ::view-transition-* pseudo-elements left to style here. */
