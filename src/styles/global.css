@@ -117,25 +117,39 @@ body {
    like a plain bullet list (the checkbox stays hidden+disabled, see
    IngredientList.astro), exactly as it did before this feature existed. */
 .cooking-mode .prose ul.ing-list {
+  /* list-style-position is the outside default, so removing the marker
+     doesn't touch the content box's width — purely cosmetic, safe instant. */
   list-style: none;
-  padding-left: 0;
 }
-/* font-size/line-height (rather than the rest of the rule above) are on the
-   deferred layout variant since they change every <li>'s height — see the
-   comment on @custom-variant cooking-mode-layout above. Gathering
-   ingredients is the same glance-from-across-the-counter task as reading a
-   step, so it gets the same readability bump — slightly more conservative
-   than the steps' 1.2em (further down) since every ingredient renders at
-   once here rather than one-at-a-time, so the size increase multiplies
-   across the whole list instead of just one line. */
+/* padding-left and font-size/line-height (rather than list-style above) are
+   on the deferred layout variant since they change every <li>'s height —
+   see the comment on @custom-variant cooking-mode-layout above. padding-left
+   going from the base ul's 1.5rem to 0 widens the text column enough to
+   shift wrap points (confirmed on a real device, same bug as StepList's
+   padding-left a few rules down — caught only once content longer than this
+   file's short English test recipes was tried). Gathering ingredients is
+   the same glance-from-across-the-counter task as reading a step, so it
+   gets the same readability bump — slightly more conservative than the
+   steps' 1.2em (further down) since every ingredient renders at once here
+   rather than one-at-a-time, so the size increase multiplies across the
+   whole list instead of just one line. */
 .cooking-mode-layout .prose ul.ing-list {
+  padding-left: 0;
   font-size: 1.1em;
   line-height: 1.5;
 }
-.cooking-mode .ing-row {
+/* display (only) is on the deferred layout variant — block-to-flex changes
+   how the row's text wraps (confirmed on a real device with longer
+   ingredient names: it shrank wrapped text down to one line, a real height
+   change despite looking like a non-issue with this file's other short
+   English test content). align-items/gap only matter once display is flex,
+   so they move with it; cursor is genuinely cosmetic and stays instant. */
+.cooking-mode-layout .ing-row {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+}
+.cooking-mode .ing-row {
   cursor: pointer;
 }
 .ing-checkbox {
@@ -300,8 +314,17 @@ body {
 .cooking-mode .prose ol li::before {
   display: none;
 }
-.cooking-mode .prose ol li {
+/* padding-left (only) is on the deferred layout variant — it widens the
+   text column (less padding needed once the ::before counter above is
+   hidden), which shifts wrap points. Confirmed on a real device: with every
+   step still visible pre-collapse, that was enough to drop a wrapped line
+   off one of them, a real height change despite reading as a harmless
+   spacing tweak. The colors/shadow below only ever paint inside whatever
+   box is already there, so they stay instant. */
+.cooking-mode-layout .prose ol li {
   padding-left: 1.25rem;
+}
+.cooking-mode .prose ol li {
   /* Flat near-white (#f3f4f6) reads as a plain gray box against the warm
      gradient instead of belonging to it. A translucent white overlay lets
      the gradient's own warmth show through underneath. */
