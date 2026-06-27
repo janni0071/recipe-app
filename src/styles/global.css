@@ -437,63 +437,7 @@ body {
   }
 }
 
-/* Circular "wipe" reveal for entering/exiting cooking mode, anchored at the
-   button's click position (see CookingModeButton.astro). Scoped to the
-   .cooking-mode-wipe marker — set only for the duration of that specific
-   transition — rather than the bare ::view-transition-old/new(root)
-   selectors, so Astro's own page-navigation view transitions keep their
-   default crossfade instead of losing it to this override. */
-.cooking-mode-wipe::view-transition-old(root),
-.cooking-mode-wipe::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-.cooking-mode-wipe::view-transition-old(root) {
-  z-index: 1;
-}
-.cooking-mode-wipe::view-transition-new(root) {
-  z-index: 9999;
-}
-
-/* The flame-glow ring (see CookingModeButton.astro) gets its own
-   view-transition layer so it paints above the wipe instead of being
-   hidden behind it. Its "old" state is the same pre-collapsed element the
-   "new" state starts from, so the default crossfade has nothing useful to
-   do here — only the JS-driven Web Animations API call should move it. */
-.cooking-mode-wipe::view-transition-old(cooking-mode-flame-glow),
-.cooking-mode-wipe::view-transition-new(cooking-mode-flame-glow) {
-  animation: none;
-}
-.cooking-mode-wipe::view-transition-new(cooking-mode-flame-glow) {
-  z-index: 10000;
-}
-
-/* Sparks (see CookingModeButton.astro) get the same treatment as the
-   flame-glow ring above, one layer higher so the embers paint in front of
-   the glow they're flung out of rather than behind it. */
-.cooking-mode-wipe::view-transition-old(cooking-mode-sparks),
-.cooking-mode-wipe::view-transition-new(cooking-mode-sparks) {
-  animation: none;
-}
-.cooking-mode-wipe::view-transition-new(cooking-mode-sparks) {
-  z-index: 10001;
-}
-
-/* The z-index rules above only order each name's own old/new images
-   relative to each other — they don't affect stacking *between* different
-   named transitions. Astro's page-navigation transitions leave elements
-   like the recipe title/image tagged with their own view-transition-name
-   even outside of a page navigation, so those still get pulled into our
-   cooking-mode transition (anything carrying a name is captured) and,
-   without this, their ::view-transition-group can paint over the glow
-   regardless of the z-index set above — the group pseudo is what controls
-   stacking order across different names, and is otherwise unstyled here. */
-.cooking-mode-wipe::view-transition-group(root) {
-  z-index: 9999;
-}
-.cooking-mode-wipe::view-transition-group(cooking-mode-flame-glow) {
-  z-index: 10000;
-}
-.cooking-mode-wipe::view-transition-group(cooking-mode-sparks) {
-  z-index: 10001;
-}
+/* The circular "wipe" reveal for entering/exiting cooking mode (see
+   CookingModeButton.astro) is a plain animated overlay `<div>` with its own
+   inline z-index/clip-path — not document.startViewTransition() — so there
+   are no ::view-transition-* pseudo-elements left to style here. */
