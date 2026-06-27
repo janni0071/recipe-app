@@ -16,6 +16,17 @@
    to be for the wipe to have anything themed to reveal.) */
 @custom-variant cooking-mode-layout (&:where(.cooking-mode-layout, .cooking-mode-layout *));
 
+/* Backs the cooking-mode wipe's growing "reveal hole" (see
+   CookingModeButton.astro) — a typed custom property so the Web Animations
+   API can interpolate it smoothly frame-by-frame. Without this
+   registration, an animated custom property is just an opaque token stream
+   to the browser and snaps straight to its end value instead of growing. */
+@property --cooking-mode-hole-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* Base body font – clean sans‑serif using system UI stack */
 body {
   font-family:

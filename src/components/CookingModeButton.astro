@@ -81,8 +81,41 @@ const { label, shortLabel, exitLabel } = Astro.props;
   // font-size bump — every mutation that changes the page's height. Kept
   // apart from the `cooking-mode` class above (which still toggles instantly,
   // for the colors/text-fill right under the tap) so the click handler below
-  // can apply it only once the wipe overlay has fully covered the screen —
-  // see the comment on the cover/reveal animations further down.
+  // can defer it until the whole wipe/glow/spark show has settled — see the
+  // comment on the deferred Promise.all further down.
+  // The wipe's "old state" snapshot (see bindCookingModeButton below) clones
+  // <body> into a Shadow DOM tree so it stays visually frozen at the
+  // pre-toggle cooking-mode/cooking-mode-layout state even after the real
+  // <html>'s classes flip. A plain (non-shadow) clone has no such immunity:
+  // `cooking-mode *` matches on ANY ancestor having the class, not just the
+  // nearest one, so a clone inserted anywhere under the real (about to be
+  // mutated) <html> would pick up its new classes regardless of what's set
+  // on the clone itself. A shadow tree's adopted stylesheet only matches
+  // elements inside that same tree, so the real <html>'s classes can't
+  // reach in. Built once and cached rather than per click, since
+  // constructing a stylesheet from the page's full compiled CSS isn't free.
+  let cachedSnapshotStyleSheets = null;
+  function getSnapshotStyleSheets() {
+    if (cachedSnapshotStyleSheets) return cachedSnapshotStyleSheets;
+    cachedSnapshotStyleSheets = Array.from(document.styleSheets)
+      .map((sheet) => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join('\n');
+        } catch {
+          return ''; // Cross-origin sheet — unreadable, and not needed here.
+        }
+      })
+      .filter(Boolean)
+      .map((cssText) => {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(cssText);
+        return sheet;
+      });
+    return cachedSnapshotStyleSheets;
+  }
+
   function setCookingModeLayout(active) {
     document.documentElement.classList.toggle('cooking-mode-layout', active);
     document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
@@ -146,10 +179,16 @@ const { label, shortLabel, exitLabel } = Astro.props;
     // Tracks this button's own in-flight wipe so a second click landing
     // before the previous one's cleanup ran can tear it down first, rather
     // than piling up overlapping overlays/glows/sparks.
-    let pendingOverlay = null;
+    let pendingSnapshot = null;
     let pendingGlow = null;
     let pendingSparks = null;
     let pendingAnimations = [];
+    // Bumped once per click; deferred work below compares against it rather
+    // than against pendingSnapshot directly, since pendingSnapshot is
+    // legitimately cleared by this same click's own (earlier) cleanup well
+    // before its later (layout) cleanup runs — a stale check against it
+    // would otherwise mistake its own click for a superseded one.
+    let activeToken = 0;
 
     if (!window.__cookingModeBound) {
       window.__cookingModeBound = true;
@@ -216,46 +255,100 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // before the new ones go up.
       pendingAnimations.forEach((anim) => anim.cancel());
       pendingAnimations = [];
-      pendingOverlay?.remove();
+      pendingSnapshot?.remove();
       pendingGlow?.remove();
       pendingSparks?.remove();
+      const myToken = ++activeToken;
 
       const root = document.documentElement;
       const x = e.clientX;
       const y = e.clientY;
       const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
-      // The wipe is a plain WAAPI animation on an ordinary fixed `<div>` —
-      // it grows from the tap point to fully cover the screen with an
-      // opaque flame-gradient disc (the "cover" animation below); once
-      // nothing of the page is visible, every mutation that changes the
-      // page's content or height happens hidden behind it (see
-      // coverAnim.finished below); then the same disc shrinks back to a
-      // point to reveal the result (the "reveal" animation).
+      // The page's pre-toggle appearance has to stay visible everywhere the
+      // wipe hasn't reached yet, while the live page underneath gets
+      // mutated to its post-toggle state right now (see setActive() below)
+      // — so a clone of <body>, taken before any of that happens, sits on
+      // top of the live page with a mask that's opaque everywhere except a
+      // circle that grows from the tap point, letting the live (already
+      // new) page show through only inside that circle as it grows. This
+      // used to come for free from document.startViewTransition(): its
+      // automatic ::view-transition-old(root) snapshot is a flat raster
+      // image, immune to any DOM mutation that follows it. A live DOM clone
+      // has no such immunity on its own — see getSnapshotStyleSheets()
+      // above for how the Shadow DOM wrapper below gets it that immunity.
       //
-      // This used to be built on document.startViewTransition(), purely as
-      // a way to get a "new state" pseudo-element to clip-path-animate (the
-      // crossfade ::view-transition-old/new(root) would normally do on its
-      // own was always disabled — see the now-removed rules in global.css).
-      // Real devices were silently aborting that mid-flight: their browser
-      // UI chrome (the address/toolbar bar) reacts to the very tap that
-      // starts the transition, firing a resize the page can neither detect
-      // nor prevent, and the View Transitions spec treats any resize during
-      // an active transition as automatic grounds to cancel it — confirmed
+      // This used to be built on document.startViewTransition() entirely,
+      // purely to get that automatic dual-snapshot behavior. Real devices
+      // were silently aborting it mid-flight: their browser UI chrome (the
+      // address/toolbar bar) reacts to the very tap that starts the
+      // transition, firing a resize the page can neither detect nor
+      // prevent, and the View Transitions spec treats any resize during an
+      // active transition as automatic grounds to cancel it — confirmed
       // across several rounds of real-device retesting and CSS fixes that
       // ruled out every other cause, including reproducing it with
       // document.documentElement.scrollHeight provably unchanged for the
-      // whole transition. An ordinary animated element has nothing to do
-      // with view transitions and is never subject to that abort, and is
-      // far cheaper than snapshotting the page into an image to fake the
-      // same effect, which is the only reason a screenshot-based approach
-      // (e.g. html2canvas) was ever a candidate.
-      const overlay = document.createElement('div');
-      overlay.style.cssText =
-        `position:fixed;inset:0;pointer-events:none;z-index:9999;` +
-        `clip-path:circle(0px at ${x}px ${y}px);` +
-        `background:radial-gradient(circle at ${x}px ${y}px, #fff7e0 0%, #fde68a 18%, #f97316 45%, #be123c 70%, #2e0a08 100%);`;
-      document.body.appendChild(overlay);
+      // whole transition. Plain DOM elements have nothing to do with view
+      // transitions and are never subject to that abort, and cloneNode is a
+      // native structural copy — far cheaper than rasterizing the page into
+      // an image to fake the same effect, which is the only reason a
+      // screenshot-based approach (e.g. html2canvas) was ever a candidate.
+      const snapshotHost = document.createElement('div');
+      snapshotHost.inert = true;
+      snapshotHost.setAttribute('aria-hidden', 'true');
+      snapshotHost.style.cssText =
+        `position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:9999;` +
+        `--cooking-mode-hole-r:0px;` +
+        `mask-image:radial-gradient(circle at ${x}px ${y}px, transparent var(--cooking-mode-hole-r), white var(--cooking-mode-hole-r));` +
+        `-webkit-mask-image:radial-gradient(circle at ${x}px ${y}px, transparent var(--cooking-mode-hole-r), white var(--cooking-mode-hole-r));`;
+      // White/transparent stops (rather than e.g. black/white) read the
+      // same way under both of mask-image's two possible interpretations —
+      // luminance or alpha — since transparent has both zero alpha and zero
+      // luminance, and white has both full alpha and full luminance.
+      // Browsers have historically disagreed on which one a plain CSS
+      // gradient defaults to, so this sidesteps the question rather than
+      // relying on either.
+      const snapshotShadow = snapshotHost.attachShadow({ mode: 'open' });
+      try {
+        snapshotShadow.adoptedStyleSheets = getSnapshotStyleSheets();
+      } catch {
+        // Constructable stylesheets unsupported — the clone below renders
+        // unstyled, which only affects this decorative snapshot, not the
+        // real page underneath it.
+      }
+      const bodyClone = document.body.cloneNode(true);
+      // Dev-only: the Astro dev toolbar is a custom element, and cloning it
+      // re-runs its connectedCallback once inserted below, which throws
+      // (it assumes there's only ever one instance) — stripped here since
+      // it's not part of the page itself and isn't present in production.
+      bodyClone.querySelector('astro-dev-toolbar')?.remove();
+      // dark/cooking-mode/cooking-mode-layout all live on <html>, not <body>,
+      // and their variants are `&:where(.X, .X *)` — an ancestor-or-self
+      // match that a shadow tree's scope boundary stops dead at the shadow
+      // root, since <html> sits outside that tree entirely. Copying <html>'s
+      // current classes onto the clone's own root gives that same selector
+      // an ancestor to match from inside the shadow tree too. Read before
+      // setActive() below changes the real <html>, so this still reflects
+      // the pre-toggle state being frozen — including, when exiting,
+      // cooking-mode/cooking-mode-layout themselves, which are still on
+      // <html> at this exact point.
+      bodyClone.classList.add(...document.documentElement.classList);
+      bodyClone.style.position = 'absolute';
+      bodyClone.style.top = `${-window.scrollY}px`;
+      bodyClone.style.left = '0';
+      bodyClone.style.right = '0';
+      bodyClone.style.margin = '0';
+      // cloneNode copies each checkbox's `checked` attribute (its default),
+      // not the live `checked` property IngredientList's own clicks set
+      // afterward — resynced here by position, since the clone's structure
+      // is still identical to the live one at this exact point.
+      const liveCheckboxes = document.body.querySelectorAll('input[type="checkbox"]');
+      const cloneCheckboxes = bodyClone.querySelectorAll('input[type="checkbox"]');
+      liveCheckboxes.forEach((checkbox, i) => {
+        if (cloneCheckboxes[i]) cloneCheckboxes[i].checked = checkbox.checked;
+      });
+      snapshotShadow.appendChild(bodyClone);
+      document.body.appendChild(snapshotHost);
 
       // The glow ring and embers below are unchanged from the original
       // view-transition build (same gradients/canvas drawing, same
@@ -263,7 +356,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
       // They used to animate ::view-transition-new(...) pseudo-elements
       // (the only way to layer something above the transition's own
       // snapshot tree); now they're plain fixed-position elements, stacked
-      // above the overlay by z-index and animated directly, since there's
+      // above the snapshot by z-index and animated directly, since there's
       // no pseudo-element tree to target any more.
       const ringSize = 260;
       // Both cooking-mode backdrops (light: amber/orange/rose pastels, dark:
@@ -353,22 +446,33 @@ const { label, shortLabel, exitLabel } = Astro.props;
       }
       document.body.appendChild(sparks);
 
-      pendingOverlay = overlay;
+      pendingSnapshot = snapshotHost;
       pendingGlow = glow;
       pendingSparks = sparks;
 
-      // Only the `cooking-mode` class toggle (colors/text-fill/icons) goes
-      // out right away — it's directly under the tap, where the overlay's
-      // own growth covers it again almost instantly, so there's nothing to
-      // see jump. Everything else (see setCookingModeLayout above) waits
-      // for coverAnim.finished below, once the overlay is fully opaque.
+      // Safe to mutate the live page for real, right now: the snapshot
+      // above is fully opaque everywhere (its hole radius is still 0), so
+      // none of this is visible until the hole-grow animation below starts
+      // eating into it. Only the `cooking-mode` class (colors/backgrounds)
+      // changes here — cooking-mode-layout (header/footer/step-list
+      // collapse/etc, see setCookingModeLayout below) still waits until the
+      // whole wipe+glow+spark show is done rather than tracking the hole's
+      // growth, exactly like the original view-transition build, which
+      // only ever animated the `cooking-mode` class's colors through the
+      // wipe itself.
       setActive(activating);
 
-      const coverDuration = 600;
-      const revealDuration = 450;
-      const coverAnim = overlay.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
-        { duration: coverDuration, easing: 'ease-in', fill: 'forwards' }
+      const maskAnim = snapshotHost.animate(
+        { '--cooking-mode-hole-r': ['0px', `${endRadius}px`] },
+        { duration: 600, easing: 'ease-in', fill: 'forwards' }
+      );
+      // A brief overexposed flash on the live page as it's revealed, like
+      // the wipe is briefly catching light. Applied to the live root
+      // rather than just the growing hole, since only the part the hole
+      // has already exposed is visible to begin with.
+      const flashAnim = root.animate(
+        { filter: ['brightness(1.7) saturate(1.6)', 'brightness(1) saturate(1)'] },
+        { duration: 320, easing: 'ease-out' }
       );
       // maxScale stretches the ring's small fixed-size raster so its outer
       // edge reaches endRadius — the same target the overlay's own
@@ -437,7 +541,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
         ],
         { duration: 1000, fill: 'forwards' }
       );
-      pendingAnimations = [coverAnim, glowScaleAnim, glowOpacityAnim, sparkScaleAnim, sparkOpacityAnim];
+      pendingAnimations = [maskAnim, flashAnim, glowScaleAnim, glowOpacityAnim, sparkScaleAnim, sparkOpacityAnim];
 
       Promise.all([glowScaleAnim.finished, glowOpacityAnim.finished])
         .then(() => {
@@ -455,11 +559,38 @@ const { label, shortLabel, exitLabel } = Astro.props;
         })
         .catch(() => {});
 
-      coverAnim.finished
+      // Once the hole has grown to cover the whole viewport, the snapshot
+      // is fully transparent everywhere visible — nothing left to mask, so
+      // it can just be dropped. No second "reveal" phase needed, unlike the
+      // old opaque-fill design: the live page underneath was the real,
+      // already-mutated page the entire time.
+      maskAnim.finished
+        .then(() => {
+          if (pendingSnapshot === snapshotHost) pendingSnapshot = null;
+          snapshotHost.remove();
+        })
+        .catch(() => {
+          // Cancelled by a newer click (see above) — that click already
+          // removed this snapshot directly.
+        });
+
+      // Deferred until every wipe/glow/spark animation has settled — same
+      // as the original view-transition build deferring this past
+      // transition.finished — so none of cooking-mode-layout's height-
+      // changing mutations (header/footer, step-list collapse, ingredient
+      // font-size) land while any of this is still in flight.
+      Promise.all([
+        maskAnim.finished,
+        flashAnim.finished,
+        glowScaleAnim.finished,
+        glowOpacityAnim.finished,
+        sparkScaleAnim.finished,
+        sparkOpacityAnim.finished,
+      ])
         .then(() => {
           // A later click may have already cancelled this one and started
-          // its own — don't mutate state or reveal on its behalf.
-          if (pendingOverlay !== overlay) return;
+          // its own — don't mutate state on its behalf.
+          if (myToken !== activeToken) return;
 
           setCookingModeLayout(activating);
           if (activating) {
@@ -469,28 +600,10 @@ const { label, shortLabel, exitLabel } = Astro.props;
             releaseWakeLock();
             if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
           }
-
-          // A brief overexposed flash as the new content is revealed, like
-          // the wipe is briefly catching light.
-          root.animate(
-            { filter: ['brightness(1.7) saturate(1.6)', 'brightness(1) saturate(1)'] },
-            { duration: 320, easing: 'ease-out' }
-          );
-          const revealAnim = overlay.animate(
-            { clipPath: [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`] },
-            { duration: revealDuration, easing: 'ease-out', fill: 'forwards' }
-          );
-          pendingAnimations.push(revealAnim);
-          revealAnim.finished
-            .then(() => {
-              if (pendingOverlay === overlay) pendingOverlay = null;
-              overlay.remove();
-            })
-            .catch(() => {});
         })
         .catch(() => {
           // Cancelled by a newer click (see above) — that click's own
-          // chain owns the mutation/reveal/cleanup; nothing further to do.
+          // chain owns the mutation/cleanup; nothing further to do.
         });
     });
   }
