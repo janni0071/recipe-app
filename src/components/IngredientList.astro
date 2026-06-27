@@ -159,7 +159,11 @@ const { heading, groups, servings, servingsLabel, slug, gatherLabel } = Astro.pr
     function syncDisabled(active) {
       checkboxes.forEach((checkbox) => { checkbox.disabled = !active; });
     }
-    syncDisabled(document.documentElement.classList.contains('cooking-mode'));
+    // Checks `cooking-mode-layout`, not `cooking-mode` — that's the variant
+    // that actually controls these checkboxes' visibility (see global.css),
+    // and what the cookingmodechange event's `detail.active` below is in
+    // lockstep with.
+    syncDisabled(document.documentElement.classList.contains('cooking-mode-layout'));
     document.addEventListener('cookingmodechange', (e) => syncDisabled(e.detail.active));
 
     container.addEventListener('change', (e) => {

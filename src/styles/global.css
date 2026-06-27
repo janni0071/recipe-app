@@ -2,13 +2,19 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant cooking-mode (&:where(.cooking-mode, .cooking-mode *));
-/* Separate from `cooking-mode` above: this one drives every hide/show that
-   changes the page's height (header, footer, tags, similar-recipes, the
-   inline favorite/share/print row). It's toggled a beat later than
-   `cooking-mode` itself — see CookingModeButton.astro — so that mutation
-   never lands while a view transition is in flight, which is what was
-   making mobile browsers resize and silently abort the wipe mid-flight. */
-@custom-variant cooking-mode-chrome (&:where(.cooking-mode-chrome, .cooking-mode-chrome *));
+/* Separate from `cooking-mode` above: this one drives every hide/show or
+   resize that changes the page's height — header, footer, tags,
+   similar-recipes, the inline favorite/share/print row, AND (see
+   StepList.astro/global.css further down) the step list's one-at-a-time
+   collapse, its per-step timer button, progress bar and prev/next controls,
+   and the ingredient list's cooking-mode font-size bump. It's toggled a beat
+   later than `cooking-mode` itself — see CookingModeButton.astro — so none
+   of that ever lands while a view transition is in flight, which is what
+   was making mobile browsers resize and silently abort the wipe mid-flight.
+   (`cooking-mode` itself still toggles instantly — colors/text-fill/icons
+   that don't change layout height are fine to reveal immediately, and need
+   to be for the wipe to have anything themed to reveal.) */
+@custom-variant cooking-mode-layout (&:where(.cooking-mode-layout, .cooking-mode-layout *));
 
 /* Base body font – clean sans‑serif using system UI stack */
 body {
@@ -113,11 +119,16 @@ body {
 .cooking-mode .prose ul.ing-list {
   list-style: none;
   padding-left: 0;
-  /* Gathering ingredients is the same glance-from-across-the-counter task as
-     reading a step, so it gets the same readability bump — slightly more
-     conservative than the steps' 1.2em (global.css further down) since every
-     ingredient renders at once here rather than one-at-a-time, so the size
-     increase multiplies across the whole list instead of just one line. */
+}
+/* font-size/line-height (rather than the rest of the rule above) are on the
+   deferred layout variant since they change every <li>'s height — see the
+   comment on @custom-variant cooking-mode-layout above. Gathering
+   ingredients is the same glance-from-across-the-counter task as reading a
+   step, so it gets the same readability bump — slightly more conservative
+   than the steps' 1.2em (further down) since every ingredient renders at
+   once here rather than one-at-a-time, so the size increase multiplies
+   across the whole list instead of just one line. */
+.cooking-mode-layout .prose ul.ing-list {
   font-size: 1.1em;
   line-height: 1.5;
 }
@@ -140,8 +151,14 @@ body {
    same orange-to-rose gradient as the cooking-mode heading once checked. The
    checkmark has to be baked into an SVG background image since
    `appearance: none` drops the browser's native one. */
-.cooking-mode .ing-checkbox {
+/* The display toggle (only) is on the deferred layout variant — going from
+   `none` to anything else changes the row's box, where appearance/border/
+   colors below don't, since they only ever paint inside a box that's
+   already there. Harmless to apply instantly while still display:none. */
+.cooking-mode-layout .ing-checkbox {
   display: inline-block;
+}
+.cooking-mode .ing-checkbox {
   appearance: none;
   -webkit-appearance: none;
   border-radius: 0.3rem;
@@ -285,8 +302,6 @@ body {
 }
 .cooking-mode .prose ol li {
   padding-left: 1.25rem;
-  font-size: 1.2em;
-  line-height: 1.6;
   /* Flat near-white (#f3f4f6) reads as a plain gray box against the warm
      gradient instead of belonging to it. A translucent white overlay lets
      the gradient's own warmth show through underneath. */
@@ -295,6 +310,16 @@ body {
      step cards read as "fire-lit" rather than just a recolored default card. */
   border-left-color: #e11d48;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 16px rgba(249, 115, 22, 0.15);
+}
+/* font-size/line-height are on the deferred layout variant, not the rest of
+   the rule above — they change every <li>'s height, and with one-step-at-a-
+   time collapse (StepList.astro) ALSO deferred to that same variant, having
+   this land any earlier would briefly grow every still-uncollapsed step by
+   20% before they collapse down to one, a bigger mid-transition height swing
+   than not having this fix at all. */
+.cooking-mode-layout .prose ol li {
+  font-size: 1.2em;
+  line-height: 1.6;
 }
 /* The flat slate-gray card from regular dark mode reads as a "cool" color
    against cooking mode's warm maroon/black backdrop. A translucent tint of

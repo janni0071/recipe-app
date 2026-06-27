@@ -36,12 +36,20 @@ const { label, shortLabel, exitLabel } = Astro.props;
   label stays untouched since by then it's the only button left in the row.
   Spacing to the icon is margin on the text itself (not a flex `gap` on the
   button) so the icon stays centered when a label is hidden — a gap would
-  still reserve space for this span even with no visible content. */}
-  <span class="group-data-[active=true]:hidden">
+  still reserve space for this span even with no visible content.
+  Swapped on `cooking-mode-layout`, not `data-active` directly — these two
+  labels differ in width, and swapping instantly (mid-transition, before the
+  sibling header buttons are hidden) can tip the still-crowded button row
+  into an extra flex-wrap line, changing the page's height while the wipe is
+  still in flight. Deferring it alongside everything else that affects
+  height (see global.css/CookingModeButton.astro) avoids that. The icon
+  swap above stays on `data-active` since two fixed 20×20 icons swapping has
+  no layout impact and needs to track the wipe's reveal point instantly. */}
+  <span class="cooking-mode-layout:hidden">
     <span class="sm:hidden ml-1.5">{shortLabel}</span>
     <span class="hidden sm:inline ml-2">{label}</span>
   </span>
-  <span class="hidden group-data-[active=true]:block ml-2">{exitLabel}</span>
+  <span class="hidden cooking-mode-layout:block ml-2">{exitLabel}</span>
 </button>
 
 <script is:inline>
@@ -93,19 +101,27 @@ const { label, shortLabel, exitLabel } = Astro.props;
     button.setAttribute('aria-pressed', String(active));
     button.setAttribute('aria-label', active ? button.dataset.exitLabel : button.dataset.label);
     document.documentElement.classList.toggle('cooking-mode', active);
-    document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
   }
 
-  // Separate from setActive(): this toggles `cooking-mode-chrome`, the variant
-  // that hides/shows the header, footer, tags row, similar-recipes section and
-  // the inline favorite/share/print row — everything whose hide/show changes
-  // the page's height. Kept apart from the `cooking-mode` class above (which
-  // still toggles instantly, for the colors/text-size the wipe needs to reveal
-  // immediately) so callers can defer just this one until a view transition
-  // is no longer in flight. See the comment above root.classList.add(
-  // 'cooking-mode-wipe') below for why that matters.
-  function setChromeHidden(hidden) {
-    document.documentElement.classList.toggle('cooking-mode-chrome', hidden);
+  // Separate from setActive(): this toggles `cooking-mode-layout`, the variant
+  // that hides/shows the header, footer, tags row, similar-recipes section,
+  // the inline favorite/share/print row, AND (via the cookingmodechange event
+  // dispatched here — moved out of setActive() above) StepList's one-step-at-
+  // a-time collapse, its per-step timer button/progress bar/prev-next
+  // controls, and the ingredient list's font-size bump — every mutation that
+  // changes the page's height. Kept apart from the `cooking-mode` class above
+  // (which still toggles instantly, for the colors/text-fill the wipe needs
+  // to reveal immediately) so callers can defer all of it until a view
+  // transition is no longer in flight. See the comment above
+  // root.classList.add('cooking-mode-wipe') below for why that matters — and
+  // why the event dispatch had to move down here too: StepList's collapse
+  // used to run off this same event while it still fired from setActive()
+  // above, synchronously inside the transition, which turned out to be a
+  // second (independently sufficient) cause of the same resize-abort this
+  // whole split was meant to fix.
+  function setCookingModeLayout(active) {
+    document.documentElement.classList.toggle('cooking-mode-layout', active);
+    document.dispatchEvent(new CustomEvent('cookingmodechange', { detail: { active } }));
   }
 
   async function releaseWakeLock() {
@@ -132,7 +148,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
 
   async function enterCookingMode() {
     setActive(true);
-    setChromeHidden(true);
+    setCookingModeLayout(true);
     requestWakeLock();
     // iOS Safari has no Fullscreen API for arbitrary elements, so this is
     // a progressive enhancement on top of the CSS-driven immersive layout
@@ -148,7 +164,7 @@ const { label, shortLabel, exitLabel } = Astro.props;
 
   async function exitCookingMode() {
     setActive(false);
-    setChromeHidden(false);
+    setCookingModeLayout(false);
     releaseWakeLock();
     if (document.fullscreenElement) {
       try {
@@ -343,15 +359,21 @@ const { label, shortLabel, exitLabel } = Astro.props;
       const sparkCount = 32;
       let sparks;
 
-      // Only the `cooking-mode` class toggle (colors/text-size) goes through
-      // the view transition synchronously. Fullscreen AND the chrome-hide
-      // (header/footer/tags/etc, via cooking-mode-chrome) are both held back
-      // until the transition is over (below): toggling either one changes
-      // the viewport or document height, and a resize during an active view
-      // transition makes the browser silently skip it — exactly the kind of
-      // race that would explain the wipe only sometimes showing up. (Confirmed
-      // on real devices via the debug overlay: a resize event was landing
-      // within single-digit ms of `finished` settling tens of times early.)
+      // Only the `cooking-mode` class toggle (colors/text-fill/icons that
+      // don't change layout height) goes through the view transition
+      // synchronously. Fullscreen AND every height-changing mutation
+      // (header/footer/tags/etc, StepList's step collapse and its controls,
+      // the ingredient font-size bump — all via cooking-mode-layout, plus
+      // the cookingmodechange event that now fires from that same deferred
+      // function) are held back until the transition is over (below):
+      // changing the viewport or document height makes the browser silently
+      // skip an active view transition on resize — exactly the kind of race
+      // that would explain the wipe only sometimes showing up. (Confirmed on
+      // real devices via the debug overlay: a resize event was landing within
+      // single-digit ms of `finished` settling tens of ms early. The first
+      // pass at this fix only deferred the chrome — StepList's collapse was
+      // a second, independently-sufficient cause of the same abort, found
+      // only after a real-device retest showed the wipe still not playing.)
       root.classList.add('cooking-mode-wipe');
       debugLog('calling startViewTransition');
       const transition = document.startViewTransition(() => {
@@ -595,11 +617,11 @@ const { label, shortLabel, exitLabel } = Astro.props;
         pendingTransition = null;
         root.classList.remove('cooking-mode-wipe');
         // Deferred until here (see the comment above root.classList.add(
-        // 'cooking-mode-wipe') above) so this height-changing mutation never
-        // lands while the transition is still active.
-        debugLog(`calling setChromeHidden(${activating})`);
-        setChromeHidden(activating);
-        logViewport('post-chrome-toggle viewport');
+        // 'cooking-mode-wipe') above) so none of these height-changing
+        // mutations ever land while the transition is still active.
+        debugLog(`calling setCookingModeLayout(${activating})`);
+        setCookingModeLayout(activating);
+        logViewport('post-layout-toggle viewport');
         if (activating) {
           requestWakeLock();
           debugLog('calling requestFullscreen');
