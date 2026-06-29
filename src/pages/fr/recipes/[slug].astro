@@ -85,7 +85,7 @@ const jsonLd = buildRecipeJsonLd({
         alt={recipe.data.title}
         width={900}
         height={400}
-        widths={[480, 768, 1200]}
+        widths={[480, 768, 900]}
         sizes="(min-width: 768px) 768px, 100vw"
         format="webp"
         quality={75}
@@ -173,6 +173,7 @@ const jsonLd = buildRecipeJsonLd({
               image={similar.data.image}
               baseRecipePath="/fr/recipes/"
               loading="lazy"
+              sizes="(min-width: 640px) 240px, 100vw"
             />
           ))}
         </div>
