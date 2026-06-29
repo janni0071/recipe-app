@@ -37,7 +37,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
   </div>
 
   <div id="recipe-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {recipesWithSlug.map((recipe, i) => (
+    {recipesWithSlug.map((recipe) => (
       <RecipeCard
         title={recipe.data.title}
         tags={recipe.data.tags}
@@ -50,7 +50,6 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         image={recipe.data.image}
         author={recipe.data.author}
         baseRecipePath="/de/recipes/"
-        loading={i === 0 ? 'eager' : 'lazy'}
       />
     ))}
   </div>
