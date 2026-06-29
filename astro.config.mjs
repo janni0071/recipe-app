@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
+import stripInlineScriptComments from "./integrations/strip-inline-script-comments.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -18,6 +19,7 @@ export default defineConfig({
         },
       },
     }),
+    stripInlineScriptComments(),
   ],
   vite: {
     plugins: [tailwindcss()],
