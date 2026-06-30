@@ -436,5 +436,22 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         });
       }
     </script>
+    <script is:inline>
+      // During a View Transition, the morphing image flies in over the new page.
+      // If the image is already cached, the blur placeholder on the container div
+      // (or on the hero <img> itself) is visible behind the in-flight animation,
+      // which looks wrong. Strip it before the browser captures ::view-transition-new
+      // — astro:after-swap fires inside startViewTransition's callback, so this
+      // change is baked into the "new" snapshot and the placeholder never shows.
+      document.addEventListener('astro:after-swap', () => {
+        document.querySelectorAll('div[style*="background-image"]').forEach((div) => {
+          const img = div.querySelector('img');
+          if (img && img.complete && img.naturalWidth > 0) div.style.backgroundImage = 'none';
+        });
+        document.querySelectorAll('img[style*="background-image"]').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) img.style.backgroundImage = 'none';
+        });
+      });
+    </script>
     </body>
 </html>
