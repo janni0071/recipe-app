@@ -55,7 +55,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
       />
     ))}
     <div id="recipe-grid-empty" class="hidden col-span-full py-16 text-center">
-      <svg aria-hidden="true" class="mx-auto w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"></path></svg>
+      <svg class="mx-auto w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#icon-search"/></svg>
       <p class="text-base font-medium text-gray-700 dark:text-gray-200">{t('search.noResults')}</p>
     </div>
   </div>

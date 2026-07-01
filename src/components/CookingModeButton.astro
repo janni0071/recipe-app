@@ -18,17 +18,8 @@ const { label, shortLabel, exitLabel } = Astro.props;
   aria-pressed="false"
   class="group flex-shrink-0 ml-auto inline-flex items-center px-2.5 sm:px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 text-pink-800 dark:text-pink-100 font-semibold leading-none transition cooking-mode:bg-linear-to-r cooking-mode:from-orange-500 cooking-mode:to-rose-600 cooking-mode:hover:brightness-110 cooking-mode:active:brightness-95 cooking-mode:text-white dark:cooking-mode:from-orange-400 dark:cooking-mode:to-rose-400"
 >
-  <svg class="cooking-mode-button-flame w-5 h-5 group-data-[active=true]:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    ></path>
-  </svg>
-  <svg class="hidden w-5 h-5 group-data-[active=true]:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round"></path>
-  </svg>
+  <svg class="cooking-mode-button-flame w-5 h-5 group-data-[active=true]:hidden" aria-hidden="true"><use href="#icon-flame"/></svg>
+  <svg class="hidden w-5 h-5 group-data-[active=true]:block" aria-hidden="true"><use href="#icon-close"/></svg>
   {/* Full label pushes the 5-button header row past the available width on
   narrow phones, so below sm: it's swapped for a short one instead of being
   dropped entirely — a bare icon blended in with the other plain icon
