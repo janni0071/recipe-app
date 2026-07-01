@@ -444,7 +444,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       // which looks wrong. Strip it before the browser captures ::view-transition-new
       // — astro:after-swap fires inside startViewTransition's callback, so this
       // change is baked into the "new" snapshot and the placeholder never shows.
-      document.addEventListener('astro:after-swap', () => {
+      document.addEventListener('astro:after-swap', (event) => {
         document.querySelectorAll('div[style*="background-image"]').forEach((div) => {
           const img = div.querySelector('img');
           if (img && img.complete && img.naturalWidth > 0) div.style.backgroundImage = 'none';
@@ -462,6 +462,17 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             requestAnimationFrame(() => { img.style.transition = ''; });
           }
         });
+        // When returning from a recipe page the hero morphs back to its card
+        // slot. The card wrapper has a grey Tailwind background (bg-gray-200)
+        // that stays visible in the page layer while the image flies in.
+        // Clear it before the ::view-transition-new snapshot so the destination
+        // is transparent — nothing behind the landing image.
+        const fromSlug = (event.from?.pathname ?? '').match(/\/(?:de\/|fr\/)?recipes\/(.+)/)?.[1];
+        if (fromSlug) {
+          const card = document.querySelector('[data-recipe-slug="' + CSS.escape(fromSlug) + '"]');
+          const wrapperImg = card && card.querySelector('img');
+          if (wrapperImg && wrapperImg.parentElement) wrapperImg.parentElement.style.backgroundColor = 'transparent';
+        }
       });
 
       // Fade in images as they load. For images already complete (eager, cached)
