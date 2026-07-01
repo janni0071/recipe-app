@@ -452,6 +452,28 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         document.querySelectorAll('img[style*="background-image"]').forEach((img) => {
           if (img.complete && img.naturalWidth > 0) img.style.backgroundImage = 'none';
         });
+        // Reveal already-loaded images instantly (no transition) so the
+        // ::view-transition-new snapshot captures them at full opacity.
+        // Images still loading stay at opacity-0 and fade in via astro:page-load.
+        document.querySelectorAll('img.opacity-0').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) {
+            img.style.transition = 'none';
+            img.classList.remove('opacity-0');
+            requestAnimationFrame(() => { img.style.transition = ''; });
+          }
+        });
+      });
+
+      // Fade in images as they load. For images already complete (eager, cached)
+      // remove opacity-0 directly; for lazy images attach a one-time load listener.
+      document.addEventListener('astro:page-load', () => {
+        document.querySelectorAll('img.opacity-0').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) {
+            img.classList.remove('opacity-0');
+          } else {
+            img.addEventListener('load', () => img.classList.remove('opacity-0'), { once: true });
+          }
+        });
       });
     </script>
     <script is:inline>

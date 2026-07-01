@@ -94,7 +94,7 @@ const jsonLd = buildRecipeJsonLd({
         loading="eager"
         fetchpriority="high"
         decoding="async"
-        class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 bg-cover bg-center dark:bg-gray-700"
+        class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 bg-cover bg-center dark:bg-gray-700 opacity-0 transition-opacity duration-300"
         style={heroPlaceholder ? `background-image:url(${heroPlaceholder})` : undefined}
         transition:name={`recipe-image-${slug}`}
         transition:persist
