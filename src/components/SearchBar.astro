@@ -60,14 +60,11 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       // recompute is enough; it doesn't need anything passed in.
       if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
 
-      // On pages with a recipe grid the grid IS the search results UI.
-      // Showing a dropdown alongside it would duplicate results at every
-      // width, so suppress it entirely — the grid empty state handles the
-      // no-results case instead.
-      if (document.getElementById('recipe-grid')) {
-        results.classList.add('hidden');
-        return;
-      }
+      // On desktop, the recipe grid is visible while typing so the grid IS
+      // the results UI — hide the dropdown to avoid duplication. On mobile
+      // the on-screen keyboard covers the grid, so the dropdown is the only
+      // visible results panel; keep it available below the sm breakpoint.
+      results.classList.toggle('sm:hidden', !!document.getElementById('recipe-grid'));
 
       if (!q) {
         results.classList.add('hidden');
