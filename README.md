@@ -43,6 +43,8 @@ Jannis & Daisy's family recipe collection, built as a fast, static Astro site.
 └── package.json
 ```
 
+For how the pieces fit together — the client-script conventions, cooking mode, `localStorage` state, and the build pipeline — see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 ## Adding a recipe
 
 Recipes live as Markdown files in `src/content/recipes/` (English at the top level, German under `de/`, French under `fr/`), with frontmatter for title, tags, prep/cook time, servings, ingredients, and steps. See an existing recipe file for the exact shape, or `src/content.config.ts` for the full schema.
