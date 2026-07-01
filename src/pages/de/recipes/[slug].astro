@@ -102,7 +102,7 @@ const jsonLd = buildRecipeJsonLd({
     ) : (
       <div class="print:hidden w-full h-64 bg-gray-200 rounded-xl mb-6 dark:bg-gray-700" />
     )}
-    <h1 class="text-4xl font-bold dark:text-white break-words mb-4 cooking-mode:bg-linear-to-r cooking-mode:from-orange-500 cooking-mode:to-rose-600 cooking-mode:bg-clip-text cooking-mode:text-transparent dark:cooking-mode:from-orange-400 dark:cooking-mode:to-rose-400" transition:name={`recipe-title-${slug}`}>{recipe.data.title}</h1>
+    <h1 class="text-4xl font-bold dark:text-white break-words mb-4 cooking-mode:bg-linear-to-r cooking-mode:from-orange-500 cooking-mode:to-rose-600 cooking-mode:bg-clip-text cooking-mode:text-transparent dark:cooking-mode:from-orange-400 dark:cooking-mode:to-rose-400" >{recipe.data.title}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b dark:border-gray-700">
       <div class="flex flex-1 min-w-0 flex-wrap gap-4 text-gray-600 dark:text-gray-400">
