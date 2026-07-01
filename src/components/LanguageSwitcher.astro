@@ -51,9 +51,7 @@ function targetUrl(locale: Locale): string {
       class="list-none flex items-center gap-1.5 px-3 py-2 rounded-lg text-base font-medium bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200 cursor-pointer select-none [&::-webkit-details-marker]:hidden"
     >
       {currentLocale.toUpperCase()}
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
+      <svg class="w-3.5 h-3.5" aria-hidden="true"><use href="#icon-chevron-down"/></svg>
     </summary>
     <div class="absolute right-0 z-10 mt-2 flex min-w-[6rem] flex-col gap-1 overflow-hidden rounded-xl border bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       {Object.values(languages).filter(({ code }) => code !== currentLocale).map(({ code, label }) => (

@@ -54,6 +54,9 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         loading={i < EAGER_CARD_COUNT ? 'eager' : 'lazy'}
       />
     ))}
+    <div id="recipe-grid-empty" class="hidden col-span-full py-16 text-center">
+      <svg class="mx-auto w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#icon-search"/></svg>
+      <p class="text-base font-medium text-gray-700 dark:text-gray-200">{t('search.noResults')}</p>
+    </div>
   </div>
-  <p id="recipe-grid-empty" class="hidden text-gray-500 dark:text-gray-400">{t('search.noResults')}</p>
 </BaseLayout>

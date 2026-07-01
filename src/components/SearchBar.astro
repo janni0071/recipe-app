@@ -54,20 +54,17 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       const q = query.trim().toLowerCase();
       results.innerHTML = '';
 
-      // Pages with a recipe grid (the homepage) filter it in place as you
-      // type, so the dropdown only earns its keep below the sm breakpoint
-      // there, where the grid needs scrolling to see what matched. Pages
-      // without a grid (recipe/tag pages) have nothing else to show results,
-      // so the dropdown should stay available at every width. Checked here
-      // rather than once at bind time, since this script sits in the header
-      // and runs before the rest of the page (e.g. #recipe-grid) is parsed.
-      results.classList.toggle('sm:hidden', !!document.getElementById('recipe-grid'));
-
       // Grid filtering (which also needs to combine with the "favorites
       // only" toggle) lives in a shared function in BaseLayout — it reads
       // the input's value straight from the DOM, so just asking it to
       // recompute is enough; it doesn't need anything passed in.
       if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+
+      // On desktop, the recipe grid is visible while typing so the grid IS
+      // the results UI — hide the dropdown to avoid duplication. On mobile
+      // the on-screen keyboard covers the grid, so the dropdown is the only
+      // visible results panel; keep it available below the sm breakpoint.
+      results.classList.toggle('sm:hidden', !!document.getElementById('recipe-grid'));
 
       if (!q) {
         results.classList.add('hidden');
@@ -89,9 +86,23 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       );
 
       if (matches.length === 0) {
+        // On the homepage the grid empty state handles no-results, so close
+        // the dropdown and let that show instead. On other pages (no grid)
+        // the dropdown is the only results UI, so show the empty state there.
+        if (document.getElementById('recipe-grid')) {
+          results.classList.add('hidden');
+          return;
+        }
         const li = document.createElement('li');
-        li.className = 'px-4 py-3 text-base text-gray-500 dark:text-gray-400';
-        li.textContent = noResultsLabel;
+        li.className = 'py-8 text-center';
+        const icon = document.createElement('div');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.className = 'mb-2';
+        icon.innerHTML = '<svg class="mx-auto w-8 h-8 text-gray-300 dark:text-gray-500" aria-hidden="true"><use href="#icon-search"></use></svg>';
+        const msg = document.createElement('p');
+        msg.className = 'text-sm text-gray-500 dark:text-gray-400';
+        msg.textContent = noResultsLabel;
+        li.append(icon, msg);
         results.append(li);
       } else {
         for (const item of matches) {

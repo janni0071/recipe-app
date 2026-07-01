@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../../utils/i18n';
+import { useTranslations, getLocalePath } from '../../utils/i18n';
 
 const t = useTranslations('de');
 const allRecipes = await getCollection('recipes');
@@ -24,6 +24,8 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
     <div
       id="shopping-list-root"
       data-empty-label={t('page.shoppingList.empty')}
+      data-browse-href={getLocalePath('de')}
+      data-browse-label={t('page.shoppingList.browseRecipes')}
       data-your-recipes-label={t('page.shoppingList.yourRecipes')}
       data-combined-label={t('page.shoppingList.combined')}
       data-remove-label={t('page.shoppingList.remove')}
@@ -113,7 +115,15 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
     const checked = getCheckedKeys();
 
     if (entries.length === 0) {
-      root.innerHTML = `<p class="text-gray-500 dark:text-gray-400">${escapeHtml(root.dataset.emptyLabel)}</p>`;
+      root.innerHTML = `
+        <div class="py-16 text-center">
+          <svg class="mx-auto w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#icon-cart"></use></svg>
+          <p class="mb-6 text-gray-500 dark:text-gray-400">${escapeHtml(root.dataset.emptyLabel)}</p>
+          <a href="${escapeHtml(root.dataset.browseHref || '/')}" class="inline-flex items-center px-5 py-3 rounded-full bg-pink-200 hover:bg-pink-300 active:bg-pink-400 dark:bg-pink-800 dark:hover:bg-pink-700 dark:active:bg-pink-600 text-pink-800 dark:text-pink-100 font-semibold leading-none transition">
+            ${escapeHtml(root.dataset.browseLabel || 'Browse recipes')}
+          </a>
+        </div>
+      `;
       return;
     }
 
@@ -167,7 +177,7 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
               <button type="button" data-step="inc" data-entry-slug="${entry.slug}" class="w-9 h-9 flex items-center justify-center text-lg rounded-full hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500 transition">+</button>
             </div>
             <button type="button" data-remove-slug="${entry.slug}" aria-label="${escapeHtml(root.dataset.removeLabel)}" class="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"></path></svg>
+              <svg class="w-4 h-4" aria-hidden="true"><use href="#icon-close"></use></svg>
             </button>
           </div>
         </div>
@@ -190,9 +200,7 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
             <label class="flex items-center gap-4 py-3 cursor-pointer select-none">
               <span class="relative flex-shrink-0 w-7 h-7">
                 <input type="checkbox" data-check-key="${escapeHtml(key)}" ${isChecked ? 'checked' : ''} class="peer appearance-none w-7 h-7 rounded-lg border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 checked:bg-pink-500 checked:border-pink-500 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400" />
-                <svg class="pointer-events-none absolute inset-0 w-7 h-7 p-1.5 text-white opacity-0 peer-checked:opacity-100 transition" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5"></path>
-                </svg>
+                <svg class="pointer-events-none absolute inset-0 w-7 h-7 p-1.5 text-white opacity-0 peer-checked:opacity-100 transition" aria-hidden="true"><use href="#icon-check"></use></svg>
               </span>
               <span data-check-label class="text-lg leading-snug ${isChecked ? 'line-through opacity-50' : ''}">${escapeHtml(text)}${attribution}</span>
             </label>
