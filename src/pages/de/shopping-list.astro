@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { useTranslations } from '../../utils/i18n';
+import { useTranslations, getLocalePath } from '../../utils/i18n';
 
 const t = useTranslations('de');
 const allRecipes = await getCollection('recipes');
@@ -24,6 +24,8 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
     <div
       id="shopping-list-root"
       data-empty-label={t('page.shoppingList.empty')}
+      data-browse-href={getLocalePath('de')}
+      data-browse-label={t('page.shoppingList.browseRecipes')}
       data-your-recipes-label={t('page.shoppingList.yourRecipes')}
       data-combined-label={t('page.shoppingList.combined')}
       data-remove-label={t('page.shoppingList.remove')}
@@ -113,7 +115,15 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
     const checked = getCheckedKeys();
 
     if (entries.length === 0) {
-      root.innerHTML = `<p class="text-gray-500 dark:text-gray-400">${escapeHtml(root.dataset.emptyLabel)}</p>`;
+      root.innerHTML = `
+        <div class="py-16 text-center">
+          <div class="text-5xl mb-4" aria-hidden="true">🛒</div>
+          <p class="mb-6 text-gray-500 dark:text-gray-400">${escapeHtml(root.dataset.emptyLabel)}</p>
+          <a href="${escapeHtml(root.dataset.browseHref || '/')}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white text-sm font-semibold transition">
+            ${escapeHtml(root.dataset.browseLabel || 'Browse recipes')}
+          </a>
+        </div>
+      `;
       return;
     }
 
