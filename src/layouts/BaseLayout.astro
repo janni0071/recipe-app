@@ -81,6 +81,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
   <body
     class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors cooking-mode:bg-linear-to-b cooking-mode:from-amber-100 cooking-mode:via-orange-100 cooking-mode:to-rose-200 dark:cooking-mode:from-neutral-950 dark:cooking-mode:via-stone-950 dark:cooking-mode:to-rose-950"
   >
+    <div id="nav-progress" aria-hidden="true" style="position:fixed;top:0;left:0;right:0;height:2px;z-index:9999;pointer-events:none;background:linear-gradient(to right,#ec4899,#f43f5e);transform:scaleX(0);transform-origin:left;opacity:0"></div>
     <header class="cooking-mode-layout:hidden print:hidden border-b bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div class="mx-auto max-w-6xl p-4">
         <nav class="flex flex-wrap items-center gap-3">
@@ -435,6 +436,80 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           resizeTimer = setTimeout(collapseTagRows, 150);
         });
       }
+    </script>
+    <script is:inline>
+      // During a View Transition, the morphing image flies in over the new page.
+      // If the image is already cached, the blur placeholder on the container div
+      // (or on the hero <img> itself) is visible behind the in-flight animation,
+      // which looks wrong. Strip it before the browser captures ::view-transition-new
+      // — astro:after-swap fires inside startViewTransition's callback, so this
+      // change is baked into the "new" snapshot and the placeholder never shows.
+      document.addEventListener('astro:after-swap', () => {
+        document.querySelectorAll('div[style*="background-image"]').forEach((div) => {
+          const img = div.querySelector('img');
+          if (img && img.complete && img.naturalWidth > 0) div.style.backgroundImage = 'none';
+        });
+        document.querySelectorAll('img[style*="background-image"]').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) img.style.backgroundImage = 'none';
+        });
+        // Reveal already-loaded images instantly (no transition) so the
+        // ::view-transition-new snapshot captures them at full opacity.
+        // Images still loading stay at opacity-0 and fade in via astro:page-load.
+        document.querySelectorAll('img.opacity-0').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) {
+            img.style.transition = 'none';
+            img.classList.remove('opacity-0');
+            requestAnimationFrame(() => { img.style.transition = ''; });
+          }
+        });
+      });
+
+      // Fade in images as they load. For images already complete (eager, cached)
+      // remove opacity-0 directly; for lazy images attach a one-time load listener.
+      document.addEventListener('astro:page-load', () => {
+        document.querySelectorAll('img.opacity-0').forEach((img) => {
+          if (img.complete && img.naturalWidth > 0) {
+            img.classList.remove('opacity-0');
+          } else {
+            img.addEventListener('load', () => img.classList.remove('opacity-0'), { once: true });
+          }
+        });
+      });
+    </script>
+    <script is:inline>
+      // Show a thin progress bar at the top while navigating to a new page so the
+      // site doesn't look frozen on slow connections. We delay showing it by 150ms
+      // so that instant (prefetched) navigations don't flash the bar at all.
+      (function () {
+        var bar = document.getElementById('nav-progress');
+        var showTimer = null;
+        var animating = false;
+
+        function showBar() {
+          animating = true;
+          bar.style.transition = 'none';
+          bar.style.transform = 'scaleX(0)';
+          bar.style.opacity = '1';
+          getComputedStyle(bar).transform; // force reflow so the reset commits before animating
+          bar.style.transition = 'transform 8s cubic-bezier(0.05, 0.8, 0.2, 1)';
+          bar.style.transform = 'scaleX(0.92)';
+        }
+
+        function completeBar() {
+          clearTimeout(showTimer);
+          if (!animating) return;
+          animating = false;
+          bar.style.transition = 'transform 0.15s ease-out, opacity 0.25s ease 0.15s';
+          bar.style.transform = 'scaleX(1)';
+          bar.style.opacity = '0';
+        }
+
+        document.addEventListener('astro:before-preparation', function () {
+          showTimer = setTimeout(showBar, 150);
+        });
+
+        document.addEventListener('astro:page-load', completeBar);
+      })();
     </script>
     </body>
 </html>

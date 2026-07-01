@@ -13,6 +13,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../utils/i18n';
 import { getSimilarRecipes } from '../../utils/similar';
 import { buildRecipeJsonLd } from '../../utils/recipeSchema';
+import { getBlurPlaceholder } from '../../utils/imagePlaceholder';
 
 type StaticPath = {
   params: { slug: string };
@@ -60,6 +61,7 @@ const description = `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('p
 const ogImage = recipe.data.image
   ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp', quality: 75 })
   : undefined;
+const heroPlaceholder = recipe.data.image ? await getBlurPlaceholder(recipe.data.image, 32, 14) : null;
 
 const jsonLd = buildRecipeJsonLd({
   name: recipe.data.title,
@@ -92,7 +94,8 @@ const jsonLd = buildRecipeJsonLd({
         loading="eager"
         fetchpriority="high"
         decoding="async"
-        class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 dark:bg-gray-700"
+        class="print:hidden w-full h-64 object-cover rounded-xl mb-6 bg-gray-200 bg-cover bg-center dark:bg-gray-700 opacity-0 transition-opacity duration-300"
+        style={heroPlaceholder ? `background-image:url(${heroPlaceholder})` : undefined}
         transition:name={`recipe-image-${slug}`}
         transition:persist
       />

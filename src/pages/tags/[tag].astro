@@ -4,6 +4,7 @@ import RecipeCard from '../../components/RecipeCard.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations, getTagsPath } from '../../utils/i18n';
 import { getTagTranslations } from '../../utils/tags';
+import { EAGER_CARD_COUNT } from '../../utils/imageLoading';
 
 export async function getStaticPaths(): Promise<{ params: { tag: string } }[]> {
   const recipes = await getCollection('recipes');
@@ -42,7 +43,7 @@ const localeUrls = {
   <p class="mb-6 text-gray-600 dark:text-gray-400">{filteredRecipes.length} {t('page.tag.count')}</p>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {recipesWithSlug.map((recipe) => (
+    {recipesWithSlug.map((recipe, i) => (
       <RecipeCard
         title={recipe.data.title}
         tags={recipe.data.tags}
@@ -53,6 +54,7 @@ const localeUrls = {
         favoriteLabel={t('page.recipe.favorite')}
         slug={recipe.slug}
         image={recipe.data.image}
+        loading={i < EAGER_CARD_COUNT ? 'eager' : 'lazy'}
       />
     ))}
   </div>

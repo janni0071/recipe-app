@@ -5,6 +5,7 @@ import Search from '../../components/SearchBar.astro';
 import FavoritesFilterToggle from '../../components/FavoritesFilterToggle.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations, getIndexHeadingParts } from '../../utils/i18n';
+import { EAGER_CARD_COUNT } from '../../utils/imageLoading';
 
 const t = useTranslations('de');
 const heading = getIndexHeadingParts('de');
@@ -50,7 +51,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         image={recipe.data.image}
         author={recipe.data.author}
         baseRecipePath="/de/recipes/"
-        loading={i === 0 ? 'eager' : 'lazy'}
+        loading={i < EAGER_CARD_COUNT ? 'eager' : 'lazy'}
       />
     ))}
   </div>
