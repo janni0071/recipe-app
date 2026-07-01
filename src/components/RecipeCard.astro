@@ -52,7 +52,7 @@ const placeholder = image ? await getBlurPlaceholder(image, 32, 24) : null;
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
     {image && (
       <div
-        class="relative h-48 bg-gray-200 overflow-hidden dark:bg-gray-700 bg-cover bg-center"
+        class="relative h-48 overflow-hidden bg-cover bg-center"
         style={placeholder ? `background-image:url(${placeholder})` : undefined}
       >
         <Image
