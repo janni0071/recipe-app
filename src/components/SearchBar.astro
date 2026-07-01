@@ -54,20 +54,20 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       const q = query.trim().toLowerCase();
       results.innerHTML = '';
 
-      // Pages with a recipe grid (the homepage) filter it in place as you
-      // type, so the dropdown only earns its keep below the sm breakpoint
-      // there, where the grid needs scrolling to see what matched. Pages
-      // without a grid (recipe/tag pages) have nothing else to show results,
-      // so the dropdown should stay available at every width. Checked here
-      // rather than once at bind time, since this script sits in the header
-      // and runs before the rest of the page (e.g. #recipe-grid) is parsed.
-      results.classList.toggle('sm:hidden', !!document.getElementById('recipe-grid'));
-
       // Grid filtering (which also needs to combine with the "favorites
       // only" toggle) lives in a shared function in BaseLayout — it reads
       // the input's value straight from the DOM, so just asking it to
       // recompute is enough; it doesn't need anything passed in.
       if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+
+      // On pages with a recipe grid the grid IS the search results UI.
+      // Showing a dropdown alongside it would duplicate results at every
+      // width, so suppress it entirely — the grid empty state handles the
+      // no-results case instead.
+      if (document.getElementById('recipe-grid')) {
+        results.classList.add('hidden');
+        return;
+      }
 
       if (!q) {
         results.classList.add('hidden');
