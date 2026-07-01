@@ -86,6 +86,13 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
       );
 
       if (matches.length === 0) {
+        // On the homepage the grid empty state handles no-results, so close
+        // the dropdown and let that show instead. On other pages (no grid)
+        // the dropdown is the only results UI, so show the empty state there.
+        if (document.getElementById('recipe-grid')) {
+          results.classList.add('hidden');
+          return;
+        }
         const li = document.createElement('li');
         li.className = 'py-8 text-center';
         const icon = document.createElement('div');

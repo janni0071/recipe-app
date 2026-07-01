@@ -280,11 +280,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
 
         const emptyMessage = document.getElementById('recipe-grid-empty');
         const filtering = query !== '' || favoritesOnly;
-        // On mobile (below sm) the search dropdown is visible and already
-        // shows its own no-results message for text queries, so skip the
-        // grid empty state to avoid showing both at once.
-        const dropdownCoversEmpty = query !== '' && window.innerWidth < 640;
-        if (emptyMessage) emptyMessage.classList.toggle('hidden', !filtering || visibleCount > 0 || dropdownCoversEmpty);
+        if (emptyMessage) emptyMessage.classList.toggle('hidden', !filtering || visibleCount > 0);
       };
 
       function initFavorites() {
