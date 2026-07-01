@@ -90,8 +90,15 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
 
       if (matches.length === 0) {
         const li = document.createElement('li');
-        li.className = 'px-4 py-3 text-base text-gray-500 dark:text-gray-400';
-        li.textContent = noResultsLabel;
+        li.className = 'py-8 text-center';
+        const icon = document.createElement('div');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.className = 'text-2xl mb-2';
+        icon.textContent = '🔍';
+        const msg = document.createElement('p');
+        msg.className = 'text-sm text-gray-500 dark:text-gray-400';
+        msg.textContent = noResultsLabel;
+        li.append(icon, msg);
         results.append(li);
       } else {
         for (const item of matches) {
