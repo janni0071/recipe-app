@@ -1,0 +1,65 @@
+---
+export interface Props {
+  label: string;
+  newestLabel: string;
+  alphaLabel: string;
+  quickestLabel: string;
+}
+
+const { label, newestLabel, alphaLabel, quickestLabel } = Astro.props;
+---
+
+<label
+  class="flex h-12 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-600 transition focus-within:ring-2 focus-within:ring-pink-400 dark:border-gray-700 dark:text-gray-300 sm:h-11"
+>
+  <span class="text-gray-500 dark:text-gray-400">{label}</span>
+  <select
+    id="recipe-sort"
+    class="cursor-pointer bg-transparent pr-1 font-medium text-gray-800 focus:outline-none dark:text-gray-100"
+  >
+    <option value="newest">{newestLabel}</option>
+    <option value="alpha">{alphaLabel}</option>
+    <option value="quickest">{quickestLabel}</option>
+  </select>
+</label>
+
+<script is:inline>
+  // Reorders the recipe grid in place. The grid is server-rendered newest-first,
+  // so "newest" just restores the captured original order; the other modes sort
+  // by data attributes the cards already carry (title, total minutes).
+  function bindSortControl() {
+    const select = document.getElementById('recipe-sort');
+    const grid = document.getElementById('recipe-grid');
+    if (!select || !grid || select.dataset.sortBound) return;
+    select.dataset.sortBound = 'true';
+
+    // Snapshot the initial (newest-first) order once, so we can always get back
+    // to it. Re-bound fresh on each SPA navigation since the grid is re-rendered.
+    const cards = Array.from(grid.querySelectorAll('[data-recipe-slug]'));
+    const emptyMessage = document.getElementById('recipe-grid-empty');
+
+    function apply() {
+      const mode = select.value;
+      const ordered = cards.slice();
+      if (mode === 'alpha') {
+        ordered.sort((a, b) =>
+          (a.dataset.recipeTitle || '').localeCompare(b.dataset.recipeTitle || '')
+        );
+      } else if (mode === 'quickest') {
+        const minutesOf = (el) => {
+          const n = parseInt(el.dataset.recipeMinutes || '', 10);
+          return Number.isNaN(n) ? Infinity : n; // unparseable times sink to the end
+        };
+        ordered.sort((a, b) => minutesOf(a) - minutesOf(b));
+      }
+      // Re-append in the new order; appendChild moves existing nodes. Keep the
+      // empty-state element last so it stays put when filters hide everything.
+      for (const card of ordered) grid.appendChild(card);
+      if (emptyMessage) grid.appendChild(emptyMessage);
+    }
+
+    select.addEventListener('change', apply);
+  }
+
+  document.addEventListener('astro:page-load', bindSortControl);
+</script>
