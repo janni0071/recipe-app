@@ -54,6 +54,13 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Recipe Box" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
@@ -76,6 +83,16 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       // Apply theme to the incoming document before it swaps in, so back/forward
       // navigation never paints a frame in the wrong theme first.
       document.addEventListener('astro:before-swap', (event) => applyTheme(event.newDocument));
+    </script>
+    <script is:inline>
+      // Register the service worker once. This inline script re-runs on every
+      // <ClientRouter/> navigation, so a window flag guards against re-registering.
+      if ('serviceWorker' in navigator && !window.__swRegistered) {
+        window.__swRegistered = true;
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
     </script>
   </head>
   <body
