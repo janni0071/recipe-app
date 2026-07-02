@@ -60,6 +60,7 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         slug={recipe.slug}
         image={recipe.data.image}
         author={recipe.data.author}
+        difficultyLabel={recipe.data.difficulty ? t(`difficulty.${recipe.data.difficulty}`) : undefined}
         ingredients={ingredientNames(recipe.data.ingredients)}
         baseRecipePath="/fr/recipes/"
         loading={i < EAGER_CARD_COUNT ? 'eager' : 'lazy'}

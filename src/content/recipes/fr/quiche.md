@@ -5,6 +5,7 @@ date: 2025-06-20
 tags: ["simple", "français"]
 prepTime: "10 min"
 cookTime: "40 min"
+difficulty: easy
 servings: 4
 author: "Daisy"
 image: "../../../assets/recipes/quiche.webp"

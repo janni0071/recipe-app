@@ -4,6 +4,7 @@ date: 2026-06-22
 tags: ["couscous", "végétarien", "méditerranéen", "rapide"]
 prepTime: "25 min"
 cookTime: "10 min"
+difficulty: easy
 servings: 4
 author: "Jannis"
 image: "../../../assets/recipes/tomato-couscous.webp"

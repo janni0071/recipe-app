@@ -28,6 +28,7 @@ const recipesCollection = defineCollection({
       tags: z.array(z.string()),
       prepTime: z.string(),
       cookTime: z.string(),
+      difficulty: z.enum(["easy", "medium", "hard"]).optional(),
       servings: z.number(),
       image: image().optional(),
       author: z.string().optional(),

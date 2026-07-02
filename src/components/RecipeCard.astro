@@ -16,6 +16,8 @@ export interface Props {
   slug: string;
   image?: ImageMetadata;
   author?: string;
+  // Already-translated difficulty label (e.g. "Easy"), or undefined to hide it.
+  difficultyLabel?: string;
   // Ingredient names, so the homepage grid filter can match on ingredients the
   // same way the search dropdown does. Optional: cards outside a filterable
   // grid (e.g. "similar recipes") can skip it to keep their markup lean.
@@ -35,6 +37,7 @@ const {
   slug,
   image,
   author,
+  difficultyLabel,
   ingredients = [],
   baseRecipePath = '/recipes/',
   loading = 'lazy',
@@ -81,6 +84,11 @@ const totalMinutes = parseTotalMinutes(prepTime, cookTime);
           decoding="async"
           transition:name={`recipe-image-${slug}`}
         />
+        {difficultyLabel && (
+          <span class="absolute top-2 left-2 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-gray-700 backdrop-blur-sm dark:bg-gray-900/80 dark:text-gray-200">
+            {difficultyLabel}
+          </span>
+        )}
         <FavoriteButton
           slug={slug}
           label={favoriteLabel}

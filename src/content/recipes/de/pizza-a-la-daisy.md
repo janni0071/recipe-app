@@ -4,6 +4,7 @@ date: 2025-05-31
 tags: ["Pizza", "italienisch"]
 prepTime: "45 min"
 cookTime: "30-35 min"
+difficulty: medium
 servings: 6
 author: "Daisy"
 image: "../../../assets/recipes/pizza.webp"
