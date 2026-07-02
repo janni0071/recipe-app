@@ -5,6 +5,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import Search from '../components/SearchBar.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { ingredientNames } from '../utils/ingredients';
 
 export interface Props {
   title: string;
@@ -38,6 +39,7 @@ const recipesBasePath = locale === 'en' ? '/recipes/' : `/${locale}/recipes/`;
 const headerSearchItems = localeRecipes.map((r: CollectionEntry<'recipes'>) => ({
   title: r.data.title,
   tags: r.data.tags,
+  ingredients: ingredientNames(r.data.ingredients),
   href: `${recipesBasePath}${(locale === 'en' ? r.id : r.id.slice(locale.length + 1)).replace(/\.md$/, '')}`,
 }));
 
@@ -173,7 +175,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           </a>
           {showHeaderSearch && (
             <div class="order-3 w-full sm:order-2 sm:w-80 sm:mx-auto">
-              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
+              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} matchedIngredientLabel={t('search.matchedIngredient')} items={headerSearchItems} />
             </div>
           )}
           <div class={`order-2 ml-auto flex items-center gap-3 flex-wrap justify-end sm:order-3 ${showHeaderSearch ? 'sm:ml-0' : ''}`}>
@@ -339,8 +341,13 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         for (const card of grid.children) {
           const title = (card.dataset.recipeTitle || '').toLowerCase();
           const tags = (card.dataset.recipeTags || '').split(',');
+          const ingredients = (card.dataset.recipeIngredients || '').split('|');
           const slug = card.dataset.recipeSlug;
-          const matchesQuery = !query || title.includes(query) || tags.some((tag) => tag.includes(query));
+          const matchesQuery =
+            !query ||
+            title.includes(query) ||
+            tags.some((tag) => tag.includes(query)) ||
+            ingredients.some((ing) => ing.includes(query));
           const matchesFavorites = !favoritesOnly || (!!slug && favorites.has(slug));
           const visible = matchesQuery && matchesFavorites;
           card.classList.toggle('hidden', !visible);

@@ -15,6 +15,10 @@ export interface Props {
   slug: string;
   image?: ImageMetadata;
   author?: string;
+  // Ingredient names, so the homepage grid filter can match on ingredients the
+  // same way the search dropdown does. Optional: cards outside a filterable
+  // grid (e.g. "similar recipes") can skip it to keep their markup lean.
+  ingredients?: string[];
   baseRecipePath?: string;
   loading?: 'lazy' | 'eager';
   sizes?: string;
@@ -30,6 +34,7 @@ const {
   slug,
   image,
   author,
+  ingredients = [],
   baseRecipePath = '/recipes/',
   loading = 'lazy',
   sizes = '(min-width: 1024px) 360px, (min-width: 768px) 480px, 100vw',
@@ -48,6 +53,7 @@ const placeholder = image ? await getBlurPlaceholder(image, 32, 24) : null;
   data-recipe-slug={slug}
   data-recipe-title={title.toLowerCase()}
   data-recipe-tags={tags.join(',').toLowerCase()}
+  data-recipe-ingredients={ingredients.join('|').toLowerCase()}
 >
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900">
     {image && (
