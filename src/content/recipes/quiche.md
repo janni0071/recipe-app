@@ -1,5 +1,6 @@
 ---
 title: "Leek, Mushroom and Ham Quiche"
+description: "A savoury French tart with leeks, mushrooms and ham in a creamy custard — comforting, simple, and just as good cold the next day."
 date: 2025-06-20
 tags: ["simple", "french"]
 prepTime: "10 min"
@@ -40,4 +41,6 @@ steps:
   - text: "Bake in oven for 40 minutes and check with a knife to see if the batter mix is cooked enough. If it is too liquid and/or the top is not golden, leave to bake some more time."
     timerSeconds: 2400
 ---
+
+**Tip:** Swap the ham for extra mushrooms to keep it vegetarian. Leftovers keep well in the fridge for up to 3 days and reheat gently in the oven.
 

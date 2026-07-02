@@ -9,7 +9,7 @@ import FavoriteButton from '../../../components/FavoriteButton.astro';
 import ShoppingListButton from '../../../components/ShoppingListButton.astro';
 import CookingModeButton from '../../../components/CookingModeButton.astro';
 import { Image, getImage } from 'astro:assets';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
 import { getSimilarRecipes } from '../../../utils/similar';
 import { buildRecipeJsonLd } from '../../../utils/recipeSchema';
@@ -57,7 +57,9 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
   slug: r.id.replace(/^de\//, '').replace(/\.md$/, ''),
 }));
 
-const description = `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
+const { Content } = await render(recipe);
+const hasNotes = (recipe.body ?? '').trim().length > 0;
+const description = recipe.data.description ?? `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
 const ogImage = recipe.data.image
   ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp', quality: 75 })
   : undefined;
@@ -125,6 +127,10 @@ const jsonLd = buildRecipeJsonLd({
       </div>
     </div>
 
+    {recipe.data.description && (
+      <p class="cooking-mode-layout:hidden text-lg text-gray-600 dark:text-gray-300 mb-8">{recipe.data.description}</p>
+    )}
+
     <div class="cooking-mode-layout:hidden print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
         <a
@@ -158,6 +164,13 @@ const jsonLd = buildRecipeJsonLd({
         allDoneLabel={t('page.recipe.allDone')}
       />
     </div>
+
+    {hasNotes && (
+      <div class="cooking-mode-layout:hidden prose max-w-none mt-8">
+        <h2>{t('page.recipe.notes')}</h2>
+        <Content />
+      </div>
+    )}
 
     {similarRecipes.length > 0 && (
       <div class="cooking-mode-layout:hidden print:hidden mt-12 border-t pt-8 dark:border-gray-700">
