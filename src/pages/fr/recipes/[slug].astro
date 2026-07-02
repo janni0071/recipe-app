@@ -9,10 +9,10 @@ import FavoriteButton from '../../../components/FavoriteButton.astro';
 import ShoppingListButton from '../../../components/ShoppingListButton.astro';
 import CookingModeButton from '../../../components/CookingModeButton.astro';
 import { Image, getImage } from 'astro:assets';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
 import { getSimilarRecipes } from '../../../utils/similar';
-import { buildRecipeJsonLd } from '../../../utils/recipeSchema';
+import { buildRecipeJsonLd, parseTotalMinutes } from '../../../utils/recipeSchema';
 import { getBlurPlaceholder } from '../../../utils/imagePlaceholder';
 
 type StaticPath = {
@@ -57,7 +57,11 @@ const similarRecipes = getSimilarRecipes(recipe, localeRecipes).map((r) => ({
   slug: r.id.replace(/^fr\//, '').replace(/\.md$/, ''),
 }));
 
-const description = `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
+const { Content } = await render(recipe);
+const hasNotes = (recipe.body ?? '').trim().length > 0;
+const description = recipe.data.description ?? `${t('page.recipe.prep')}: ${recipe.data.prepTime} · ${t('page.recipe.cook')}: ${recipe.data.cookTime}`;
+const totalMinutes = parseTotalMinutes(recipe.data.prepTime, recipe.data.cookTime);
+const difficultyLabel = recipe.data.difficulty ? t(`difficulty.${recipe.data.difficulty}`) : undefined;
 const ogImage = recipe.data.image
   ? await getImage({ src: recipe.data.image, width: 900, height: 400, format: 'webp', quality: 75 })
   : undefined;
@@ -108,7 +112,9 @@ const jsonLd = buildRecipeJsonLd({
       <div class="flex flex-1 min-w-0 flex-wrap gap-4 text-gray-600 dark:text-gray-400">
         <span>🕒 {t('page.recipe.prep')}: {recipe.data.prepTime}</span>
         <span>🔥 {t('page.recipe.cook')}: {recipe.data.cookTime}</span>
+        {totalMinutes != null && <span>⏲️ {t('page.recipe.total')}: {totalMinutes} min</span>}
         <span class="capitalize">🍽️ {t('page.recipe.servings')}: {recipe.data.servings}</span>
+        {difficultyLabel && <span>📊 {t('page.recipe.difficulty')}: {difficultyLabel}</span>}
       </div>
       <div class="print:hidden flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
         <span class="cooking-mode-layout:hidden flex items-center gap-2">
@@ -124,6 +130,10 @@ const jsonLd = buildRecipeJsonLd({
         />
       </div>
     </div>
+
+    {recipe.data.description && (
+      <p class="cooking-mode-layout:hidden text-lg text-gray-600 dark:text-gray-300 mb-8">{recipe.data.description}</p>
+    )}
 
     <div class="cooking-mode-layout:hidden print:hidden flex flex-wrap gap-2 mb-8">
       {recipe.data.tags.map((tag: string) => (
@@ -159,6 +169,13 @@ const jsonLd = buildRecipeJsonLd({
       />
     </div>
 
+    {hasNotes && (
+      <div class="cooking-mode-layout:hidden prose max-w-none mt-8">
+        <h2>{t('page.recipe.notes')}</h2>
+        <Content />
+      </div>
+    )}
+
     {similarRecipes.length > 0 && (
       <div class="cooking-mode-layout:hidden print:hidden mt-12 border-t pt-8 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4 dark:text-white">{t('page.recipe.similar')}</h2>
@@ -174,6 +191,7 @@ const jsonLd = buildRecipeJsonLd({
               favoriteLabel={t('page.recipe.favorite')}
               slug={similar.slug}
               image={similar.data.image}
+              difficultyLabel={similar.data.difficulty ? t(`difficulty.${similar.data.difficulty}`) : undefined}
               baseRecipePath="/fr/recipes/"
               loading="lazy"
               sizes="(min-width: 640px) 240px, 100vw"

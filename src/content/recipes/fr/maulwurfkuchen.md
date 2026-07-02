@@ -4,6 +4,7 @@ date: 2025-06-15
 tags: ["gâteau", "pâtisserie", "allemand", "végétarien", "dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
+difficulty: medium
 servings: 1
 author: "Jannis"
 image: "../../../assets/recipes/maulwurfkuchen.webp"

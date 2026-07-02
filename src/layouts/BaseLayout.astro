@@ -5,6 +5,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import Search from '../components/SearchBar.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { ingredientNames } from '../utils/ingredients';
 
 export interface Props {
   title: string;
@@ -38,6 +39,7 @@ const recipesBasePath = locale === 'en' ? '/recipes/' : `/${locale}/recipes/`;
 const headerSearchItems = localeRecipes.map((r: CollectionEntry<'recipes'>) => ({
   title: r.data.title,
   tags: r.data.tags,
+  ingredients: ingredientNames(r.data.ingredients),
   href: `${recipesBasePath}${(locale === 'en' ? r.id : r.id.slice(locale.length + 1)).replace(/\.md$/, '')}`,
 }));
 
@@ -54,6 +56,13 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Recipe Box" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
@@ -76,6 +85,16 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       // Apply theme to the incoming document before it swaps in, so back/forward
       // navigation never paints a frame in the wrong theme first.
       document.addEventListener('astro:before-swap', (event) => applyTheme(event.newDocument));
+    </script>
+    <script is:inline>
+      // Register the service worker once. This inline script re-runs on every
+      // <ClientRouter/> navigation, so a window flag guards against re-registering.
+      if ('serviceWorker' in navigator && !window.__swRegistered) {
+        window.__swRegistered = true;
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
     </script>
   </head>
   <body
@@ -136,11 +155,11 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         <symbol id="icon-chevron-down" viewBox="0 0 24 24">
           <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
         </symbol>
-        <symbol id="icon-utensils" viewBox="0 0 24 24">
-          <circle fill="none" stroke="currentColor" stroke-width="1.25" cx="12" cy="13" r="6"/>
-          <circle fill="none" stroke="currentColor" stroke-width="0.6" cx="12" cy="13" r="3.5"/>
-          <path fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" d="M1.5 7v3c0 .6.5 1 1 1s1-.4 1-1V7M2.5 11v8"/>
-          <path fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" d="M21.5 7v12M21.5 7c-2 1 -2 3 0 4"/>
+        <symbol id="icon-plate-search" viewBox="0 0 24 24">
+          <circle fill="none" stroke="currentColor" stroke-width="1.5" cx="10" cy="10.5" r="7.5"/>
+          <circle fill="none" stroke="currentColor" stroke-width="0.9" cx="10" cy="10.5" r="4.5"/>
+          <circle fill="none" stroke="currentColor" stroke-width="1.75" cx="15.5" cy="15.5" r="4.2"/>
+          <path fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" d="M18.6 18.6L22 22"/>
         </symbol>
       </defs>
     </svg>
@@ -156,7 +175,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           </a>
           {showHeaderSearch && (
             <div class="order-3 w-full sm:order-2 sm:w-80 sm:mx-auto">
-              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={headerSearchItems} />
+              <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} matchedIngredientLabel={t('search.matchedIngredient')} items={headerSearchItems} />
             </div>
           )}
           <div class={`order-2 ml-auto flex items-center gap-3 flex-wrap justify-end sm:order-3 ${showHeaderSearch ? 'sm:ml-0' : ''}`}>
@@ -317,21 +336,34 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         const favoritesToggle = document.getElementById('favorites-filter-toggle');
         const favoritesOnly = favoritesToggle?.dataset.active === 'true';
         const favorites = getFavoriteSlugs();
+        const activeTimeChip = document
+          .getElementById('time-filter')
+          ?.querySelector('[data-active="true"]');
+        const maxMinutes = activeTimeChip?.dataset.maxMinutes
+          ? parseInt(activeTimeChip.dataset.maxMinutes, 10)
+          : null;
 
         let visibleCount = 0;
         for (const card of grid.children) {
           const title = (card.dataset.recipeTitle || '').toLowerCase();
           const tags = (card.dataset.recipeTags || '').split(',');
+          const ingredients = (card.dataset.recipeIngredients || '').split('|');
           const slug = card.dataset.recipeSlug;
-          const matchesQuery = !query || title.includes(query) || tags.some((tag) => tag.includes(query));
+          const minutes = parseInt(card.dataset.recipeMinutes || '', 10);
+          const matchesQuery =
+            !query ||
+            title.includes(query) ||
+            tags.some((tag) => tag.includes(query)) ||
+            ingredients.some((ing) => ing.includes(query));
           const matchesFavorites = !favoritesOnly || (!!slug && favorites.has(slug));
-          const visible = matchesQuery && matchesFavorites;
+          const matchesTime = maxMinutes == null || (!Number.isNaN(minutes) && minutes <= maxMinutes);
+          const visible = matchesQuery && matchesFavorites && matchesTime;
           card.classList.toggle('hidden', !visible);
           if (visible) visibleCount++;
         }
 
         const emptyMessage = document.getElementById('recipe-grid-empty');
-        const filtering = query !== '' || favoritesOnly;
+        const filtering = query !== '' || favoritesOnly || maxMinutes != null;
         if (emptyMessage) emptyMessage.classList.toggle('hidden', !filtering || visibleCount > 0);
       };
 

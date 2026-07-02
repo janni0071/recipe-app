@@ -2,16 +2,25 @@
 export interface SearchItem {
   title: string;
   tags: string[];
+  ingredients?: string[];
   href: string;
 }
 
 interface Props {
   placeholder?: string;
   noResultsLabel?: string;
+  // Template for the "why did this match?" hint, with a {name} placeholder,
+  // e.g. "contains {name}". Shown only on ingredient-only matches.
+  matchedIngredientLabel?: string;
   items: SearchItem[];
 }
 
-const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches found', items } = Astro.props;
+const {
+  placeholder = 'Search for recipes...',
+  noResultsLabel = 'No matches found',
+  matchedIngredientLabel = 'contains {name}',
+  items,
+} = Astro.props;
 ---
 
 <div
@@ -19,6 +28,7 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
   class="relative"
   data-items={JSON.stringify(items)}
   data-no-results-label={noResultsLabel}
+  data-matched-label={matchedIngredientLabel}
 >
   <input
     type="search"
@@ -78,14 +88,27 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
         items = [];
       }
       const noResultsLabel = container.dataset.noResultsLabel || '';
+      const matchedLabel = container.dataset.matchedLabel || '';
 
-      const matches = items.filter(
-        (item) =>
-          item.title.toLowerCase().includes(q) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(q))
-      );
+      // Rank each match by *why* it matched: a title hit (0) outranks a tag hit
+      // (1), which outranks an ingredient-only hit (2). We stop at the first
+      // reason so an ingredient-only match is the only kind that carries a hint.
+      // Array.sort is stable, so within a rank the original (newest-first) order
+      // is kept.
+      const scored = [];
+      for (const item of items) {
+        if (item.title.toLowerCase().includes(q)) {
+          scored.push({ item, rank: 0 });
+        } else if ((item.tags || []).some((tag) => tag.toLowerCase().includes(q))) {
+          scored.push({ item, rank: 1 });
+        } else {
+          const ingredient = (item.ingredients || []).find((n) => n.toLowerCase().includes(q));
+          if (ingredient) scored.push({ item, rank: 2, ingredient });
+        }
+      }
+      scored.sort((a, b) => a.rank - b.rank);
 
-      if (matches.length === 0) {
+      if (scored.length === 0) {
         // On the homepage the grid empty state handles no-results, so close
         // the dropdown and let that show instead. On other pages (no grid)
         // the dropdown is the only results UI, so show the empty state there.
@@ -105,13 +128,27 @@ const { placeholder = 'Search for recipes...', noResultsLabel = 'No matches foun
         li.append(icon, msg);
         results.append(li);
       } else {
-        for (const item of matches) {
+        for (const { item, ingredient } of scored) {
           const li = document.createElement('li');
           const a = document.createElement('a');
           a.href = item.href;
           a.className =
-            'block truncate px-4 py-3 text-base text-gray-900 hover:bg-pink-50 active:bg-pink-100 dark:text-gray-100 dark:hover:bg-gray-700 dark:active:bg-gray-600';
-          a.textContent = item.title;
+            'block px-4 py-3 hover:bg-pink-50 active:bg-pink-100 dark:hover:bg-gray-700 dark:active:bg-gray-600';
+
+          const titleEl = document.createElement('div');
+          titleEl.className = 'truncate text-base text-gray-900 dark:text-gray-100';
+          titleEl.textContent = item.title;
+          a.append(titleEl);
+
+          // Only ingredient-only matches get a hint — for a title/tag match the
+          // reason is already obvious from the title the user sees.
+          if (ingredient) {
+            const hint = document.createElement('div');
+            hint.className = 'truncate text-xs text-gray-400 dark:text-gray-500 mt-0.5';
+            hint.textContent = matchedLabel.replace('{name}', ingredient);
+            a.append(hint);
+          }
+
           li.append(a);
           results.append(li);
         }

@@ -17,6 +17,7 @@ Jannis & Daisy's family recipe collection, built as a fast, static Astro site.
 - 🌗 **Light/dark theme** toggle
 - 📱 Responsive layout, tuned for both mobile and desktop navigation
 - 🖨️ Print-friendly recipe pages and a native share button
+- 📲 **Installable PWA** — add to home screen, works offline for recipes you've already opened, with a branded offline fallback page
 - 🗺️ Auto-generated sitemap with locale alternates
 
 ## Tech stack

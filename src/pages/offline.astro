@@ -1,0 +1,83 @@
+---
+import { ui, getLocalePath, type Locale } from '../utils/i18n';
+
+// Standalone page on purpose: the service worker precaches this so it must
+// render correctly with no other cached asset, so it carries its own inline
+// CSS instead of pulling in the global (hashed) stylesheet. Like 404.astro,
+// the served path could be any locale, so all three strings are baked in and
+// the right one is swapped in client-side from the URL.
+const translations: Record<Locale, { heading: string; message: string; retry: string; cta: string; href: string }> = {
+  en: { heading: ui.en['offline.heading'], message: ui.en['offline.message'], retry: ui.en['offline.retry'], cta: ui.en['404.cta'], href: getLocalePath('en') },
+  de: { heading: ui.de['offline.heading'], message: ui.de['offline.message'], retry: ui.de['offline.retry'], cta: ui.de['404.cta'], href: getLocalePath('de') },
+  fr: { heading: ui.fr['offline.heading'], message: ui.fr['offline.message'], retry: ui.fr['offline.retry'], cta: ui.fr['404.cta'], href: getLocalePath('fr') },
+};
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline | Recipe Box</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root { color-scheme: light dark; }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: #111827;
+        color: #f9fafb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+      }
+      .card { max-width: 28rem; }
+      .badge {
+        width: 72px; height: 72px; border-radius: 20px;
+        background: #ec4899; color: #fff;
+        font-weight: 800; font-size: 30px; letter-spacing: -1px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.5rem;
+      }
+      .badge .x { color: #f9a8d4; }
+      h1 { font-size: 1.75rem; margin: 0 0 0.75rem; }
+      p { font-size: 1.05rem; line-height: 1.6; color: #9ca3af; margin: 0 0 2rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+      button, a.cta {
+        font: inherit; font-weight: 600; cursor: pointer;
+        border-radius: 0.75rem; padding: 0.75rem 1.5rem;
+        text-decoration: none; border: 0;
+      }
+      button { background: #ec4899; color: #fff; }
+      button:hover { background: #db2777; }
+      a.cta { background: transparent; color: #f9a8d4; border: 1px solid #374151; }
+      a.cta:hover { border-color: #6b7280; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="badge" aria-hidden="true">J<span class="x">X</span>D</div>
+      <h1 id="offline-heading">{translations.en.heading}</h1>
+      <p id="offline-message">{translations.en.message}</p>
+      <div class="actions">
+        <button id="offline-retry" type="button">{translations.en.retry}</button>
+        <a id="offline-cta" class="cta" href={translations.en.href}>{translations.en.cta}</a>
+      </div>
+    </div>
+    <script is:inline define:vars={{ translations }}>
+      const path = window.location.pathname;
+      const locale = /^\/de(\/|$)/.test(path) ? 'de' : /^\/fr(\/|$)/.test(path) ? 'fr' : 'en';
+      const t = translations[locale];
+      document.getElementById('offline-heading').textContent = t.heading;
+      document.getElementById('offline-message').textContent = t.message;
+      document.getElementById('offline-retry').textContent = t.retry;
+      const cta = document.getElementById('offline-cta');
+      cta.textContent = t.cta;
+      cta.href = t.href;
+      // Reload the page the user was actually trying to reach, not this fallback.
+      document.getElementById('offline-retry').addEventListener('click', () => window.location.reload());
+    </script>
+  </body>
+</html>

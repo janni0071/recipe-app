@@ -1,9 +1,11 @@
 ---
 title: "Lauch-Champignon-Schinken-Quiche"
+description: "Eine herzhafte französische Tarte mit Lauch, Champignons und Schinken in cremiger Eiermasse — wohltuend, einfach und kalt am nächsten Tag genauso lecker."
 date: 2025-06-20
 tags: ["einfach", "französisch"]
 prepTime: "10 min"
 cookTime: "40 min"
+difficulty: easy
 servings: 4
 author: "Daisy"
 image: "../../../assets/recipes/quiche.webp"
@@ -40,4 +42,6 @@ steps:
   - text: "Im Ofen 40 Minuten backen und mit einem Messer prüfen, ob die Eiermasse ausreichend fest ist. Falls sie noch zu flüssig ist und/oder die Oberfläche nicht goldbraun ist, etwas länger backen."
     timerSeconds: 2400
 ---
+
+**Tipp:** Für eine vegetarische Variante den Schinken durch zusätzliche Champignons ersetzen. Reste halten sich im Kühlschrank bis zu 3 Tage und lassen sich sanft im Ofen aufwärmen.
 

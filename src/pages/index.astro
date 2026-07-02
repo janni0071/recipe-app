@@ -3,8 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import RecipeCard from '../components/RecipeCard.astro';
 import Search from '../components/SearchBar.astro';
 import FavoritesFilterToggle from '../components/FavoritesFilterToggle.astro';
+import SortControl from '../components/SortControl.astro';
+import TimeFilter from '../components/TimeFilter.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { useTranslations, getIndexHeadingParts } from '../utils/i18n';
+import { ingredientNames } from '../utils/ingredients';
 import { EAGER_CARD_COUNT } from '../utils/imageLoading';
 
 const t = useTranslations('en');
@@ -25,17 +28,24 @@ const recipesWithSlug = sortedRecipes.map((recipe: CollectionEntry<'recipes'>) =
 const searchItems = recipesWithSlug.map((recipe) => ({
   title: recipe.data.title,
   tags: recipe.data.tags,
+  ingredients: ingredientNames(recipe.data.ingredients),
   href: `/recipes/${recipe.slug}`,
 }));
 ---
 <BaseLayout title={t('page.index.title')} showHeaderSearch={false}>
   <h1 class="text-3xl font-bold mb-6">{heading.before}<span class="text-pink-500 dark:text-pink-400">{heading.names}</span>{heading.after}</h1>
 
-  <div class="mb-8 flex flex-wrap items-center gap-3">
-    <div class="flex-1 min-w-[12rem]">
-      <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} items={searchItems} />
+  <div class="mb-4 flex flex-wrap items-center gap-3">
+    <div class="w-full sm:w-auto sm:flex-1 sm:min-w-[12rem]">
+      <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} matchedIngredientLabel={t('search.matchedIngredient')} items={searchItems} />
     </div>
-    <FavoritesFilterToggle label={t('page.index.favoritesOnly')} />
+    <div class="flex items-center gap-3">
+      <FavoritesFilterToggle label={t('page.index.favoritesOnly')} />
+      <SortControl label={t('sort.label')} newestLabel={t('sort.newest')} alphaLabel={t('sort.alpha')} quickestLabel={t('sort.quickest')} />
+    </div>
+  </div>
+  <div class="mb-8">
+    <TimeFilter label={t('filter.time.label')} anyLabel={t('filter.time.any')} under30Label={t('filter.time.under30')} under60Label={t('filter.time.under60')} />
   </div>
 
   <div id="recipe-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -51,6 +61,8 @@ const searchItems = recipesWithSlug.map((recipe) => ({
         slug={recipe.slug}
         image={recipe.data.image}
         author={recipe.data.author}
+        difficultyLabel={recipe.data.difficulty ? t(`difficulty.${recipe.data.difficulty}`) : undefined}
+        ingredients={ingredientNames(recipe.data.ingredients)}
         loading={i < EAGER_CARD_COUNT ? 'eager' : 'lazy'}
       />
     ))}

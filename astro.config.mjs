@@ -9,7 +9,7 @@ export default defineConfig({
   site: "https://recipes.jxd.one",
   integrations: [
     sitemap({
-      filter: (page) => !page.includes("/404"),
+      filter: (page) => !page.includes("/404") && !page.includes("/offline"),
       i18n: {
         defaultLocale: "en",
         locales: {

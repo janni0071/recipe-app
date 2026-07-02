@@ -4,6 +4,7 @@ date: 2025-06-15
 tags: ["Kuchen", "backen", "deutsch", "vegetarisch", "Dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
+difficulty: medium
 servings: 1
 author: "Jannis"
 image: "../../../assets/recipes/maulwurfkuchen.webp"
