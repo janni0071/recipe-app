@@ -343,7 +343,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           ? parseInt(activeTimeChip.dataset.maxMinutes, 10)
           : null;
         const selectedTags = Array.from(
-          document.querySelectorAll('#tag-filter [data-tag-key][data-active="true"]')
+          document.querySelectorAll('#tag-filter-panel [data-tag-key][data-active="true"]')
         ).map((chip) => chip.dataset.tagKey);
 
         let visibleCount = 0;

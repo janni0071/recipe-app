@@ -6,16 +6,19 @@ export interface Props {
 const { label } = Astro.props;
 ---
 
+{/* Icon-only on mobile (aria-label carries the name) so it, Sort and the tag
+    toggle all fit on one row; the "Favorites only" text returns at sm+. */}
 <button
   type="button"
   id="favorites-filter-toggle"
   data-active="false"
   aria-pressed="false"
-  class="group flex h-12 items-center gap-1.5 rounded-lg border border-gray-300 px-4 text-sm text-gray-600 transition hover:bg-gray-100 data-[active=true]:border-pink-400 data-[active=true]:bg-pink-100 data-[active=true]:text-pink-700 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:data-[active=true]:bg-pink-900 dark:data-[active=true]:text-pink-200 sm:h-11"
+  aria-label={label}
+  class="group flex h-12 items-center gap-1.5 rounded-lg border border-gray-300 px-3 text-sm text-gray-600 transition hover:bg-gray-100 data-[active=true]:border-pink-400 data-[active=true]:bg-pink-100 data-[active=true]:text-pink-700 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:data-[active=true]:bg-pink-900 dark:data-[active=true]:text-pink-200 sm:h-11 sm:px-4"
 >
   <svg class="w-4 h-4 group-data-[active=true]:hidden" aria-hidden="true"><use href="#icon-heart-outline"/></svg>
   <svg class="hidden w-4 h-4 group-data-[active=true]:block" aria-hidden="true"><use href="#icon-heart-filled"/></svg>
-  {label}
+  <span class="hidden sm:inline">{label}</span>
 </button>
 
 <script is:inline>
