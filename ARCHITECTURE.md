@@ -41,7 +41,12 @@ integrations/
 
 Each recipe is a Markdown file with frontmatter validated by
 `src/content.config.ts` (title, date, tags, prep/cook time, servings,
-`ingredients` as grouped items, `steps` with optional `timerSeconds`).
+`ingredients` as grouped items, `steps` with optional `timerSeconds`, plus
+optional `description` and `difficulty`). The Markdown **body** below the
+frontmatter is optional prose, rendered as a "Notes" section on the recipe page
+(and left empty on most recipes). Total time is *derived* from prep + cook
+rather than stored — see `parseTotalMinutes` in `utils/recipeSchema.ts`, which
+also feeds the JSON-LD `totalTime` and the grid's "quickest" sort / time filter.
 
 **A single dish is up to three files** — `foo.md`, `de/foo.md`, `fr/foo.md` —
 sharing the same base slug. That shared slug is what ties the translations
@@ -104,6 +109,22 @@ it sees an unprevented anchor click. To intercept a click on an anchor-wrapped
 card *before* that fires, the handlers in `BaseLayout.astro` listen in the
 **capture** phase so their `stopPropagation()` actually takes effect.
 
+## Home grid: one shared filter
+
+The homepage's search box, "favorites only" toggle, time-filter chips and
+multi-tag panel all funnel into a single `window.applyRecipeGridFilters()` in
+`BaseLayout.astro`. Instead of each control fighting over the same `hidden`
+class, every control just flips its own state in the DOM and calls that one
+function, which recomputes visibility from scratch — reading query, favorites
+set, active time limit and selected tags fresh each time and AND-ing them
+together. Sorting (`SortControl.astro`) is separate: it reorders the grid's
+cards in place and doesn't touch visibility. Everything the filters and sort
+need is emitted onto each card as `data-recipe-*` attributes (title, tags,
+ingredients, total minutes, slug) by `RecipeCard.astro`, so no recipe objects
+are needed at runtime. The controls live in small per-concern components
+(`SearchBar`, `FavoritesFilterToggle`, `SortControl`, `TimeFilter`,
+`TagFilterToggle`/`TagFilterPanel`).
+
 ## Persistent (client) state
 
 All persisted state is `localStorage`, and everything recipe-scoped is keyed by
@@ -116,6 +137,13 @@ the **locale-agnostic slug** so it survives language switches. Keys:
 | `shopping-list`         | `{ slug, servings }[]`                 | `BaseLayout.astro`, `shopping-list.astro` |
 | `shopping-list-checked` | `string[]` of merged-ingredient keys   | `shopping-list.astro` |
 | `checked-ingredients`   | `{ [slug]: string[] }` (per-recipe)    | `IngredientList.astro` |
+| `cooked-recipes`        | `{ [slug]: { count, lastMade } }`      | `CookedButton.astro` |
+
+The "cooked it" state is written from the recipe page (`CookedButton.astro`) and
+read back in two places: the recipe page's own tracker, and the `syncCookedBadges`
+script in `BaseLayout.astro` that fills the "cooked N×" badge on grid cards. Like
+favorites, both are populated client-side on `astro:page-load` (the server has no
+idea what any given visitor has cooked), keyed by the locale-agnostic slug.
 
 The shopping list captures the servings count *at the moment a recipe is added*
 so a dish added at 2× stays scaled on the list. Ingredients across recipes are
