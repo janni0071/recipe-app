@@ -1,5 +1,6 @@
 ---
 title: "Mole Cake"
+description: "A delicious cake whose shape is reminiscent of a molehill, and one I often used to get for my birthday."
 date: 2025-06-15
 tags: ["cake", "baking", "german", "vegetarian", "dessert"]
 prepTime: "30 min"
@@ -54,4 +55,6 @@ steps:
   - text: "Refrigerate the cake for about 2 hours."
     timerSeconds: 7200
 ---
+
+Traditionally this cake is filled with bananas instead of strawberries, but you can also try it with completely different fruits!
 

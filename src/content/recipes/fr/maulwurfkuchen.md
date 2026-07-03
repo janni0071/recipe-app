@@ -1,5 +1,6 @@
 ---
 title: "Gâteau Taupe"
+description: "Un délicieux gâteau dont la forme rappelle une taupinière, et que je recevais souvent pour mon anniversaire."
 date: 2025-06-15
 tags: ["gâteau", "pâtisserie", "allemand", "végétarien", "dessert"]
 prepTime: "30 min"
@@ -54,4 +55,6 @@ steps:
   - text: "Placer le gâteau au réfrigérateur pendant environ 2 heures."
     timerSeconds: 7200
 ---
+
+Traditionnellement, ce gâteau est garni de bananes plutôt que de fraises, mais tu peux aussi l'essayer avec des fruits complètement différents !
 
