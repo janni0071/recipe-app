@@ -52,7 +52,7 @@ const sortedTags = [...tagCounts.entries()]
       <Search placeholder={t('search.placeholder')} noResultsLabel={t('search.noResults')} matchedIngredientLabel={t('search.matchedIngredient')} items={searchItems} />
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
-      <FavoritesFilterToggle label={t('page.index.favoritesOnly')} />
+      <FavoritesFilterToggle label={t('page.index.favoritesOnly')} shortLabel={t('page.index.favoritesShort')} />
       <SortControl label={t('sort.label')} newestLabel={t('sort.newest')} alphaLabel={t('sort.alpha')} quickestLabel={t('sort.quickest')} />
       <TagFilterToggle toggleLabel={t('filter.tags.toggle')} />
     </div>

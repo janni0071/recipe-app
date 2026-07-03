@@ -1,13 +1,17 @@
 ---
 export interface Props {
   label: string;
+  // Shorter label shown on mobile so Favorites fits on one row with Sort and
+  // the tag filter; the full label returns at sm+.
+  shortLabel: string;
 }
 
-const { label } = Astro.props;
+const { label, shortLabel } = Astro.props;
 ---
 
-{/* Icon-only on mobile (aria-label carries the name) so it, Sort and the tag
-    toggle all fit on one row; the "Favorites only" text returns at sm+. */}
+{/* A shorter label on mobile (full "Favorites only" returns at sm+) so this,
+    Sort and the tag toggle all fit on one row. aria-label always carries the
+    full name. */}
 <button
   type="button"
   id="favorites-filter-toggle"
@@ -18,6 +22,7 @@ const { label } = Astro.props;
 >
   <svg class="w-4 h-4 group-data-[active=true]:hidden" aria-hidden="true"><use href="#icon-heart-outline"/></svg>
   <svg class="hidden w-4 h-4 group-data-[active=true]:block" aria-hidden="true"><use href="#icon-heart-filled"/></svg>
+  <span class="sm:hidden">{shortLabel}</span>
   <span class="hidden sm:inline">{label}</span>
 </button>
 
