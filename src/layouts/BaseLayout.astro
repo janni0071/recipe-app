@@ -406,6 +406,33 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       document.addEventListener('astro:page-load', initFavorites);
     </script>
     <script is:inline>
+      // Fill the "cooked N×" badge on recipe cards from the same localStorage
+      // the recipe page's cooked tracker writes (keyed by slug). Runs on every
+      // page-load / SPA navigation so the grid reflects the latest counts. The
+      // count is per-visitor, so the server renders the badge empty and hidden.
+      function syncCookedBadges() {
+        let map = {};
+        try {
+          map = JSON.parse(localStorage.getItem('cooked-recipes') || '{}');
+        } catch {}
+        document.querySelectorAll('[data-cooked-badge]').forEach((badge) => {
+          const card = badge.closest('[data-recipe-slug]');
+          const entry = card && map[card.dataset.recipeSlug];
+          const count = (entry && entry.count) || 0;
+          if (count > 0) {
+            const text = badge.querySelector('[data-cooked-text]');
+            if (text) text.textContent = (badge.dataset.template || '').replace('{n}', count);
+            badge.classList.remove('hidden');
+            badge.classList.add('inline-flex');
+          } else {
+            badge.classList.add('hidden');
+            badge.classList.remove('inline-flex');
+          }
+        });
+      }
+      document.addEventListener('astro:page-load', syncCookedBadges);
+    </script>
+    <script is:inline>
       // Shopping list entries live in localStorage too, keyed by the same
       // locale-agnostic slug as favorites, but carrying a servings count
       // alongside it — captured from the recipe page's own servings stepper

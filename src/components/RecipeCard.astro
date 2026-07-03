@@ -18,6 +18,10 @@ export interface Props {
   author?: string;
   // Already-translated difficulty label (e.g. "Easy"), or undefined to hide it.
   difficultyLabel?: string;
+  // "Cooked {n}×" template. When set, the card carries a badge that a client
+  // script fills from localStorage (empty on the server, since the count is
+  // per-visitor). Omit on cards where the badge isn't wanted.
+  cookedLabel?: string;
   // Ingredient names, so the homepage grid filter can match on ingredients the
   // same way the search dropdown does. Optional: cards outside a filterable
   // grid (e.g. "similar recipes") can skip it to keep their markup lean.
@@ -38,6 +42,7 @@ const {
   image,
   author,
   difficultyLabel,
+  cookedLabel,
   ingredients = [],
   baseRecipePath = '/recipes/',
   loading = 'lazy',
@@ -94,6 +99,16 @@ const totalMinutes = parseTotalMinutes(prepTime, cookTime);
           label={favoriteLabel}
           class="absolute top-2 right-2 bg-white/90 hover:bg-white dark:bg-gray-900/80 dark:hover:bg-gray-900 text-pink-500 backdrop-blur-sm"
         />
+        {cookedLabel && (
+          <span
+            data-cooked-badge
+            data-template={cookedLabel}
+            class="absolute bottom-2 left-2 hidden items-center gap-1 rounded-full bg-pink-500/90 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm"
+          >
+            <svg class="h-3 w-3" aria-hidden="true"><use href="#icon-check" /></svg>
+            <span data-cooked-text></span>
+          </span>
+        )}
       </div>
     )}
     <div class="p-4">
