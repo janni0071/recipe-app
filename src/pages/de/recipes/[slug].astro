@@ -8,6 +8,7 @@ import PrintButton from '../../../components/PrintButton.astro';
 import FavoriteButton from '../../../components/FavoriteButton.astro';
 import ShoppingListButton from '../../../components/ShoppingListButton.astro';
 import CookingModeButton from '../../../components/CookingModeButton.astro';
+import CookedButton from '../../../components/CookedButton.astro';
 import { Image, getImage } from 'astro:assets';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { useTranslations } from '../../../utils/i18n';
@@ -130,6 +131,15 @@ const jsonLd = buildRecipeJsonLd({
         />
       </div>
     </div>
+
+    <CookedButton
+      slug={slug}
+      locale="de"
+      markLabel={t('page.recipe.markCooked')}
+      cookedLabel={t('page.recipe.cookedCount')}
+      lastMadeLabel={t('page.recipe.lastMade')}
+      undoLabel={t('page.recipe.undo')}
+    />
 
     {recipe.data.description && (
       <p class="cooking-mode-layout:hidden text-lg text-gray-600 dark:text-gray-300 mb-8">{recipe.data.description}</p>
