@@ -77,14 +77,27 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
 
     <ClientRouter />
     <script is:inline>
+      function prefersDark() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
       function applyTheme(doc) {
-        const theme = localStorage.getItem('theme-preference') ?? 'dark';
-        doc.documentElement.classList.toggle('dark', theme === 'dark');
+        const stored = localStorage.getItem('theme-preference');
+        // Until the visitor picks a theme, follow the device's setting; once
+        // they've toggled, that explicit choice is honoured.
+        const dark = stored ? stored === 'dark' : prefersDark();
+        doc.documentElement.classList.toggle('dark', dark);
       }
       applyTheme(document);
       // Apply theme to the incoming document before it swaps in, so back/forward
       // navigation never paints a frame in the wrong theme first.
       document.addEventListener('astro:before-swap', (event) => applyTheme(event.newDocument));
+      // Follow the OS theme live, but only while there's no explicit choice.
+      if (window.matchMedia && !window.__themeMediaBound) {
+        window.__themeMediaBound = true;
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if (!localStorage.getItem('theme-preference')) applyTheme(document);
+        });
+      }
     </script>
     <script is:inline>
       // Register the service worker once. This inline script re-runs on every

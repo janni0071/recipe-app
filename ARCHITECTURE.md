@@ -132,7 +132,7 @@ the **locale-agnostic slug** so it survives language switches. Keys:
 
 | Key                     | Shape                                  | Written by |
 | :---------------------- | :------------------------------------- | :--------- |
-| `theme-preference`      | `'light' \| 'dark'` (defaults to dark) | `BaseLayout.astro` |
+| `theme-preference`      | `'light' \| 'dark'` (unset = follow device) | `BaseLayout.astro` |
 | `favorite-recipes`      | `string[]` of slugs                    | `BaseLayout.astro` |
 | `shopping-list`         | `{ slug, servings }[]`                 | `BaseLayout.astro`, `shopping-list.astro` |
 | `shopping-list-checked` | `string[]` of merged-ingredient keys   | `shopping-list.astro` |
