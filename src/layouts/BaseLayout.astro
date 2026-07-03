@@ -342,6 +342,9 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         const maxMinutes = activeTimeChip?.dataset.maxMinutes
           ? parseInt(activeTimeChip.dataset.maxMinutes, 10)
           : null;
+        const selectedTags = Array.from(
+          document.querySelectorAll('#tag-filter [data-tag-key][data-active="true"]')
+        ).map((chip) => chip.dataset.tagKey);
 
         let visibleCount = 0;
         for (const card of grid.children) {
@@ -357,13 +360,15 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             ingredients.some((ing) => ing.includes(query));
           const matchesFavorites = !favoritesOnly || (!!slug && favorites.has(slug));
           const matchesTime = maxMinutes == null || (!Number.isNaN(minutes) && minutes <= maxMinutes);
-          const visible = matchesQuery && matchesFavorites && matchesTime;
+          // AND across selected tags: the card must carry every one.
+          const matchesTags = selectedTags.every((tag) => tags.includes(tag));
+          const visible = matchesQuery && matchesFavorites && matchesTime && matchesTags;
           card.classList.toggle('hidden', !visible);
           if (visible) visibleCount++;
         }
 
         const emptyMessage = document.getElementById('recipe-grid-empty');
-        const filtering = query !== '' || favoritesOnly || maxMinutes != null;
+        const filtering = query !== '' || favoritesOnly || maxMinutes != null || selectedTags.length > 0;
         if (emptyMessage) emptyMessage.classList.toggle('hidden', !filtering || visibleCount > 0);
       };
 

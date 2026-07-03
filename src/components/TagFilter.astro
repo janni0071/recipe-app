@@ -1,0 +1,108 @@
+---
+export interface Props {
+  toggleLabel: string;
+  clearLabel: string;
+  // Tags for this locale, already ordered most-used first (see the index page).
+  tags: string[];
+}
+
+const { toggleLabel, clearLabel, tags } = Astro.props;
+---
+
+<div id="tag-filter">
+  <div class="flex items-center gap-3">
+    <button
+      type="button"
+      id="tag-filter-toggle"
+      aria-expanded="false"
+      aria-controls="tag-filter-panel"
+      class="group flex h-11 items-center gap-2 rounded-lg border border-gray-300 px-4 text-sm text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+    >
+      <svg class="h-4 w-4" aria-hidden="true"><use href="#icon-tag" /></svg>
+      {toggleLabel}
+      <span
+        id="tag-filter-count"
+        class="hidden min-w-5 rounded-full bg-pink-500 px-1.5 text-center text-xs font-semibold leading-5 text-white"
+      ></span>
+      <svg class="h-4 w-4 transition group-aria-expanded:rotate-180" aria-hidden="true"><use href="#icon-chevron-down" /></svg>
+    </button>
+    <button
+      type="button"
+      id="tag-filter-clear"
+      class="hidden text-sm font-medium text-pink-600 hover:underline dark:text-pink-400"
+    >
+      {clearLabel}
+    </button>
+  </div>
+
+  <div id="tag-filter-panel" class="mt-3 hidden flex-wrap gap-2">
+    {tags.map((tag) => (
+      <button
+        type="button"
+        data-tag-key={tag.toLowerCase()}
+        data-active="false"
+        aria-pressed="false"
+        class="h-8 rounded-full border border-gray-300 px-3 text-sm text-gray-600 transition hover:bg-gray-100 data-[active=true]:border-pink-400 data-[active=true]:bg-pink-100 data-[active=true]:text-pink-700 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:data-[active=true]:bg-pink-900 dark:data-[active=true]:text-pink-200"
+      >
+        #{tag}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  // Collapsible multi-tag filter. The chips live in a panel that's hidden until
+  // the toggle is opened, so the toolbar stays one button tall. Selecting chips
+  // narrows the grid (AND — a recipe must carry every selected tag) via the
+  // shared filter in BaseLayout; selections stay active even while collapsed,
+  // with a count badge on the toggle to signal that.
+  function bindTagFilter() {
+    const root = document.getElementById('tag-filter');
+    if (!root || root.dataset.tagFilterBound) return;
+    root.dataset.tagFilterBound = 'true';
+
+    const toggle = document.getElementById('tag-filter-toggle');
+    const panel = document.getElementById('tag-filter-panel');
+    const count = document.getElementById('tag-filter-count');
+    const clear = document.getElementById('tag-filter-clear');
+
+    // Panel uses `hidden flex-wrap`, so toggling `hidden` also restores `flex`.
+    function setOpen(open) {
+      panel.classList.toggle('hidden', !open);
+      panel.classList.toggle('flex', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    function refresh() {
+      const active = panel.querySelectorAll('[data-active="true"]').length;
+      count.textContent = String(active);
+      count.classList.toggle('hidden', active === 0);
+      clear.classList.toggle('hidden', active === 0);
+    }
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    panel.addEventListener('click', (e) => {
+      const chip = e.target.closest('button[data-tag-key]');
+      if (!chip) return;
+      const active = chip.dataset.active !== 'true';
+      chip.dataset.active = String(active);
+      chip.setAttribute('aria-pressed', String(active));
+      refresh();
+      if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+    });
+
+    clear.addEventListener('click', () => {
+      for (const chip of panel.querySelectorAll('[data-active="true"]')) {
+        chip.dataset.active = 'false';
+        chip.setAttribute('aria-pressed', 'false');
+      }
+      refresh();
+      if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindTagFilter);
+</script>
