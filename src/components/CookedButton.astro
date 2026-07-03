@@ -1,0 +1,127 @@
+---
+export interface Props {
+  slug: string;
+  locale: string;
+  markLabel: string; // action, e.g. "I cooked this"
+  cookedLabel: string; // "Cooked {n}×"
+  lastMadeLabel: string; // "last made {date}"
+  undoLabel: string;
+}
+
+const { slug, locale, markLabel, cookedLabel, lastMadeLabel, undoLabel } = Astro.props;
+---
+
+{/*
+  "Cooked it" tracker — a count + last-made date kept in localStorage, keyed by
+  the locale-agnostic slug like favorites and the shopping list, so it survives
+  language switches. Self-contained (its own script); only appears on the recipe
+  page, so no document-wide delegation is needed. Hidden in cooking mode/print.
+*/}
+<div
+  id="cooked-tracker"
+  class="cooking-mode-layout:hidden print:hidden -mt-2 mb-8 flex flex-wrap items-center gap-x-3 gap-y-2"
+  data-slug={slug}
+  data-locale={locale}
+  data-cooked-label={cookedLabel}
+  data-last-made-label={lastMadeLabel}
+>
+  <button
+    type="button"
+    id="cooked-button"
+    data-cooked="false"
+    class="group inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 data-[cooked=true]:border-pink-400 data-[cooked=true]:bg-pink-50 data-[cooked=true]:text-pink-700 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:data-[cooked=true]:border-pink-700 dark:data-[cooked=true]:bg-pink-950 dark:data-[cooked=true]:text-pink-300"
+  >
+    <svg class="h-4 w-4" aria-hidden="true"><use href="#icon-check" /></svg>
+    {markLabel}
+  </button>
+  <span id="cooked-status" class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+    <span id="cooked-status-text"></span>
+    <button type="button" id="cooked-undo" class="text-pink-600 hover:underline dark:text-pink-400">{undoLabel}</button>
+  </span>
+</div>
+
+<script is:inline>
+  function bindCookedTracker() {
+    const root = document.getElementById('cooked-tracker');
+    if (!root || root.dataset.cookedBound) return;
+    root.dataset.cookedBound = 'true';
+
+    const slug = root.dataset.slug;
+    const locale = root.dataset.locale;
+    const cookedTpl = root.dataset.cookedLabel;
+    const lastMadeTpl = root.dataset.lastMadeLabel;
+    const button = document.getElementById('cooked-button');
+    const status = document.getElementById('cooked-status');
+    const statusText = document.getElementById('cooked-status-text');
+    const undo = document.getElementById('cooked-undo');
+
+    const getMap = () => {
+      try {
+        return JSON.parse(localStorage.getItem('cooked-recipes') || '{}');
+      } catch {
+        return {};
+      }
+    };
+    const setMap = (m) => localStorage.setItem('cooked-recipes', JSON.stringify(m));
+
+    // Local (not UTC) date, so "last made" reflects the cook's own day.
+    function todayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function formatDate(iso) {
+      try {
+        return new Date(iso + 'T00:00:00').toLocaleDateString(locale, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+      } catch {
+        return iso;
+      }
+    }
+
+    function render() {
+      const entry = getMap()[slug];
+      const count = (entry && entry.count) || 0;
+      button.dataset.cooked = String(count > 0);
+      if (count > 0) {
+        const parts = [cookedTpl.replace('{n}', count)];
+        if (entry.lastMade) parts.push(lastMadeTpl.replace('{date}', formatDate(entry.lastMade)));
+        statusText.textContent = parts.join(' · ');
+        status.classList.remove('hidden');
+        status.classList.add('flex');
+      } else {
+        status.classList.add('hidden');
+        status.classList.remove('flex');
+      }
+    }
+
+    button.addEventListener('click', () => {
+      const m = getMap();
+      const entry = m[slug] || { count: 0 };
+      entry.count = (entry.count || 0) + 1;
+      entry.lastMade = todayISO();
+      m[slug] = entry;
+      setMap(m);
+      render();
+    });
+
+    // Undo just steps the count back down (for a misclick); it doesn't restore
+    // the previous date. Reaching zero drops the entry entirely.
+    undo.addEventListener('click', () => {
+      const m = getMap();
+      const entry = m[slug];
+      if (!entry) return;
+      entry.count = (entry.count || 0) - 1;
+      if (entry.count <= 0) delete m[slug];
+      else m[slug] = entry;
+      setMap(m);
+      render();
+    });
+
+    render();
+  }
+
+  document.addEventListener('astro:page-load', bindCookedTracker);
+</script>

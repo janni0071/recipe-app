@@ -4,6 +4,7 @@ date: 2025-06-20
 tags: ["simple", "baking", "vegetarian", "dessert"]
 prepTime: "10 min"
 cookTime: "30 min"
+difficulty: easy
 servings: 4
 author: "Daisy"
 image: "../../assets/recipes/brownies.webp"

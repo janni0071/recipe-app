@@ -4,18 +4,38 @@ import type { Step } from './steps';
 import { stepPlainText } from './steps';
 
 /**
+ * Parses "45 min" / "30-35 min" style strings to a number of minutes. Ranges
+ * use the upper bound, so an estimate never undersells how long something might
+ * actually take. Returns undefined for anything that doesn't cleanly match.
+ */
+export function parseDurationToMinutes(text: string): number | undefined {
+  const range = text.match(/^(\d+)\s*-\s*(\d+)\s*min$/i);
+  if (range) return parseInt(range[2], 10);
+  const single = text.match(/^(\d+)\s*min$/i);
+  if (single) return parseInt(single[1], 10);
+  return undefined;
+}
+
+/**
+ * Combined prep + cook time in minutes, or undefined if either part can't be
+ * parsed (safer to omit than to sort/filter on a wrong value).
+ */
+export function parseTotalMinutes(prep: string, cook: string): number | undefined {
+  const p = parseDurationToMinutes(prep);
+  const c = parseDurationToMinutes(cook);
+  if (p == null || c == null) return undefined;
+  return p + c;
+}
+
+/**
  * Converts "45 min" / "30-35 min" style strings into ISO 8601 durations
- * (e.g. "PT45M"). Ranges use the upper bound, so an estimate never
- * undersells how long something might actually take. Returns undefined for
- * anything that doesn't cleanly match — schema.org's time fields are
- * optional, and omitting one is far safer than emitting a wrong value.
+ * (e.g. "PT45M"). Returns undefined for anything that doesn't cleanly match —
+ * schema.org's time fields are optional, and omitting one is far safer than
+ * emitting a wrong value.
  */
 export function parseDurationToISO8601(text: string): string | undefined {
-  const range = text.match(/^(\d+)\s*-\s*(\d+)\s*min$/i);
-  if (range) return `PT${range[2]}M`;
-  const single = text.match(/^(\d+)\s*min$/i);
-  if (single) return `PT${single[1]}M`;
-  return undefined;
+  const minutes = parseDurationToMinutes(text);
+  return minutes == null ? undefined : `PT${minutes}M`;
 }
 
 function sumDurations(a?: string, b?: string): string | undefined {

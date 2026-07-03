@@ -1,9 +1,11 @@
 ---
 title: "Maulwurfkuchen"
+description: "Ein leckerer Kuchen, der durch seine Form an einen Maulwurfshügel erinnert und den ich häufig zu meinem Geburtstag bekommen hab."
 date: 2025-06-15
 tags: ["Kuchen", "backen", "deutsch", "vegetarisch", "Dessert"]
 prepTime: "30 min"
 cookTime: "30 min"
+difficulty: medium
 servings: 1
 author: "Jannis"
 image: "../../../assets/recipes/maulwurfkuchen.webp"
@@ -53,4 +55,6 @@ steps:
   - text: "Den Kuchen ca. 2 Stunden in den Kühlschrank stellen."
     timerSeconds: 7200
 ---
+
+Traditionell wird dieser Kuchen mit Bananen statt mit Erdbeeren gefüllt, aber du kannst es auch mal mit ganz anderen Früchten probieren!
 

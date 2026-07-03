@@ -4,6 +4,7 @@ date: 2025-06-08
 tags: ["pâtes", "italien", "rapide"]
 prepTime: "10 min"
 cookTime: "15 min"
+difficulty: easy
 servings: 2
 author: "Jannis"
 image: "../../../assets/recipes/carbonara.webp"

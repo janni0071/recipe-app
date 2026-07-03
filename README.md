@@ -9,15 +9,20 @@ Jannis & Daisy's family recipe collection, built as a fast, static Astro site.
 ## Features
 
 - 🌍 **Trilingual** (English, German, French) with fully translated UI and recipe content, including per-locale tag translations
-- 🔍 **Instant search** across recipe titles and tags
+- 🔍 **Instant search** across recipe titles, tags **and ingredients** — matches are ranked (title → tag → ingredient), and an ingredient-only match shows a hint of which ingredient matched
+- 🗂️ **Sort & filter the collection** — sort by newest, A–Z or quickest; filter by total time; and combine several tags (AND) from a collapsible tag filter, all composing with search and favorites
 - 🏷️ **Tag browsing** with a dedicated tag index and per-tag recipe listing
+- 📝 **Recipe intros & notes** — an optional description and free-form Markdown notes per recipe
+- ⏱️ **At-a-glance details** — prep, cook and total time, servings, and an optional difficulty level, shown on cards and recipe pages
 - ⭐ **Favorites** — mark recipes as favorites and filter by them, stored locally in the browser
+- 🍳 **"Cooked it" tracker** — log how many times you've made a dish and when, with a count badge on its card
 - 🧑‍🍳 **Cooking mode** — a distraction-free, step-by-step view with built-in timers for steps that need them
 - 🛒 **Shopping list** — add recipe ingredients to a combined, checkable shopping list that persists across sessions
 - 🌗 **Light/dark theme** toggle
 - 📱 Responsive layout, tuned for both mobile and desktop navigation
 - 🖨️ Print-friendly recipe pages and a native share button
-- 🗺️ Auto-generated sitemap with locale alternates
+- 📲 **Installable PWA** — add to home screen, works offline for recipes you've already opened, with a branded offline fallback page
+- 🗺️ Auto-generated sitemap with locale alternates, plus per-recipe JSON-LD for search engines
 
 ## Tech stack
 
@@ -47,7 +52,7 @@ For how the pieces fit together — the client-script conventions, cooking mode,
 
 ## Adding a recipe
 
-Recipes live as Markdown files in `src/content/recipes/` (English at the top level, German under `de/`, French under `fr/`), with frontmatter for title, tags, prep/cook time, servings, ingredients, and steps. See an existing recipe file for the exact shape, or `src/content.config.ts` for the full schema.
+Recipes live as Markdown files in `src/content/recipes/` (English at the top level, German under `de/`, French under `fr/`), with frontmatter for title, tags, prep/cook time, servings, ingredients, and steps, plus optional `description`, `difficulty` (`easy`/`medium`/`hard`), and free-form notes written in the Markdown body below the frontmatter. See an existing recipe file for the exact shape, or `src/content.config.ts` for the full schema.
 
 ## Commands
 

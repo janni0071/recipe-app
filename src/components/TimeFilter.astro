@@ -1,0 +1,57 @@
+---
+export interface Props {
+  label: string;
+  anyLabel: string;
+  under30Label: string;
+  under60Label: string;
+}
+
+const { label, anyLabel, under30Label, under60Label } = Astro.props;
+
+// data-max-minutes empty = no limit ("any"). The grid filter in BaseLayout
+// reads the active chip and keeps cards whose total minutes are within it.
+const options = [
+  { text: anyLabel, max: '' },
+  { text: under30Label, max: '30' },
+  { text: under60Label, max: '60' },
+];
+---
+
+<div id="time-filter" class="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
+  <span class="mr-1 text-sm text-gray-500 dark:text-gray-400">{label}</span>
+  {options.map((option, i) => (
+    <button
+      type="button"
+      data-active={i === 0 ? 'true' : 'false'}
+      data-max-minutes={option.max}
+      aria-pressed={i === 0 ? 'true' : 'false'}
+      class="h-9 rounded-full border border-gray-300 px-3.5 text-sm text-gray-600 transition hover:bg-gray-100 data-[active=true]:border-pink-400 data-[active=true]:bg-pink-100 data-[active=true]:text-pink-700 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:data-[active=true]:bg-pink-900 dark:data-[active=true]:text-pink-200"
+    >
+      {option.text}
+    </button>
+  ))}
+</div>
+
+<script is:inline>
+  // Single-select chip group: activating one clears the rest, then asks the
+  // shared grid filter (in BaseLayout) to recompute so time combines with
+  // search and the favorites toggle.
+  function bindTimeFilter() {
+    const group = document.getElementById('time-filter');
+    if (!group || group.dataset.timeBound) return;
+    group.dataset.timeBound = 'true';
+
+    group.addEventListener('click', (e) => {
+      const button = e.target.closest('button[data-max-minutes]');
+      if (!button) return;
+      for (const chip of group.querySelectorAll('button')) {
+        const active = chip === button;
+        chip.dataset.active = String(active);
+        chip.setAttribute('aria-pressed', String(active));
+      }
+      if (window.applyRecipeGridFilters) window.applyRecipeGridFilters();
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindTimeFilter);
+</script>

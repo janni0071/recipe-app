@@ -1,0 +1,29 @@
+---
+export interface Props {
+  toggleLabel: string;
+}
+
+const { toggleLabel } = Astro.props;
+---
+
+{/*
+  The toggle sits in the toolbar next to Favorites/Sort; the chips live in a
+  separate <TagFilterPanel/> so they can drop to their own full-width line
+  below. On mobile the label is hidden (icon + count only) so all three
+  controls fit on one row. The behaviour lives in TagFilterPanel's script.
+*/}
+<button
+  type="button"
+  id="tag-filter-toggle"
+  aria-expanded="false"
+  aria-controls="tag-filter-panel"
+  class="group flex h-12 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 sm:h-11 sm:px-4"
+>
+  <svg class="h-4 w-4" aria-hidden="true"><use href="#icon-tag" /></svg>
+  <span class="hidden sm:inline">{toggleLabel}</span>
+  <span
+    id="tag-filter-count"
+    class="hidden min-w-5 rounded-full bg-pink-500 px-1.5 text-center text-xs font-semibold leading-5 text-white"
+  ></span>
+  <svg class="h-4 w-4 transition group-aria-expanded:rotate-180" aria-hidden="true"><use href="#icon-chevron-down" /></svg>
+</button>

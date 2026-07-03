@@ -4,6 +4,7 @@ date: 2025-06-20
 tags: ["pommes de terre", "français", "végétarien"]
 prepTime: "10 min"
 cookTime: "85 min"
+difficulty: medium
 servings: 6
 author: "Daisy"
 image: "../../../assets/recipes/dauphinois.webp"
