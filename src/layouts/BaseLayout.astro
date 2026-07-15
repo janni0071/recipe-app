@@ -199,7 +199,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             </a>
             <a href={shoppingListPath} class="hidden sm:inline-flex items-center gap-1.5 hover:underline">
               {t('nav.shoppingList')}
-              <span data-shopping-count-badge class="hidden items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold leading-none tabular-nums">0</span>
+              <span data-shopping-count-badge class="hidden items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-pink-500 text-white dark:bg-pink-400 dark:text-pink-950 text-xs font-semibold leading-none tabular-nums">0</span>
             </a>
             <a
               href={shoppingListPath}
@@ -210,7 +210,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
               class="sm:hidden relative p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
             >
               <svg class="w-5 h-5" aria-hidden="true"><use href="#icon-cart"/></svg>
-              <span data-shopping-count-badge class="hidden absolute -top-0.5 -right-0.5 items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-pink-500 text-white text-[11px] font-semibold leading-none tabular-nums ring-2 ring-white dark:ring-gray-800">0</span>
+              <span data-shopping-count-badge class="hidden absolute -top-0.5 -right-0.5 items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-pink-500 text-white dark:bg-pink-400 dark:text-pink-950 text-[11px] font-semibold leading-none tabular-nums ring-2 ring-white dark:ring-gray-800">0</span>
             </a>
             <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
             <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
@@ -318,7 +318,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             var action = document.createElement('a');
             action.href = opts.actionHref;
             action.className =
-              'flex-shrink-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-pink-100 hover:bg-pink-200 active:bg-pink-300 text-pink-700 dark:bg-pink-900/60 dark:hover:bg-pink-800 dark:text-pink-200 px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400';
+              'flex-shrink-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-pink-100 hover:bg-pink-200 active:bg-pink-300 text-pink-600 dark:bg-pink-900 dark:hover:bg-pink-800 dark:text-pink-300 px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400';
             action.innerHTML =
               '<span></span><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
             action.firstChild.textContent = opts.actionLabel;
