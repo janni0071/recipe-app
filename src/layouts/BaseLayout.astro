@@ -210,7 +210,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
               class="sm:hidden relative p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
             >
               <svg class="w-5 h-5" aria-hidden="true"><use href="#icon-cart"/></svg>
-              <span data-shopping-count-badge class="hidden absolute -top-0.5 -right-0.5 items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-pink-500 text-white text-[11px] font-semibold leading-none tabular-nums ring-2 ring-gray-200 dark:ring-gray-700">0</span>
+              <span data-shopping-count-badge class="hidden absolute -top-0.5 -right-0.5 items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-pink-500 text-white text-[11px] font-semibold leading-none tabular-nums ring-2 ring-white dark:ring-gray-800">0</span>
             </a>
             <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
             <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
@@ -254,11 +254,27 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
       // Only one toast is shown at a time — a new one replaces the old.
       (function () {
         var dismissTimer = null;
+        // The off-screen/entry state, kept in one place so enter and exit stay
+        // symmetrical (a small slide-up + fade + settle).
+        var HIDDEN = ['opacity-0', 'translate-y-4', 'scale-95'];
+
+        // Small circular icon chips, themed for light and dark rather than a
+        // single flat fill, so the toast sits comfortably in either mode.
+        var ICONS = {
+          check: {
+            chip: 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400',
+            href: '#icon-check',
+          },
+          cart: {
+            chip: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300',
+            href: '#icon-cart',
+          },
+        };
 
         function dismiss(toast) {
           if (!toast || toast.dataset.leaving) return;
           toast.dataset.leaving = 'true';
-          toast.classList.add('opacity-0', 'translate-y-3');
+          toast.classList.add.apply(toast.classList, HIDDEN);
           toast.addEventListener('transitionend', () => toast.remove(), { once: true });
           // Fallback removal in case the transition never fires (e.g. reduced
           // motion or the element is off-screen).
@@ -273,31 +289,39 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           clearTimeout(dismissTimer);
           region.replaceChildren();
 
+          // A light card that matches the rest of the app's surfaces (white /
+          // gray-800, soft shadow, hairline ring) instead of an inverted pill.
           var toast = document.createElement('div');
           toast.setAttribute('role', 'status');
           toast.className =
-            'pointer-events-auto flex items-center gap-3 w-full max-w-sm rounded-2xl bg-gray-900/95 text-white dark:bg-white/95 dark:text-gray-900 shadow-xl ring-1 ring-black/5 backdrop-blur px-4 py-3 opacity-0 translate-y-3 transition-all duration-300 ease-out';
+            'pointer-events-auto flex items-center gap-3 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg shadow-gray-900/10 ring-1 ring-black/5 dark:ring-white/10 py-2.5 pl-3 pr-2.5 transition-all duration-300 ease-out ' +
+            HIDDEN.join(' ');
 
-          if (opts.icon === 'check') {
+          var icon = ICONS[opts.icon];
+          if (icon) {
             var iconWrap = document.createElement('span');
             iconWrap.className =
-              'flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-green-500';
+              'flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full ' + icon.chip;
             iconWrap.innerHTML =
-              '<svg class="w-3.5 h-3.5 text-white" aria-hidden="true"><use href="#icon-check"></use></svg>';
+              '<svg class="w-4 h-4" aria-hidden="true"><use href="' + icon.href + '"></use></svg>';
             toast.appendChild(iconWrap);
           }
 
           var message = document.createElement('span');
-          message.className = 'flex-1 text-sm font-medium leading-snug';
+          message.className = 'flex-1 min-w-0 text-sm font-medium leading-snug';
           message.textContent = opts.message || '';
           toast.appendChild(message);
 
           if (opts.actionLabel && opts.actionHref) {
+            // A pink pill matching the recipe page's own shopping-list button,
+            // with a small arrow to read as "take me there".
             var action = document.createElement('a');
             action.href = opts.actionHref;
-            action.textContent = opts.actionLabel;
             action.className =
-              'flex-shrink-0 text-sm font-semibold text-pink-400 dark:text-pink-600 hover:underline whitespace-nowrap rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400';
+              'flex-shrink-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-pink-100 hover:bg-pink-200 active:bg-pink-300 text-pink-700 dark:bg-pink-900/60 dark:hover:bg-pink-800 dark:text-pink-200 px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400';
+            action.innerHTML =
+              '<span></span><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+            action.firstChild.textContent = opts.actionLabel;
             // Tapping the action navigates (the ClientRouter picks up the
             // anchor click); dismiss the toast immediately so it doesn't linger
             // over the new page for a frame.
@@ -308,7 +332,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
           region.appendChild(toast);
           // Next frame: flip to the visible state so the entry transition runs.
           requestAnimationFrame(() => {
-            toast.classList.remove('opacity-0', 'translate-y-3');
+            toast.classList.remove.apply(toast.classList, HIDDEN);
           });
 
           dismissTimer = setTimeout(() => dismiss(toast), 4000);
@@ -624,7 +648,7 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
                     actionHref: button.dataset.listHref,
                   });
                 } else {
-                  window.showToast({ message: button.dataset.removedLabel });
+                  window.showToast({ message: button.dataset.removedLabel, icon: 'cart' });
                 }
               }
             },
