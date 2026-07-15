@@ -2,12 +2,22 @@
 export interface Props {
   slug: string;
   label: string;
+  // Feedback-toast copy + destination, baked on server-side so they're already
+  // localized when the client-side click handler reads them (see BaseLayout).
+  addedLabel?: string;
+  removedLabel?: string;
+  viewLabel?: string;
+  listHref?: string;
   class?: string;
 }
 
 const {
   slug,
   label,
+  addedLabel,
+  removedLabel,
+  viewLabel,
+  listHref,
   class: className = 'bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-600 dark:text-pink-300',
 } = Astro.props;
 ---
@@ -16,6 +26,10 @@ const {
   type="button"
   data-shopping-slug={slug}
   data-in-list="false"
+  data-added-label={addedLabel}
+  data-removed-label={removedLabel}
+  data-view-label={viewLabel}
+  data-list-href={listHref}
   aria-pressed="false"
   aria-label={label}
   class={`group relative flex-shrink-0 p-3 rounded-full transition ${className}`}
