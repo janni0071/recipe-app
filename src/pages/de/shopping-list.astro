@@ -53,6 +53,9 @@ const recipesPayload = localeRecipes.map((r: CollectionEntry<'recipes'>) => {
 
   function setShoppingListEntries(list) {
     localStorage.setItem('shopping-list', JSON.stringify(list));
+    // Let the navbar's shopping-list badge (owned by a BaseLayout script)
+    // re-read the new count without a page reload.
+    window.dispatchEvent(new CustomEvent('shopping-list-changed'));
   }
 
   function getCheckedKeys() {
