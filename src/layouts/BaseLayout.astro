@@ -197,9 +197,20 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
             <a href={tagsPath} aria-label={t('nav.tags')} class="sm:hidden p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
               <svg class="w-5 h-5" aria-hidden="true"><use href="#icon-tag"/></svg>
             </a>
-            <a href={shoppingListPath} class="hidden sm:inline hover:underline">{t('nav.shoppingList')}</a>
-            <a href={shoppingListPath} aria-label={t('nav.shoppingList')} class="sm:hidden p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition">
+            <a href={shoppingListPath} class="hidden sm:inline-flex items-center gap-1.5 hover:underline">
+              {t('nav.shoppingList')}
+              <span data-shopping-count-badge class="hidden items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-pink-500 text-white dark:bg-pink-400 dark:text-pink-950 text-xs font-semibold leading-none tabular-nums">0</span>
+            </a>
+            <a
+              href={shoppingListPath}
+              aria-label={t('nav.shoppingList')}
+              data-shopping-list-link
+              data-base-label={t('nav.shoppingList')}
+              data-count-label={t('nav.shoppingListWithCount')}
+              class="sm:hidden relative p-3 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+            >
               <svg class="w-5 h-5" aria-hidden="true"><use href="#icon-cart"/></svg>
+              <span data-shopping-count-badge class="hidden absolute -top-0.5 -right-0.5 items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-pink-500 text-white dark:bg-pink-400 dark:text-pink-950 text-[11px] font-semibold leading-none tabular-nums ring-2 ring-white dark:ring-gray-800">0</span>
             </a>
             <LanguageSwitcher currentLocale={locale} localeUrls={localeUrls} />
             <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
@@ -227,6 +238,107 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         </button>
         Daisy
     </footer>
+    <!-- Transient feedback toasts (e.g. "Added to shopping list"). aria-live so
+         screen readers announce them; pointer-events-none on the region lets
+         taps fall through to the page except on the toast itself. -->
+    <div
+      id="toast-region"
+      aria-live="polite"
+      aria-atomic="true"
+      class="pointer-events-none fixed inset-x-0 bottom-0 z-[10000] flex flex-col items-center gap-2 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] print:hidden cooking-mode-layout:hidden"
+    ></div>
+    <script is:inline>
+      // A tiny toast helper shared across pages. Defined once (this inline
+      // script's text never changes, so the ClientRouter runs it a single
+      // time), and re-assigned onto window so any page's script can call it.
+      // Only one toast is shown at a time — a new one replaces the old.
+      (function () {
+        var dismissTimer = null;
+        // The off-screen/entry state, kept in one place so enter and exit stay
+        // symmetrical (a small slide-up + fade + settle).
+        var HIDDEN = ['opacity-0', 'translate-y-4', 'scale-95'];
+
+        // Small circular icon chips, themed for light and dark rather than a
+        // single flat fill, so the toast sits comfortably in either mode.
+        var ICONS = {
+          check: {
+            chip: 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400',
+            href: '#icon-check',
+          },
+          cart: {
+            chip: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300',
+            href: '#icon-cart',
+          },
+        };
+
+        function dismiss(toast) {
+          if (!toast || toast.dataset.leaving) return;
+          toast.dataset.leaving = 'true';
+          toast.classList.add.apply(toast.classList, HIDDEN);
+          toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+          // Fallback removal in case the transition never fires (e.g. reduced
+          // motion or the element is off-screen).
+          setTimeout(() => toast.remove(), 400);
+        }
+
+        window.showToast = function (options) {
+          var region = document.getElementById('toast-region');
+          if (!region) return;
+          var opts = options || {};
+
+          clearTimeout(dismissTimer);
+          region.replaceChildren();
+
+          // A light card that matches the rest of the app's surfaces (white /
+          // gray-800, soft shadow, hairline ring) instead of an inverted pill.
+          var toast = document.createElement('div');
+          toast.setAttribute('role', 'status');
+          toast.className =
+            'pointer-events-auto flex items-center gap-3 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg shadow-gray-900/10 ring-1 ring-black/5 dark:ring-white/10 py-2.5 pl-3 pr-2.5 transition-all duration-300 ease-out ' +
+            HIDDEN.join(' ');
+
+          var icon = ICONS[opts.icon];
+          if (icon) {
+            var iconWrap = document.createElement('span');
+            iconWrap.className =
+              'flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full ' + icon.chip;
+            iconWrap.innerHTML =
+              '<svg class="w-4 h-4" aria-hidden="true"><use href="' + icon.href + '"></use></svg>';
+            toast.appendChild(iconWrap);
+          }
+
+          var message = document.createElement('span');
+          message.className = 'flex-1 min-w-0 text-sm font-medium leading-snug';
+          message.textContent = opts.message || '';
+          toast.appendChild(message);
+
+          if (opts.actionLabel && opts.actionHref) {
+            // A pink pill matching the recipe page's own shopping-list button,
+            // with a small arrow to read as "take me there".
+            var action = document.createElement('a');
+            action.href = opts.actionHref;
+            action.className =
+              'flex-shrink-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-pink-100 hover:bg-pink-200 active:bg-pink-300 text-pink-600 dark:bg-pink-900 dark:hover:bg-pink-800 dark:text-pink-300 px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400';
+            action.innerHTML =
+              '<span></span><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+            action.firstChild.textContent = opts.actionLabel;
+            // Tapping the action navigates (the ClientRouter picks up the
+            // anchor click); dismiss the toast immediately so it doesn't linger
+            // over the new page for a frame.
+            action.addEventListener('click', () => dismiss(toast));
+            toast.appendChild(action);
+          }
+
+          region.appendChild(toast);
+          // Next frame: flip to the visible state so the entry transition runs.
+          requestAnimationFrame(() => {
+            toast.classList.remove.apply(toast.classList, HIDDEN);
+          });
+
+          dismissTimer = setTimeout(() => dismiss(toast), 4000);
+        };
+      })();
+    </script>
     <script is:inline>
       function setupThemeToggle() {
         const button = document.getElementById('theme-toggle');
@@ -473,6 +585,29 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
         });
       }
 
+      // The count badge on the navbar's shopping-list links, so the user always
+      // knows something is in the list — even after they've dismissed the
+      // "added" toast. Exposed on window so the shopping-list page (a separate
+      // inline script) can refresh it after removing an item there.
+      window.syncShoppingListBadge = function () {
+        const count = getShoppingList().length;
+        document.querySelectorAll('[data-shopping-count-badge]').forEach((badge) => {
+          badge.textContent = count > 99 ? '99+' : String(count);
+          badge.classList.toggle('hidden', count === 0);
+          badge.classList.toggle('inline-flex', count > 0);
+        });
+        // Fold the count into the icon-only (mobile) link's accessible name,
+        // since it has no visible text the number could otherwise sit inside.
+        document.querySelectorAll('[data-shopping-list-link]').forEach((link) => {
+          const template = link.dataset.countLabel;
+          if (count > 0 && template) {
+            link.setAttribute('aria-label', template.replace('{n}', count));
+          } else if (link.dataset.baseLabel) {
+            link.setAttribute('aria-label', link.dataset.baseLabel);
+          }
+        });
+      };
+
       function initShoppingListButtons() {
         if (!window.__shoppingListClickBound) {
           window.__shoppingListClickBound = true;
@@ -489,23 +624,50 @@ const ogImageUrl = image ? new URL(image.src, Astro.site) : undefined;
               const slug = button.dataset.shoppingSlug;
               const list = getShoppingList();
               const index = list.findIndex((entry) => entry.slug === slug);
-              if (index >= 0) {
-                list.splice(index, 1);
-              } else {
+              const added = index < 0;
+              if (added) {
                 const servingsEl = document.querySelector('.servings-value');
                 const servings = servingsEl ? parseFloat(servingsEl.textContent) : 1;
                 list.push({ slug, servings: Number.isFinite(servings) ? servings : 1 });
+              } else {
+                list.splice(index, 1);
               }
               setShoppingList(list);
               syncShoppingListButtons();
+              window.syncShoppingListBadge();
+
+              // Confirm the change with a toast. On add we also offer a shortcut
+              // straight to the shopping list — the labels/href are baked onto
+              // the button server-side, so they're already localized.
+              if (window.showToast) {
+                if (added) {
+                  window.showToast({
+                    message: button.dataset.addedLabel,
+                    icon: 'check',
+                    actionLabel: button.dataset.viewLabel,
+                    actionHref: button.dataset.listHref,
+                  });
+                } else {
+                  window.showToast({ message: button.dataset.removedLabel, icon: 'cart' });
+                }
+              }
             },
             true
           );
         }
         syncShoppingListButtons();
+        window.syncShoppingListBadge();
       }
 
       document.addEventListener('astro:page-load', initShoppingListButtons);
+      // The shopping-list page mutates the list from its own script; it fires
+      // this event so the navbar badge stays in sync without a reload.
+      if (!window.__shoppingListChangedBound) {
+        window.__shoppingListChangedBound = true;
+        window.addEventListener('shopping-list-changed', () => {
+          if (window.syncShoppingListBadge) window.syncShoppingListBadge();
+        });
+      }
     </script>
     <script is:inline>
       // RecipeCard renders every tag server-side; if they'd wrap to a second
