@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import stripInlineScriptComments from "./integrations/strip-inline-script-comments.mjs";
+import securityHeaders from "./integrations/security-headers.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -20,6 +21,9 @@ export default defineConfig({
       },
     }),
     stripInlineScriptComments(),
+    // Must come after stripInlineScriptComments so the CSP hashes it emits
+    // match the minified inline scripts that actually ship.
+    securityHeaders(),
   ],
   vite: {
     plugins: [tailwindcss()],
