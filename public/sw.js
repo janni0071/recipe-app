@@ -19,7 +19,7 @@
 //     both safe and fast.
 //
 // Bump CACHE_VERSION to force every client to drop the old cache on activate.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `recipe-box-${CACHE_VERSION}`;
 
 // The one page we precache, so there's always a styled offline fallback even
@@ -59,8 +59,11 @@ async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const fresh = await fetch(request);
-    // Stash a copy so this page is available offline next time.
-    cache.put(request, fresh.clone());
+    // Only stash successful responses — caching a 404/500 (fetch() resolves for
+    // those, it doesn't throw) would poison the offline fallback, serving the
+    // stale error page later instead of the real one or the offline page. The
+    // error response itself is still returned to the browser as-is.
+    if (fresh.ok) cache.put(request, fresh.clone());
     return fresh;
   } catch {
     const cached = await cache.match(request);
